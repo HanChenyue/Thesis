@@ -1,0 +1,78 @@
+---
+title: "Treatment Switching Simulation"
+format: html
+---
+
+```{r echo=FALSE}
+library(knitr)
+library(ggplot2)
+opts_chunk$set(comment=NA, warning=FALSE, fig.path="/tmp/Figs/")
+opts_knit$set(global.par = TRUE)
+```
+
+Subjects have access to two treatments, A and B. They are randomly allocated
+to one treatment. At the midpoint of the study, if they have not improved,
+they switch to the other treatment.
+
+
+Set the random number seed and generate the simulated data.
+
+```{r}
+set.seed(123)
+source("trtswitch.R")
+```
+
+Take a look at the data:
+
+```{r}
+head(gendata)
+```
+
+- `yinit` is the initial state
+- `ymid` is state at the midpoint
+- `yfinal` is the final state
+- `treatinit` is the initial treatment
+- `treatmid` is the midpoint treatment
+
+We see that subject 4 switched treatments at the midpoint because their midpoint
+outcome was negative.
+
+Fit a model for the final outcome based on the initial state and the initial
+treatment:
+
+```{r}
+lmod = lm(yfinal ~ yinit + treatinit, gendata)
+summary(lmod)
+```
+
+We would expect the treatment B to be 1 unit worse than treatment A based
+on the known treatment effects from simulation script. But this is not
+the estimated effect because of the switching.
+
+```{r}
+library(ggplot2)
+
+# Create a scatter plot of yfinal vs yinit, colored by treatinit
+ggplot(gendata, aes(x = yinit, y = yfinal, color = treatinit)) +
+    geom_point() +
+    # Add the linear model line
+    geom_smooth(method = "lm", se = FALSE) +
+    # Add labels
+    labs(x = "Initial State", y = "Final State", color = "Initial Treatment") +
+    # Add title
+    theme(plot.title = element_text(hjust = 0.5)) +
+    ggtitle("Final State vs Initial State by Initial Treatment")
+```
+
+```{r}
+ggplot(gendata, aes(x = yinit, y = yfinal, color = treatinit)) +
+    geom_point() +
+    # Add the linear model line with interaction term
+    geom_smooth(method = "lm", formula = y ~ x * treatinit, se = FALSE) +
+    # Add labels
+    labs(x = "Initial State", y = "Final State", color = "Initial Treatment") +
+    # Add title
+    theme(plot.title = element_text(hjust = 0.5)) +
+    ggtitle("Final State vs Initial State by Initial Treatment")
+```
+
