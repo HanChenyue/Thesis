@@ -1,27 +1,85 @@
 ---
 title: "Thesis"
 author: "Han Chenyue"
-format: pdf
-editor: visual
+format: pdf editor: visual
 ---
 
-## Quarto
 
-Quarto enables you to weave together content and executable code into a finished document. To learn more about Quarto see <https://quarto.org>.
-
-## Running Code
-
-When you click the **Render** button a document will be generated that includes both content and the output of embedded code. You can embed code like this:
-
-```{r}
-1 + 1
+```{r, include=FALSE}
+library(knitr)
+library(tidyverse)
+library(ggplot2)
+library(readxl)
+library(dplyr)
+library(tidyr)
+library(janitor)
+library(lubridate)
 ```
 
-You can add options to executable code like this
+# ```{r}
+# # Combine sheets into a single data frame
+# file_path <- file_path <- "C:/Users/hn/OneDrive - University of Bath/Thesis/thesis_dataset/TTAS All data anon.xlsx"
+# sheet_names <- c("Demographics", "PROMs ALL DATA", "BASMI data", "Highcost drug data")
+# 
+# # Perform full join
+# data <- sheet_names %>%
+#   map(read_excel, path = file_path) %>%
+#   reduce(full_join, by = "TTAS_ID")
+# 
+# 
+# ```
 
 ```{r}
-#| echo: false
-2 * 2
+# Load data
+demographics_sheet_data <- read_excel("TTAS\ All\ data\ anon.xlsx", sheet = "Demographics")
+prom_sheet_data <- read_excel("TTAS\ All\ data\ anon.xlsx", sheet = "PROMs\ ALL\ DATA")
+basmi_sheet_data <- read_excel("TTAS\ All\ data\ anon.xlsx", sheet = "BASMI\ data")
+drug_sheet_data <- read_excel("TTAS\ All\ data\ anon.xlsx", sheet = "Highcost\ drug\ data")
+
+# Clean data
+demographics_sheet_data <- clean_names(demographics_sheet_data)
+prom_sheet_data <- clean_names(prom_sheet_data)
+basmi_sheet_data <- clean_names(basmi_sheet_data)
+drug_sheet_data <- clean_names(drug_sheet_data)
 ```
 
-The `echo: false` option disables the printing of code (only output is displayed).
+```{r}
+# Ensure that the date columns are consistent
+colnames(prom_sheet_data)[colnames(prom_sheet_data) == "date"] <- "prom_datasheet_record_date"
+colnames(basmi_sheet_data)[colnames(basmi_sheet_data) == "date"] <- "basmi_datasheet_record_date"
+colnames(drug_sheet_data)[colnames(drug_sheet_data) == "start_date"] <- "drug_start_date"
+
+# Convert all date columns to a consistent format
+prom_sheet_data$prom_datasheet_record_date <- as.Date(prom_sheet_data$prom_datasheet_record_date, format = "%d/%m/%Y")
+basmi_sheet_data$basmi_datasheet_record_date <- as.Date(basmi_sheet_data$basmi_datasheet_record_date, format = "%d/%m/%Y")
+drug_sheet_data$drug_start_date <- as.Date(drug_sheet_data$drug_start_date, format = "%d/%m/%Y")
+drug_sheet_data$stop_date <- as.Date(drug_sheet_data$stop_date, format = "%d/%m/%Y")
+```
+
+```{r}
+# Full join the data
+combined_df <- full_join(basmi_sheet_data, prom_sheet_data, 
+                         by = c("ttas_id",
+                                "basmi_datasheet_record_date" = "prom_datasheet_record_date"))
+
+combined_df <- combined_df %>% arrange(ttas_id, basmi_datasheet_record_date)
+
+combined_df <- full_join(combined_df, drug_sheet_data, 
+                         by = c("ttas_id",
+                                "basmi_datasheet_record_date" = "drug_start_date"))
+
+combined_df <- combined_df %>% arrange(ttas_id, basmi_datasheet_record_date)
+
+combined_df <- full_join(combined_df, demographics_sheet_data, by = "ttas_id")
+
+# write_csv(combined_df, "test_combined_df.csv")
+```
+
+```{r}
+# Data Cleaning
+# Demographics
+# 1. Replace all unknown and blank values with NA
+demographics_sheet_data <- demographics_sheet_data %>%
+  mutate(across(where(is.character), ~na_if(., "Unknown"))) %>%
+  mutate(across(where(is.character), ~n_if(., "")))
+```
