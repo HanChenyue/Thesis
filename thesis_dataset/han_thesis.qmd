@@ -14,6 +14,7 @@ library(dplyr)
 library(tidyr)
 library(janitor)
 library(lubridate)
+library(kableExtra)
 ```
 
 # ```{r}
@@ -44,6 +45,17 @@ drug_sheet_data <- clean_names(drug_sheet_data)
 ```
 
 ```{r}
+# Data Cleaning
+# 1. Convert all dates column to date type
+# basmi_sheet_data$date <- as.Date(basmi_sheet_data$date, format = "%d/%m/%Y")
+# prom_sheet_data$date <- as.Date(prom_sheet_data$date, format = "%d/%m/%Y")
+# drug_sheet_data$start_date <- as.Date(drug_sheet_data$start_date, format = "%d/%m/%Y")
+# drug_sheet_data$stop_date <- as.Date(drug_sheet_data$stop_date, format = "%d/%m/%Y")
+
+# Ensure year_quit_smoking and year_quit_vaping is numeric
+prom_sheet_data$year_quit_smoking <- as.numeric(prom_sheet_data$year_quit_smoking)
+prom_sheet_data$year_quit_vaping <- as.numeric(prom_sheet_data$year_quit_vaping)
+
 # Ensure that the date columns are consistent
 colnames(prom_sheet_data)[colnames(prom_sheet_data) == "date"] <- "prom_datasheet_record_date"
 colnames(basmi_sheet_data)[colnames(basmi_sheet_data) == "date"] <- "basmi_datasheet_record_date"
@@ -54,14 +66,217 @@ prom_sheet_data$prom_datasheet_record_date <- as.Date(prom_sheet_data$prom_datas
 basmi_sheet_data$basmi_datasheet_record_date <- as.Date(basmi_sheet_data$basmi_datasheet_record_date, format = "%d/%m/%Y")
 drug_sheet_data$drug_start_date <- as.Date(drug_sheet_data$drug_start_date, format = "%d/%m/%Y")
 drug_sheet_data$stop_date <- as.Date(drug_sheet_data$stop_date, format = "%d/%m/%Y")
+```
 
-# Data Cleaning
-# Demographics
+```{r}
+# Ensure that categorical variables are factors
+demographics_sheet_data$ttas_id <- as.factor(demographics_sheet_data$ttas_id)
+demographics_sheet_data$diagnosis <- as.factor(demographics_sheet_data$diagnosis)
+demographics_sheet_data$gender <- as.factor(demographics_sheet_data$gender)
+demographics_sheet_data$hlab27status <- as.factor(demographics_sheet_data$hlab27status)
+
+basmi_sheet_data$ttas_id <- as.factor(basmi_sheet_data$ttas_id)
+
+prom_sheet_data$ttas_id <- as.factor(prom_sheet_data$ttas_id)
+prom_sheet_data$type_of_appointment_4 <- as.factor(prom_sheet_data$type_of_appointment_4)
+prom_sheet_data$type_of_appointment_5 <- as.factor(prom_sheet_data$type_of_appointment_5)
+prom_sheet_data$do_you_smoke <- as.factor(prom_sheet_data$do_you_smoke)
+prom_sheet_data$ecigarettes <- as.factor(prom_sheet_data$ecigarettes)
+
+drug_sheet_data$ttas_id <- as.factor(drug_sheet_data$ttas_id)
+drug_sheet_data$high_cost_drug_name <- as.factor(drug_sheet_data$high_cost_drug_name)
+drug_sheet_data$x3 <- as.factor(drug_sheet_data$x3)
+drug_sheet_data$high_cost_drug_stop_reason <- as.factor(drug_sheet_data$high_cost_drug_stop_reason)
+drug_sheet_data$high_cost_drug_stop_reason_text <- as.factor(drug_sheet_data$high_cost_drug_stop_reason_text)
+drug_sheet_data$comment <- as.factor(drug_sheet_data$comment)
+```
+
+```{r}
+# Demographics data cleaning
 # 1. Replace all unknown and blank values with NA
 demographics_sheet_data <- demographics_sheet_data %>%
   mutate(across(where(is.character), ~na_if(., "Unknown"))) #%>%
   # mutate(across(where(is.character), ~na_if(., "")))
 ```
+
+```{r}
+# 2. Replace negative value of age_at_onset with positive equivalent
+subset_data_375 <- demographics_sheet_data[demographics_sheet_data$ttas_id == 375, c("ttas_id", "age_at_onset")]
+cat("Before, ttas_id for 375: ttas_id=", subset_data_375$ttas_id, ", age_at_onset=", subset_data_375$age_at_onset, "\n")
+subset_data_623 <- demographics_sheet_data[demographics_sheet_data$ttas_id == 623, c("ttas_id", "age_at_onset")]
+cat("Before, ttas_id for 623: ttas_id=", subset_data_623$ttas_id, ", age_at_onset=", subset_data_623$age_at_onset, "\n")
+
+demographics_sheet_data$age_at_onset <- ifelse(demographics_sheet_data$age_at_onset < 0, demographics_sheet_data$age_at_onset * -1, demographics_sheet_data$age_at_onset)
+
+subset_data_375 <- demographics_sheet_data[demographics_sheet_data$ttas_id == 375, c("ttas_id", "age_at_onset")]
+cat("After, ttas_id for 375: ttas_id=", subset_data_375$ttas_id, ", age_at_onset=", subset_data_375$age_at_onset, "\n")
+subset_data_623 <- demographics_sheet_data[demographics_sheet_data$ttas_id == 623, c("ttas_id", "age_at_onset")]
+cat("After, ttas_id for 623: ttas_id=", subset_data_623$ttas_id, ", age_at_onset=", subset_data_623$age_at_onset, "\n")
+```
+
+```{r}
+# Summary of demographics_sheet_data
+kable(summary(demographics_sheet_data)) %>% kable_styling(bootstrap_options = "striped", full_width = F)
+
+# Negative number spotted in age_at_onset
+# Converting negative number to 0 for age_at_onset indicating that the patient has it since birth
+demographics_sheet_data$age_at_onset <- ifelse(demographics_sheet_data$age_at_onset < 0, 0, demographics_sheet_data$age_at_onset)
+
+kable(summary(demographics_sheet_data)) %>% kable_styling(bootstrap_options = "striped", full_width = F)
+```
+
+```{r}
+# The final calculation for ASQOL is wrong, replace blank values with 0 and recalculate the final score for any rows with a non-blank value in as_qol
+# Define a list of columns named 'asqol_cols' containing the columns that are used to calculate the final ASQOL score
+asqol_cols <- c("asqol_1", "asqol_2", "asqol_3", "asqol_4", "asqol_5", "asqol_6", "asqol_7", "asqol_8", "asqol_9", "asqol_10", "asqol_11", "asqol_12", "asqol_13", "asqol_14", "asqol_15", "asqol_16", "asqol_17", "asqol_18, as_qol")
+asqol_cols_1_to_18 <- c("asqol_1", "asqol_2", "asqol_3", "asqol_4", "asqol_5", "asqol_6", "asqol_7", "asqol_8", "asqol_9", "asqol_10", "asqol_11", "asqol_12", "asqol_13", "asqol_14", "asqol_15", "asqol_16", "asqol_17", "asqol_18")
+
+# Count the number of rows where `AsQol` is not blank and store it in `non_blank_asqol_count_before`
+non_blank_asqol_count_before <- sum(!is.na(prom_sheet_data$as_qol))
+
+# Define the function to recalculate the final ASQOL score
+recalculate_asqol <- function(row) {
+  # Check if any of the columns in `asqol_cols` are blank for a single row
+  # If blank, return NA
+  if (all(is.na(row[asqol_cols]))) {
+    return(NA)
+  }
+  
+  # Else, fill the blank values with 0 for asqol_1 to asqol_18
+  row[asqol_cols_1_to_18][is.na(row[asqol_cols_1_to_18])] <- 0
+  
+  # Calculate the final ASQOL score
+  return(sum(as.numeric(row[asqol_cols_1_to_18])))
+}
+
+# Apply the recalculation function to each row and store the result in a new column `final_asqol`
+prom_sheet_data$final_asqol <- apply(prom_sheet_data, 1, recalculate_asqol)
+
+
+# Count the number of rows where `as_qol` is not blank and store it in `non_blank_asqol_count_after`
+non_blank_asqol_count_after <- sum(!is.na(prom_sheet_data$as_qol))
+
+# write_csv(prom_sheet_data, "checking_prom_sheet_data.csv")
+```
+
+
+
+```{r}
+# Histogram for age_at_onset
+hist(demographics_sheet_data$age_at_onset, main = "Histogram of Age at Onset", xlab = "Age at Onset")
+```
+
+```{r}
+# Kernel density plot for age_at_onset
+plot(density(demographics_sheet_data$age_at_onset, na.rm = TRUE), main = "Kernel Density Plot of Age at Onset", xlab = "Age at Onset")
+```
+
+```{r}
+# Sorted data against index for age_at_onset
+plot(sort(demographics_sheet_data$age_at_onset, na.last = NA), main = "Sorted Age at Onset", xlab = "Index", ylab = "Age at Onset")
+```
+
+```{r}
+# Histogram for age_at_diag
+hist(demographics_sheet_data$age_at_diag, main = "Histogram of Age at Diagnosis", xlab = "Age at Diagnosis")
+```
+
+```{r}
+# Kernel density plot for age_at_diag
+plot(density(demographics_sheet_data$age_at_diag, na.rm = TRUE), main = "Kernel Density Plot of Age at Diagnosis", xlab = "Age at Diagnosis")
+```
+
+```{r}
+# Sorted data against index for age_at_diag
+plot(sort(demographics_sheet_data$age_at_diag, na.last = NA), main = "Sorted Age at Diagnosis", xlab = "Index", ylab = "Age at Diagnosis")
+```
+
+```{r}
+# Histogram for age_at_diag
+hist(demographics_sheet_data$age_at_diag, main = "Histogram of Age at Diagnosis", xlab = "Age at Diagnosis")
+```
+
+```{r}
+# Kernel density plot for age_at_diag
+plot(density(demographics_sheet_data$age_at_diag, na.rm = TRUE), main = "Kernel Density Plot of Age at Diagnosis", xlab = "Age at Diagnosis")
+```
+
+```{r}
+# Sorted data against index for age_at_diag
+plot(sort(demographics_sheet_data$age_at_diag, na.last = NA), main = "Sorted Age at Diagnosis", xlab = "Index", ylab = "Age at Diagnosis")
+```
+
+```{r}
+# Summary of basmi_sheet_data
+kable(summary(basmi_sheet_data)) %>% kable_styling(bootstrap_options = "striped", full_width = F)
+
+# Some basmi_patient_height doesn't make sense as it is too low
+# 16 entries with basmi_patient_height < 100
+# No changes made to the data for now as the BASMI score will be the core focus
+```
+
+```{r}
+# Histogram for age_at_basmi
+hist(basmi_sheet_data$age_at_basmi, main = "Histogram of Age at BASMI", xlab = "Age at BASMI")
+```
+
+```{r}
+# Kernel density plot for age_at_basmi
+plot(density(basmi_sheet_data$age_at_basmi, na.rm = TRUE), main = "Kernel Density Plot of Age at BASMI", xlab = "Age at BASMI")
+```
+
+```{r}
+# Sorted data against index for age_at_basmi
+plot(sort(basmi_sheet_data$age_at_basmi, na.last = NA), main = "Sorted Age at BASMI", xlab = "Index", ylab = "Age at BASMI")
+```
+
+```{r}
+# Histogram for basmi_score
+hist(basmi_sheet_data$basmi_score, main = "Histogram of BASMI Score", xlab = "BASMI Score")
+```
+
+```{r}
+# Kernel density plot for basmi_score
+plot(density(basmi_sheet_data$basmi_score, na.rm = TRUE), main = "Kernel Density Plot of BASMI Score", xlab = "BASMI Score")
+```
+
+```{r}
+# Sorted data against index for basmi_score
+plot(sort(basmi_sheet_data$basmi_score, na.last = NA), main = "Sorted BASMI Score", xlab = "Index", ylab = "BASMI Score")
+```
+
+```{r}
+# Plotting the BASMI score against age_at_basmi
+ggplot(basmi_sheet_data, aes(x = age_at_basmi, y = basmi_score)) +
+  geom_point() +
+  geom_smooth(method = "loess", se = FALSE, colour = "red") +
+  geom_smooth(method = "lm", se = FALSE, colour = "blue") +
+  labs(title = "BASMI Score against Age at BASMI", x = "Age at BASMI", y = "BASMI Score")
+```
+
+```{r}
+lm_basmi <- lm(basmi_score ~ age_at_basmi, data = basmi_sheet_data)
+summary(lm_basmi)
+```
+
+```{r}
+# Summary of prom_sheet_data
+kable(summary(prom_sheet_data)) %>% kable_styling(bootstrap_options = "striped", full_width = F)
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 ```{r}
 # Full join the data

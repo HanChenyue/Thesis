@@ -44,6 +44,11 @@ drug_sheet_data <- clean_names(drug_sheet_data)
 ```
 
 ```{r}
+summary(demographics_sheet_data)
+
+```
+
+```{r}
 # Ensure that the date columns are consistent
 colnames(prom_sheet_data)[colnames(prom_sheet_data) == "date"] <- "prom_datasheet_record_date"
 colnames(basmi_sheet_data)[colnames(basmi_sheet_data) == "date"] <- "basmi_datasheet_record_date"
