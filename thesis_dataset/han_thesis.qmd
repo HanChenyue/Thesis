@@ -131,9 +131,6 @@ kable(summary(demographics_sheet_data)) %>% kable_styling(bootstrap_options = "s
 asqol_cols <- c("asqol_1", "asqol_2", "asqol_3", "asqol_4", "asqol_5", "asqol_6", "asqol_7", "asqol_8", "asqol_9", "asqol_10", "asqol_11", "asqol_12", "asqol_13", "asqol_14", "asqol_15", "asqol_16", "asqol_17", "asqol_18, as_qol")
 asqol_cols_1_to_18 <- c("asqol_1", "asqol_2", "asqol_3", "asqol_4", "asqol_5", "asqol_6", "asqol_7", "asqol_8", "asqol_9", "asqol_10", "asqol_11", "asqol_12", "asqol_13", "asqol_14", "asqol_15", "asqol_16", "asqol_17", "asqol_18")
 
-# Count the number of rows where `AsQol` is not blank and store it in `non_blank_asqol_count_before`
-non_blank_asqol_count_before <- sum(!is.na(prom_sheet_data$as_qol))
-
 # Define the function to recalculate the final ASQOL score
 recalculate_asqol <- function(row) {
   # Check if any of the columns in `asqol_cols` are blank for a single row
@@ -150,16 +147,84 @@ recalculate_asqol <- function(row) {
 }
 
 # Apply the recalculation function to each row and store the result in a new column `final_asqol`
-prom_sheet_data$final_asqol <- apply(prom_sheet_data, 1, recalculate_asqol)
+prom_sheet_data$corrected_asqol <- apply(prom_sheet_data, 1, recalculate_asqol)
 
+# Remake asqol_1 to asqol_18 a factor
+prom_sheet_data$asqol_1 <- as.factor(prom_sheet_data$asqol_1)
+prom_sheet_data$asqol_2 <- as.factor(prom_sheet_data$asqol_2)
+prom_sheet_data$asqol_3 <- as.factor(prom_sheet_data$asqol_3)
+prom_sheet_data$asqol_4 <- as.factor(prom_sheet_data$asqol_4)
+prom_sheet_data$asqol_5 <- as.factor(prom_sheet_data$asqol_5)
+prom_sheet_data$asqol_6 <- as.factor(prom_sheet_data$asqol_6)
+prom_sheet_data$asqol_7 <- as.factor(prom_sheet_data$asqol_7)
+prom_sheet_data$asqol_8 <- as.factor(prom_sheet_data$asqol_8)
+prom_sheet_data$asqol_9 <- as.factor(prom_sheet_data$asqol_9)
+prom_sheet_data$asqol_10 <- as.factor(prom_sheet_data$asqol_10)
+prom_sheet_data$asqol_11 <- as.factor(prom_sheet_data$asqol_11)
+prom_sheet_data$asqol_12 <- as.factor(prom_sheet_data$asqol_12)
+prom_sheet_data$asqol_13 <- as.factor(prom_sheet_data$asqol_13)
+prom_sheet_data$asqol_14 <- as.factor(prom_sheet_data$asqol_14)
+prom_sheet_data$asqol_15 <- as.factor(prom_sheet_data$asqol_15)
+prom_sheet_data$asqol_16 <- as.factor(prom_sheet_data$asqol_16)
+prom_sheet_data$asqol_17 <- as.factor(prom_sheet_data$asqol_17)
+prom_sheet_data$asqol_18 <- as.factor(prom_sheet_data$asqol_18)
+```
 
-# Count the number of rows where `as_qol` is not blank and store it in `non_blank_asqol_count_after`
-non_blank_asqol_count_after <- sum(!is.na(prom_sheet_data$as_qol))
+```{r}
+# The final calculation for FACIT is wrong, replace blank values with 0 and recalculate the final score for any rows with a non-blank value in facit
+# Define a list of columns named 'facit_cols' containing the columns that are used to calculate the final FACIT score
+facit_cols <- c("facit_1", "facit_2", "facit_3", "facit_4", "facit_5", "facit_6", "facit_7", "facit_8", "facit_9", "facit_10", "facit_11", "facit_12", "facit_13", "facit")
+facit_cols_1_to_13 <- c("facit_1", "facit_2", "facit_3", "facit_4", "facit_5", "facit_6", "facit_7", "facit_8", "facit_9", "facit_10", "facit_11", "facit_12", "facit_13")
 
-# write_csv(prom_sheet_data, "checking_prom_sheet_data.csv")
+# Define the function to recalculate the final FACIT score
+recalculate_facit <- function(row) {
+  # Check if any of the columns in `facit_cols` are blank for a single row
+  # If blank, return NA
+  if (all(is.na(row[facit_cols]))) {
+    return(NA)
+  }
+  
+  # Else, fill the blank values with 0 for facit_1 to facit_13
+  row[facit_cols_1_to_13][is.na(row[facit_cols_1_to_13])] <- 0
+  
+  # Calculate the final FACIT score
+  return(sum(as.numeric(row[facit_cols_1_to_13])))
+}
+
+# Apply the recalculation function to each row and store the result in a new column `final_facit`
+prom_sheet_data$corrected_facit <- apply(prom_sheet_data, 1, recalculate_facit)
 ```
 
 
+```{r}
+# The final calculation for Jenkins Sleep Scale is wrong, replace blank values with 0 and recalculate the final score for any rows with a non-blank value in jenkins_sleep_scale
+# Define a list of columns named 'jenkins_sleep_scale_cols' containing the columns that are used to calculate the final Jenkins Sleep Scale score
+jenkins_sleep_scale_cols <- c("jenkins_sleep_1", "jenkins_sleep_2", "jenkins_sleep_3", "jenkins_sleep_4", "jenkins_sleep_scale")
+jenkins_sleep_scale_cols_1_to_4 <- c("jenkins_sleep_1", "jenkins_sleep_2", "jenkins_sleep_3", "jenkins_sleep_4")
+
+# Define the function to recalculate the final Jenkins Sleep Scale score
+recalculate_jenkins_sleep_scale <- function(row) {
+  # Check if any of the columns in `jenkins_sleep_scale_cols` are blank for a single row
+  # If blank, return NA
+  if (all(is.na(row[jenkins_sleep_scale_cols]))) {
+    return(NA)
+  }
+  
+  # Else, fill the blank values with 0 for jenkins_sleep_1 to jenkins_sleep_4
+  row[jenkins_sleep_scale_cols_1_to_4][is.na(row[jenkins_sleep_scale_cols_1_to_4])] <- 0
+  
+  # Calculate the final Jenkins Sleep Scale score
+  return(sum(as.numeric(row[jenkins_sleep_scale_cols_1_to_4])))
+}
+
+# Apply the recalculation function to each row and store the result in a new column `final_jenkins_sleep_scale`
+prom_sheet_data$corrected_jenkins_sleep_scale <- apply(prom_sheet_data, 1, recalculate_jenkins_sleep_scale)
+```
+
+```{r}
+# Write to csv to check the data
+# write_csv(prom_sheet_data, "data_check_prom_sheet_data.csv")
+```
 
 ```{r}
 # Histogram for age_at_onset
