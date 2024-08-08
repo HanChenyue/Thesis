@@ -222,6 +222,71 @@ prom_sheet_data$corrected_jenkins_sleep_scale <- apply(prom_sheet_data, 1, recal
 ```
 
 ```{r}
+# Calculating the WPAI scoring
+# Ensure wpai_1 to wpai_6 are numeric
+prom_sheet_data$wpai_1 <- as.numeric(prom_sheet_data$wpai_1)
+prom_sheet_data$wpai_2 <- as.numeric(prom_sheet_data$wpai_2)
+prom_sheet_data$wpai_3 <- as.numeric(prom_sheet_data$wpai_3)
+prom_sheet_data$wpai_4 <- as.numeric(prom_sheet_data$wpai_4)
+prom_sheet_data$wpai_5 <- as.numeric(prom_sheet_data$wpai_5)
+prom_sheet_data$wpai_6 <- as.numeric(prom_sheet_data$wpai_6)
+
+# Presentism: wpai_5/10 x 100%
+# Condition: wpai_1 needs to be 1 and wpai_4 needs to be non-zero
+calc_presentism <- function(q1, q4, q5){
+  if (!is.na(q1) & !is.na(q4) & !is.na(q5) & q1 == 1 & q4 != 0) {
+    return((q5 / 10) * 100)
+  }
+  else {
+    return(NA)
+  }
+}
+
+# Absenteeism: (wpai_2 / (wpai_2 + wpai_3 + wpai_4)) x 100%
+# Condition: wpai_1 needs to be 1
+calc_absenteeism <- function(q1, q2, q3, q4){
+  if (!is.na(q1) & !is.na(q2) & !is.na(q3) & !is.na(q4) & q1 == 1) {
+    return((q2 / (q2 + q3 + q4)) * 100)
+  }
+  else {
+    return(NA)
+  }
+}
+
+# WPL
+# Condition: wpai_1 needs to be 1 and wpai_4 needs to be non-zero
+calc_wpl <- function(q1, q2, q4, q5){
+  if (!is.na(q1) & !is.na(q2) & !is.na(q4) & !is.na(q5) & q1 == 1 & q4 != 0) {
+    return(((q2 / (q2 + q4)) + ((1 - (q2 / (q2 + q4))) * (q5 / 10))) * 100)
+  } else {
+    return(NA)
+  }
+}
+
+# Daily activity impairment
+calc_daily_activity_impairment <- function(q6) {
+  if (!is.na(q6)) {
+    return((q6 / 10) * 100)
+  } else {
+    return(NA)
+  }
+}
+
+# Create new columns for the WPAI scoring
+prom_sheet_data <- prom_sheet_data %>% 
+  rowwise() %>%
+  mutate(
+    presentism = calc_presentism(wpai_1, wpai_4, wpai_5),
+    absenteeism = calc_absenteeism(wpai_1, wpai_2, wpai_3, wpai_4),
+    wpl = calc_wpl(wpai_1, wpai_2, wpai_4, wpai_5),
+    daily_activity_impairment = calc_daily_activity_impairment(wpai_6)
+  ) %>% 
+  ungroup()
+
+# write_csv(prom_sheet_data, "check_wpai_data.csv")
+```
+
+```{r}
 # Write to csv to check the data
 # write_csv(prom_sheet_data, "data_check_prom_sheet_data.csv")
 ```
@@ -380,10 +445,10 @@ drug_colours <- c(
 )
 
 timeline_data <- combined_df %>%
-  select(ttas_id, date, basmi_score, basdai, basfi, patient_global, back_pain_at_night, back_pain_anytime, as_qol, facit, margolis) %>%
+  select(ttas_id, date, basmi_score, basdai, basfi, patient_global, back_pain_at_night, back_pain_anytime, corrected_asqol, corrected_facit, corrected_jenkins_sleep_scale, presentism, absentism, wpl, daily_activity_impairment, margolis) %>%
   # select(ttas_id, date, basmi_score, basdai, basfi, as_qol) %>%
   # pivot_longer(cols = c(basmi_score, basdai, basfi, as_qol),
-  pivot_longer(cols = c(basmi_score, basdai, basfi, patient_global, back_pain_at_night, back_pain_anytime, as_qol, facit, margolis),
+  pivot_longer(cols = c(basmi_score, basdai, basfi, patient_global, back_pain_at_night, back_pain_anytime, corrected_asqol, corrected_facit, corrected_jenkins_sleep_scale, presentism, absentism, wpl, daily_activity_impairment, margolis),
                names_to = "Measure",
                values_to = "Score")
 
