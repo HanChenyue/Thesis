@@ -15,6 +15,8 @@ library(tidyr)
 library(janitor)
 library(lubridate)
 library(kableExtra)
+library(zoo)
+library(lme4)
 ```
 
 # ```{r}
@@ -100,13 +102,17 @@ demographics_sheet_data <- demographics_sheet_data %>%
 ```
 
 ```{r}
-# 2. Replace negative value of age_at_onset with positive equivalent
+# 2. Replace negative value of age_at_onset with NA for ttas_id 375 and 623
 subset_data_375 <- demographics_sheet_data[demographics_sheet_data$ttas_id == 375, c("ttas_id", "age_at_onset")]
 cat("Before, ttas_id for 375: ttas_id=", subset_data_375$ttas_id, ", age_at_onset=", subset_data_375$age_at_onset, "\n")
 subset_data_623 <- demographics_sheet_data[demographics_sheet_data$ttas_id == 623, c("ttas_id", "age_at_onset")]
 cat("Before, ttas_id for 623: ttas_id=", subset_data_623$ttas_id, ", age_at_onset=", subset_data_623$age_at_onset, "\n")
 
-demographics_sheet_data$age_at_onset <- ifelse(demographics_sheet_data$age_at_onset < 0, demographics_sheet_data$age_at_onset * -1, demographics_sheet_data$age_at_onset)
+# Old code
+# demographics_sheet_data$age_at_onset <- ifelse(demographics_sheet_data$age_at_onset < 0, demographics_sheet_data$age_at_onset * -1, demographics_sheet_data$age_at_onset)
+
+# New code
+demographics_sheet_data$age_at_onset <- ifelse(demographics_sheet_data$age_at_onset < 0, NA, demographics_sheet_data$age_at_onset)
 
 subset_data_375 <- demographics_sheet_data[demographics_sheet_data$ttas_id == 375, c("ttas_id", "age_at_onset")]
 cat("After, ttas_id for 375: ttas_id=", subset_data_375$ttas_id, ", age_at_onset=", subset_data_375$age_at_onset, "\n")
@@ -117,109 +123,116 @@ cat("After, ttas_id for 623: ttas_id=", subset_data_623$ttas_id, ", age_at_onset
 ```{r}
 # Summary of demographics_sheet_data
 kable(summary(demographics_sheet_data)) %>% kable_styling(bootstrap_options = "striped", full_width = F)
-
-# Negative number spotted in age_at_onset
-# Converting negative number to 0 for age_at_onset indicating that the patient has it since birth
-demographics_sheet_data$age_at_onset <- ifelse(demographics_sheet_data$age_at_onset < 0, 0, demographics_sheet_data$age_at_onset)
-
-kable(summary(demographics_sheet_data)) %>% kable_styling(bootstrap_options = "striped", full_width = F)
 ```
 
 ```{r}
-# The final calculation for ASQOL is wrong, replace blank values with 0 and recalculate the final score for any rows with a non-blank value in as_qol
-# Define a list of columns named 'asqol_cols' containing the columns that are used to calculate the final ASQOL score
-asqol_cols <- c("asqol_1", "asqol_2", "asqol_3", "asqol_4", "asqol_5", "asqol_6", "asqol_7", "asqol_8", "asqol_9", "asqol_10", "asqol_11", "asqol_12", "asqol_13", "asqol_14", "asqol_15", "asqol_16", "asqol_17", "asqol_18, as_qol")
-asqol_cols_1_to_18 <- c("asqol_1", "asqol_2", "asqol_3", "asqol_4", "asqol_5", "asqol_6", "asqol_7", "asqol_8", "asqol_9", "asqol_10", "asqol_11", "asqol_12", "asqol_13", "asqol_14", "asqol_15", "asqol_16", "asqol_17", "asqol_18")
-
-# Define the function to recalculate the final ASQOL score
-recalculate_asqol <- function(row) {
-  # Check if any of the columns in `asqol_cols` are blank for a single row
-  # If blank, return NA
-  if (all(is.na(row[asqol_cols]))) {
-    return(NA)
-  }
-  
-  # Else, fill the blank values with 0 for asqol_1 to asqol_18
-  row[asqol_cols_1_to_18][is.na(row[asqol_cols_1_to_18])] <- 0
-  
-  # Calculate the final ASQOL score
-  return(sum(as.numeric(row[asqol_cols_1_to_18])))
-}
-
-# Apply the recalculation function to each row and store the result in a new column `final_asqol`
-prom_sheet_data$corrected_asqol <- apply(prom_sheet_data, 1, recalculate_asqol)
-
-# Remake asqol_1 to asqol_18 a factor
-prom_sheet_data$asqol_1 <- as.factor(prom_sheet_data$asqol_1)
-prom_sheet_data$asqol_2 <- as.factor(prom_sheet_data$asqol_2)
-prom_sheet_data$asqol_3 <- as.factor(prom_sheet_data$asqol_3)
-prom_sheet_data$asqol_4 <- as.factor(prom_sheet_data$asqol_4)
-prom_sheet_data$asqol_5 <- as.factor(prom_sheet_data$asqol_5)
-prom_sheet_data$asqol_6 <- as.factor(prom_sheet_data$asqol_6)
-prom_sheet_data$asqol_7 <- as.factor(prom_sheet_data$asqol_7)
-prom_sheet_data$asqol_8 <- as.factor(prom_sheet_data$asqol_8)
-prom_sheet_data$asqol_9 <- as.factor(prom_sheet_data$asqol_9)
-prom_sheet_data$asqol_10 <- as.factor(prom_sheet_data$asqol_10)
-prom_sheet_data$asqol_11 <- as.factor(prom_sheet_data$asqol_11)
-prom_sheet_data$asqol_12 <- as.factor(prom_sheet_data$asqol_12)
-prom_sheet_data$asqol_13 <- as.factor(prom_sheet_data$asqol_13)
-prom_sheet_data$asqol_14 <- as.factor(prom_sheet_data$asqol_14)
-prom_sheet_data$asqol_15 <- as.factor(prom_sheet_data$asqol_15)
-prom_sheet_data$asqol_16 <- as.factor(prom_sheet_data$asqol_16)
-prom_sheet_data$asqol_17 <- as.factor(prom_sheet_data$asqol_17)
-prom_sheet_data$asqol_18 <- as.factor(prom_sheet_data$asqol_18)
+# # Old code
+# # The final calculation for ASQOL is wrong, replace blank values with 0 and recalculate the final score for any rows with a non-blank value in as_qol
+# # Define a list of columns named 'asqol_cols' containing the columns that are used to calculate the final ASQOL score
+# asqol_cols <- c("asqol_1", "asqol_2", "asqol_3", "asqol_4", "asqol_5", "asqol_6", "asqol_7", "asqol_8", "asqol_9", "asqol_10", "asqol_11", "asqol_12", "asqol_13", "asqol_14", "asqol_15", "asqol_16", "asqol_17", "asqol_18, as_qol")
+# asqol_cols_1_to_18 <- c("asqol_1", "asqol_2", "asqol_3", "asqol_4", "asqol_5", "asqol_6", "asqol_7", "asqol_8", "asqol_9", "asqol_10", "asqol_11", "asqol_12", "asqol_13", "asqol_14", "asqol_15", "asqol_16", "asqol_17", "asqol_18")
+# 
+# # Define the function to recalculate the final ASQOL score
+# recalculate_asqol <- function(row) {
+#   # Check if any of the columns in `asqol_cols` are blank for a single row
+#   # If blank, return NA
+#   if (all(is.na(row[asqol_cols]))) {
+#     return(NA)
+# }
+#   
+#   # Else, fill the blank values with 0 for asqol_1 to asqol_18
+#   row[asqol_cols_1_to_18][is.na(row[asqol_cols_1_to_18])] <- 0
+#   
+#   # Calculate the final ASQOL score
+#   return(sum(as.numeric(row[asqol_cols_1_to_18])))
+# }
+# 
+# # Apply the recalculation function to each row and store the result in a new column `final_asqol`
+# prom_sheet_data$corrected_asqol <- apply(prom_sheet_data, 1, recalculate_asqol)
+# 
+# # Remake asqol_1 to asqol_18 a factor
+# prom_sheet_data$asqol_1 <- as.factor(prom_sheet_data$asqol_1)
+# prom_sheet_data$asqol_2 <- as.factor(prom_sheet_data$asqol_2)
+# prom_sheet_data$asqol_3 <- as.factor(prom_sheet_data$asqol_3)
+# prom_sheet_data$asqol_4 <- as.factor(prom_sheet_data$asqol_4)
+# prom_sheet_data$asqol_5 <- as.factor(prom_sheet_data$asqol_5)
+# prom_sheet_data$asqol_6 <- as.factor(prom_sheet_data$asqol_6)
+# prom_sheet_data$asqol_7 <- as.factor(prom_sheet_data$asqol_7)
+# prom_sheet_data$asqol_8 <- as.factor(prom_sheet_data$asqol_8)
+# prom_sheet_data$asqol_9 <- as.factor(prom_sheet_data$asqol_9)
+# prom_sheet_data$asqol_10 <- as.factor(prom_sheet_data$asqol_10)
+# prom_sheet_data$asqol_11 <- as.factor(prom_sheet_data$asqol_11)
+# prom_sheet_data$asqol_12 <- as.factor(prom_sheet_data$asqol_12)
+# prom_sheet_data$asqol_13 <- as.factor(prom_sheet_data$asqol_13)
+# prom_sheet_data$asqol_14 <- as.factor(prom_sheet_data$asqol_14)
+# prom_sheet_data$asqol_15 <- as.factor(prom_sheet_data$asqol_15)
+# prom_sheet_data$asqol_16 <- as.factor(prom_sheet_data$asqol_16)
+# prom_sheet_data$asqol_17 <- as.factor(prom_sheet_data$asqol_17)
+# prom_sheet_data$asqol_18 <- as.factor(prom_sheet_data$asqol_18)
+# ```
+# 
+# ```{r}
+# # The final calculation for FACIT is wrong, replace blank values with 0 and recalculate the final score for any rows with a non-blank value in facit
+# # Define a list of columns named 'facit_cols' containing the columns that are used to calculate the final FACIT score
+# facit_cols <- c("facit_1", "facit_2", "facit_3", "facit_4", "facit_5", "facit_6", "facit_7", "facit_8", "facit_9", "facit_10", "facit_11", "facit_12", "facit_13", "facit")
+# facit_cols_1_to_13 <- c("facit_1", "facit_2", "facit_3", "facit_4", "facit_5", "facit_6", "facit_7", "facit_8", "facit_9", "facit_10", "facit_11", "facit_12", "facit_13")
+# 
+# # Define the function to recalculate the final FACIT score
+# recalculate_facit <- function(row) {
+#   # Check if any of the columns in `facit_cols` are blank for a single row
+#   # If blank, return NA
+#   if (all(is.na(row[facit_cols]))) {
+#     return(NA)
+# }
+#   
+#   # Else, fill the blank values with 0 for facit_1 to facit_13
+#   row[facit_cols_1_to_13][is.na(row[facit_cols_1_to_13])] <- 0
+#   
+#   # Calculate the final FACIT score
+#   return(sum(as.numeric(row[facit_cols_1_to_13])))
+# }
+# 
+# # Apply the recalculation function to each row and store the result in a new column `final_facit`
+# prom_sheet_data$corrected_facit <- apply(prom_sheet_data, 1, recalculate_facit)
 ```
 
 ```{r}
-# The final calculation for FACIT is wrong, replace blank values with 0 and recalculate the final score for any rows with a non-blank value in facit
-# Define a list of columns named 'facit_cols' containing the columns that are used to calculate the final FACIT score
-facit_cols <- c("facit_1", "facit_2", "facit_3", "facit_4", "facit_5", "facit_6", "facit_7", "facit_8", "facit_9", "facit_10", "facit_11", "facit_12", "facit_13", "facit")
-facit_cols_1_to_13 <- c("facit_1", "facit_2", "facit_3", "facit_4", "facit_5", "facit_6", "facit_7", "facit_8", "facit_9", "facit_10", "facit_11", "facit_12", "facit_13")
-
-# Define the function to recalculate the final FACIT score
-recalculate_facit <- function(row) {
-  # Check if any of the columns in `facit_cols` are blank for a single row
-  # If blank, return NA
-  if (all(is.na(row[facit_cols]))) {
-    return(NA)
-  }
-  
-  # Else, fill the blank values with 0 for facit_1 to facit_13
-  row[facit_cols_1_to_13][is.na(row[facit_cols_1_to_13])] <- 0
-  
-  # Calculate the final FACIT score
-  return(sum(as.numeric(row[facit_cols_1_to_13])))
-}
-
-# Apply the recalculation function to each row and store the result in a new column `final_facit`
-prom_sheet_data$corrected_facit <- apply(prom_sheet_data, 1, recalculate_facit)
+# ASQOL
+# Check for any negative values in as_qol and turn them into NA
+prom_sheet_data$as_qol <- ifelse(prom_sheet_data$as_qol < 0, NA, prom_sheet_data$as_qol)
 ```
-
 
 ```{r}
-# The final calculation for Jenkins Sleep Scale is wrong, replace blank values with 0 and recalculate the final score for any rows with a non-blank value in jenkins_sleep_scale
-# Define a list of columns named 'jenkins_sleep_scale_cols' containing the columns that are used to calculate the final Jenkins Sleep Scale score
-jenkins_sleep_scale_cols <- c("jenkins_sleep_1", "jenkins_sleep_2", "jenkins_sleep_3", "jenkins_sleep_4", "jenkins_sleep_scale")
-jenkins_sleep_scale_cols_1_to_4 <- c("jenkins_sleep_1", "jenkins_sleep_2", "jenkins_sleep_3", "jenkins_sleep_4")
-
-# Define the function to recalculate the final Jenkins Sleep Scale score
-recalculate_jenkins_sleep_scale <- function(row) {
-  # Check if any of the columns in `jenkins_sleep_scale_cols` are blank for a single row
-  # If blank, return NA
-  if (all(is.na(row[jenkins_sleep_scale_cols]))) {
-    return(NA)
-  }
-  
-  # Else, fill the blank values with 0 for jenkins_sleep_1 to jenkins_sleep_4
-  row[jenkins_sleep_scale_cols_1_to_4][is.na(row[jenkins_sleep_scale_cols_1_to_4])] <- 0
-  
-  # Calculate the final Jenkins Sleep Scale score
-  return(sum(as.numeric(row[jenkins_sleep_scale_cols_1_to_4])))
-}
-
-# Apply the recalculation function to each row and store the result in a new column `final_jenkins_sleep_scale`
-prom_sheet_data$corrected_jenkins_sleep_scale <- apply(prom_sheet_data, 1, recalculate_jenkins_sleep_scale)
+# FACIT
+# Check for any negative values in facit and turn them into NA
+prom_sheet_data$facit <- ifelse(prom_sheet_data$facit < 0, NA, prom_sheet_data$facit)
 ```
+
+```{r}
+# # The final calculation for Jenkins Sleep Scale is wrong, replace blank values with 0 and recalculate the final score for any rows with a non-blank value in jenkins_sleep_scale
+# # Define a list of columns named 'jenkins_sleep_scale_cols' containing the columns that are used to calculate the final Jenkins Sleep Scale score
+# jenkins_sleep_scale_cols <- c("jenkins_sleep_1", "jenkins_sleep_2", "jenkins_sleep_3", "jenkins_sleep_4", "jenkins_sleep_scale")
+# jenkins_sleep_scale_cols_1_to_4 <- c("jenkins_sleep_1", "jenkins_sleep_2", "jenkins_sleep_3", "jenkins_sleep_4")
+# 
+# # Define the function to recalculate the final Jenkins Sleep Scale score
+# recalculate_jenkins_sleep_scale <- function(row) {
+#   # Check if any of the columns in `jenkins_sleep_scale_cols` are blank for a single row
+#   # If blank, return NA
+#   if (all(is.na(row[jenkins_sleep_scale_cols]))) {
+#     return(NA)
+#   }
+#   
+#   # Else, fill the blank values with 0 for jenkins_sleep_1 to jenkins_sleep_4
+#   row[jenkins_sleep_scale_cols_1_to_4][is.na(row[jenkins_sleep_scale_cols_1_to_4])] <- 0
+#   
+#   # Calculate the final Jenkins Sleep Scale score
+#   return(sum(as.numeric(row[jenkins_sleep_scale_cols_1_to_4])))
+# }
+# 
+# # Apply the recalculation function to each row and store the result in a new column `final_jenkins_sleep_scale`
+# prom_sheet_data$corrected_jenkins_sleep_scale <- apply(prom_sheet_data, 1, recalculate_jenkins_sleep_scale)
+```
+
 
 ```{r}
 # Calculating the WPAI scoring
@@ -445,10 +458,10 @@ drug_colours <- c(
 )
 
 timeline_data <- combined_df %>%
-  select(ttas_id, date, basmi_score, basdai, basfi, patient_global, back_pain_at_night, back_pain_anytime, corrected_asqol, corrected_facit, corrected_jenkins_sleep_scale, presentism, absentism, wpl, daily_activity_impairment, margolis) %>%
+  select(ttas_id, date, basmi_score, basdai, basfi, patient_global, back_pain_at_night, back_pain_anytime, as_qol, facit, jenkins_sleep_1, jenkins_sleep_2, jenkins_sleep_3, jenkins_sleep_4, presentism, absenteeism, wpl, daily_activity_impairment, margolis) %>%
   # select(ttas_id, date, basmi_score, basdai, basfi, as_qol) %>%
   # pivot_longer(cols = c(basmi_score, basdai, basfi, as_qol),
-  pivot_longer(cols = c(basmi_score, basdai, basfi, patient_global, back_pain_at_night, back_pain_anytime, corrected_asqol, corrected_facit, corrected_jenkins_sleep_scale, presentism, absentism, wpl, daily_activity_impairment, margolis),
+  pivot_longer(cols = c(basmi_score, basdai, basfi, patient_global, back_pain_at_night, back_pain_anytime, as_qol, facit, jenkins_sleep_1, jenkins_sleep_2, jenkins_sleep_3, jenkins_sleep_4, presentism, absenteeism, wpl, daily_activity_impairment, margolis),
                names_to = "Measure",
                values_to = "Score")
 
@@ -630,10 +643,11 @@ exclude_ids <- c(38, 555, 872, 924, 974, 988, 1028, 1032, 1035, 1038, 1051, 1069
 combined_df_id_with_drugs_excluded <- combined_df_id_with_drugs %>% filter(!ttas_id %in% exclude_ids)
 # Select the columns to write to the csv
 combined_df_id_with_drugs_excluded <- combined_df_id_with_drugs_excluded %>%
-  select(ttas_id, gender, hlab27status, diagnosis, age_at_onset, age_at_diag, date, do_you_smoke, smoke_in_a_day, years_smoked, year_quit_smoking, ecigarettes, vape_in_a_day, years_vaped, year_quit_vaping, basmi_score, age_at_prom, basdai, basfi, patient_global, back_pain_at_night, back_pain_anytime, as_qol, jenkins_sleep_scale, wpai_1, wpai_2, wpai_3, wpai_4, wpai_5, wpai_6, facit, margolis, x3, stop_date, high_cost_drug_stop_reason, high_cost_drug_stop_reason_text, age_at_start_date, comment)
-# write_csv(combined_df_id_with_drugs_excluded, "test_combined_df_id_with_drugs_excluded.csv")
+  select(ttas_id, gender, hlab27status, diagnosis, age_at_onset, age_at_diag, date, do_you_smoke, smoke_in_a_day, years_smoked, year_quit_smoking, ecigarettes, vape_in_a_day, years_vaped, year_quit_vaping, basmi_score, age_at_prom, basdai, basfi, patient_global, back_pain_at_night, back_pain_anytime, as_qol, jenkins_sleep_1, jenkins_sleep_2, jenkins_sleep_3, jenkins_sleep_4, presentism, absenteeism, wpl, daily_activity_impairment, facit, margolis, x3, stop_date, high_cost_drug_stop_reason, high_cost_drug_stop_reason_text, age_at_start_date, comment)
+write_csv(combined_df_id_with_drugs_excluded, "test_combined_df_id_with_drugs_excluded.csv")
+```
 
-
+```{r, warning=FALSE}
 for (current_id in unique_ids_drugs_only){
   
   if (current_id %in% exclude_ids) {
@@ -748,7 +762,7 @@ for (current_id in unique_ids_drugs_only){
   
   plot <- ggplot(filtered_data, aes(x = date, y = Score)) +
     geom_point() +
-    # geom_line() +
+    geom_line() +
     geom_rect(
       data = filtered_drug_data,
       inherit.aes = FALSE,
@@ -828,7 +842,7 @@ for (current_id in unique_ids_drugs_only){
   
   plot <- ggplot(filtered_data, aes(x = date, y = Score)) +
     geom_point() +
-    # geom_line() +
+    geom_line() +
     geom_rect(
       data = filtered_drug_data,
       inherit.aes = FALSE,
@@ -906,7 +920,7 @@ for (current_id in unique_ids_drugs_only){
   
   plot <- ggplot(filtered_data, aes(x = date, y = Score)) +
     geom_point() +
-    # geom_line() +
+    geom_line() +
     geom_rect(
       data = filtered_drug_data,
       inherit.aes = FALSE,
@@ -984,7 +998,7 @@ for (current_id in unique_ids_drugs_only){
 
   plot <- ggplot(filtered_data, aes(x = date, y = Score, colour = Measure)) +
     geom_point() +
-    # geom_line() +
+    geom_line() +
     geom_rect(
       data = filtered_drug_data,
       inherit.aes = FALSE,
@@ -1062,7 +1076,7 @@ for (current_id in unique_ids_drugs_only){
   
   plot <- ggplot(filtered_data, aes(x = date, y = Score)) +
     geom_point() +
-    # geom_line() +
+    geom_line() +
     geom_rect(
       data = filtered_drug_data,
       inherit.aes = FALSE,
@@ -1149,7 +1163,7 @@ for (current_id in unique_ids_drugs_only){
 
   plot <- ggplot(filtered_data, aes(x = date, y = Score)) +
     geom_point() +
-    # geom_line() +
+    geom_line() +
     geom_rect(
       data = filtered_drug_data,
       inherit.aes = FALSE,
@@ -1266,8 +1280,8 @@ for (current_id in unique_ids_drugs_only){
 # Create plot for WPAI only
 
 timeline_data_wpai <- combined_df %>%
-  select(ttas_id, date, wpai_1, wpai_2, wpai_3, wpai_4, wpai_5, wpai_6) %>%
-  pivot_longer(cols = c(wpai_1, wpai_2, wpai_3, wpai_4, wpai_5, wpai_6),
+  select(ttas_id, date, presentism, absenteeism, wpl, daily_activity_impairment) %>%
+  pivot_longer(cols = c(presentism, absenteeism, wpl, daily_activity_impairment),
                names_to = "Measure",
                values_to = "Score")
 
@@ -1342,11 +1356,11 @@ for (current_id in unique_ids_drugs_only){
 ```
 
 ```{r, warning=FALSE}
-# Create plot for Jenkins Sleep Scale only
+# Create plot for Jenkins Sleep 
 
 timeline_data_jenkins_sleep_scale <- combined_df %>%
-  select(ttas_id, date, jenkins_sleep_scale) %>%
-  pivot_longer(cols = c(jenkins_sleep_scale),
+  select(ttas_id, date, jenkins_sleep_1, jenkins_sleep_2, jenkins_sleep_3, jenkins_sleep_4) %>%
+  pivot_longer(cols = c(jenkins_sleep_1, jenkins_sleep_2, jenkins_sleep_3, jenkins_sleep_4),
                names_to = "Measure",
                values_to = "Score")
 
@@ -1385,7 +1399,7 @@ for (current_id in unique_ids_drugs_only){
 
   plot <- ggplot(filtered_data, aes(x = date, y = Score)) +
     geom_point() +
-    # geom_line() +
+    geom_line() +
     geom_rect(
       data = filtered_drug_data,
       inherit.aes = FALSE,
@@ -1418,3 +1432,92 @@ for (current_id in unique_ids_drugs_only){
   ggsave(file_name, plot, width = 10, height = 6, dpi = 300)
 }
 ```
+
+```{r}
+# # Reduce the amount of NA in combined_df_id_with_drugs_excluded
+# # Impute x3 (Treatment): For any row where x3 is NA, if there is a valid stop_date, we should impute x3 with the last known treatment. If stop_date is also NA, the treatment continues to the present, and x3 should reflect the last known treatment.
+# 
+# # Ensure the data is arranged by ttas_id first and then by date
+# combined_df_id_with_drugs_excluded <- combined_df_id_with_drugs_excluded %>% arrange(ttas_id, date)
+# 
+# # Impute x3 (Treatment) for each ttas_id based on start_date and stop_date
+# combined_df_id_with_drugs_excluded <- combined_df_id_with_drugs_excluded %>%
+#   group_by(ttas_id) %>%
+#   mutate(
+#     # Forward fill x3 values within each patient, but only if the date is before or on the stop_date
+#     x3 = zoo::na.locf(ifelse(is.na(stop_date) | date <= stop_date, x3, NA), na.rm = FALSE)
+#   )
+# 
+# write.csv(combined_df_id_with_drugs_excluded, file = "cleaned_dates.csv", row.names = FALSE)
+```
+
+```{r}
+# # Data cleaning to ensure x3 is propagated until stop_date
+# data <- combined_df_id_with_drugs_excluded %>%
+#   select(ttas_id, x3, date, stop_date, basmi_score)
+# 
+# # Convert date and stop_date to Date type
+# data$date <- as.Date(data$date, format = "%d/%m/%Y")
+# data$stop_date <- as.Date(data$stop_date, format = "%d/%m/%Y")
+# 
+# # Function to propagate x3 and manage stop_date without removing any rows
+# propagate_x3 <- function(df) {
+#   df <- df %>%
+#     arrange(date) %>%
+#     fill(x3, .direction = "down") %>%  # Propagate x3 downwards
+#     mutate(stop_date = if_else(is.na(stop_date) & !is.na(x3) & row_number() == n(), Sys.Date(), stop_date)) %>%
+#     mutate(stop_date = if_else(is.na(stop_date) & !is.na(x3), lead(stop_date), stop_date)) %>%
+#     mutate(x3 = if_else(!is.na(x3) & (is.na(stop_date) | date <= stop_date), x3, NA_character_)) %>%
+#     mutate(stop_date = if_else(date > stop_date, NA_Date_, stop_date))  # Clear stop_date after it ends
+#   
+#   return(df)
+# }
+# 
+# # Apply the function across all ttas_id
+# cleaned_data <- data %>% 
+#   group_by(ttas_id) %>% 
+#   group_modify(~ propagate_x3(.x)) %>% 
+#   ungroup()
+# 
+# # Write the cleaned data to a CSV file
+# write.csv(cleaned_data, file = "final_cleaned_propagation_result.csv", row.names = FALSE)
+```
+
+```{r}
+df <- combined_df_id_with_drugs_excluded
+
+data_sorted <- df %>%
+  select(ttas_id, basmi_score, x3, hlab27status, diagnosis, date, stop_date) %>%
+  arrange(ttas_id, date)
+
+# Step 1: Identify treatment periods
+# Forward fill x3 to create a continuous treatment period indicator
+data_sorted <- data_sorted %>%
+  group_by(ttas_id) %>%
+  mutate(treatment = zoo::na.locf(x3, na.rm = FALSE)) %>%
+  ungroup()
+
+# Step 2: Calculate avg_basmi_score_throughout_treatment for each treatment period
+data_sorted <- data_sorted %>%
+  group_by(ttas_id, treatment) %>%
+  mutate(avg_basmi_score_throughout_treatment = mean(basmi_score, na.rm = TRUE)) %>%
+  ungroup()
+
+# Step 3: Calculate basmi_score_before based on the last known basmi_score before or on treatment initiation
+data_sorted <- data_sorted %>%
+  group_by(ttas_id) %>%
+  mutate(basmi_score_before = lag(basmi_score, default = NA_real_)) %>%
+  fill(basmi_score_before, .direction = "down") %>%
+  ungroup()
+
+# Step 4: Filter only treatment days
+final_data <- data_sorted %>%
+  filter(!is.na(x3)) %>%
+  select(ttas_id, basmi_score, x3, hlab27status, diagnosis, date, stop_date, 
+         basmi_score_before, avg_basmi_score_throughout_treatment)
+
+# Write to CSV or view the data
+write.csv(final_data, "final_treatment_data.csv", row.names = FALSE)
+```
+
+
