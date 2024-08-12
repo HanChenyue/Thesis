@@ -1712,11 +1712,18 @@ data_wide <- data_sorted %>%
 # write.csv(data_wide, "test_basmi_score_wide.csv", row.names = FALSE)
 
 # Step 7: Filter on treatment day and inspect the result
-final_data <- data_wide %>%
-  filter(!is.na(x3)) %>%
-  select(ttas_id, x3, hlab27status, diagnosis, date, stop_date_for_period_date_format, treatment, treatment_period, has_valid_treatment, basmi_score_before, overall_treatment_duration_in_days, starts_with("basmi_score_"))
+# Select the columns to retain
+final_data <- data_sorted %>%
+  select(ttas_id, treatment_period, x3, hlab27status, diagnosis, date, stop_date, treatment, start_date_unix, stop_date_unix, has_valid_treatment, stop_date_for_period, stop_date_for_period_date_format, overall_treatment_duration_in_days, basmi_score_before) %>%
+  distinct() %>%
+  right_join(data_wide, by = c("ttas_id", "treatment_period"))
+
 # write.csv(data_sorted, "temp_check.csv", row.names = FALSE)
 write.csv(final_data, "test_basmi_score.csv", row.names = FALSE)
 ```
 
-
+```{r}
+analysis_data <- final_data %>% 
+  filter(!is.na(x3)) %>%
+  select(ttas_id, treatment, x3, hlab27status, diagnosis, date, stop_date, treatment_period, has_valid_treatment, basmi_score_before, overall_treatment_duration_in_days, starts_with("basmi_score_"))
+```
