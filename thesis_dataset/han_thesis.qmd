@@ -1451,6 +1451,8 @@ for (current_id in unique_ids_drugs_only){
 # write.csv(combined_df_id_with_drugs_excluded, file = "cleaned_dates.csv", row.names = FALSE)
 ```
 
+# Start analysis
+
 ```{r}
 # # Data cleaning to ensure x3 is propagated until stop_date
 # data <- combined_df_id_with_drugs_excluded %>%
@@ -1484,40 +1486,108 @@ for (current_id in unique_ids_drugs_only){
 ```
 
 ```{r}
+# df <- combined_df_id_with_drugs_excluded
+# 
+# data_sorted <- df %>%
+#   select(ttas_id, basmi_score, x3, hlab27status, diagnosis, date, stop_date) %>%
+#   arrange(ttas_id, date)
+# 
+# # Step 1: Identify treatment periods
+# # Forward fill x3 to create a continuous treatment period indicator
+# data_sorted <- data_sorted %>%
+#   group_by(ttas_id) %>%
+#   mutate(treatment = zoo::na.locf(x3, na.rm = FALSE)) %>%
+#   ungroup()
+# 
+# # Step 2: Calculate avg_basmi_score_throughout_treatment for each treatment period
+# data_sorted <- data_sorted %>%
+#   group_by(ttas_id, treatment) %>%
+#   mutate(avg_basmi_score_throughout_treatment = mean(basmi_score, na.rm = TRUE)) %>%
+#   ungroup()
+# 
+# # Step 3: Calculate basmi_score_before based on the last known basmi_score before or on treatment initiation
+# data_sorted <- data_sorted %>%
+#   group_by(ttas_id) %>%
+#   mutate(basmi_score_before = lag(basmi_score, default = NA_real_)) %>%
+#   fill(basmi_score_before, .direction = "down") %>%
+#   ungroup()
+# 
+# # Step 4: Filter only treatment days
+# final_data <- data_sorted %>%
+#   filter(!is.na(x3)) %>%
+#   select(ttas_id, basmi_score, x3, hlab27status, diagnosis, date, stop_date, 
+#          basmi_score_before, avg_basmi_score_throughout_treatment)
+# 
+# # Write to CSV or view the data
+# write.csv(final_data, "final_treatment_data.csv", row.names = FALSE)
+```
+
+
+Basic analysis for before and after treatment
+```{r}
 df <- combined_df_id_with_drugs_excluded
 
 data_sorted <- df %>%
-  select(ttas_id, basmi_score, x3, hlab27status, diagnosis, date, stop_date) %>%
-  arrange(ttas_id, date)
+  select(ttas_id, basmi_score, x3, hlab27status, diagnosis, date, stop_date)
 
-# Step 1: Identify treatment periods
+data_sorted$ttas_id <- as.factor(data_sorted$ttas_id)
+data_sorted$basmi_score <- as.numeric(data_sorted$basmi_score)
+data_sorted$x3 <- as.factor(data_sorted$x3)
+data_sorted$hlab27status <- as.factor(data_sorted$hlab27status)
+data_sorted$diagnosis <- as.factor(data_sorted$diagnosis)
+data_sorted$date <- as.Date(data_sorted$date)
+data_sorted$stop_date <- as.Date(data_sorted$stop_date)
+
+data_sorted <- data_sorted %>%
+  mutate(
+    x3 = case_when(
+      date == stop_date ~ NA_character_,
+      TRUE ~ as.character(x3)
+    ),
+    stop_date = case_when(
+      date == stop_date ~ NA_Date_,
+      TRUE ~ stop_date
+    )
+  ) %>% 
+  # Ensure x3 is still a factor
+  mutate(x3 = as.factor(x3))
+
+# write.csv(data_sorted, "before_final_treatment_data.csv", row.names = FALSE)
+```
+Before and immediately after basmi_score
+```{r}
 # Forward fill x3 to create a continuous treatment period indicator
 data_sorted <- data_sorted %>%
   group_by(ttas_id) %>%
   mutate(treatment = zoo::na.locf(x3, na.rm = FALSE)) %>%
   ungroup()
 
-# Step 2: Calculate avg_basmi_score_throughout_treatment for each treatment period
-data_sorted <- data_sorted %>%
-  group_by(ttas_id, treatment) %>%
-  mutate(avg_basmi_score_throughout_treatment = mean(basmi_score, na.rm = TRUE)) %>%
-  ungroup()
-
-# Step 3: Calculate basmi_score_before based on the last known basmi_score before or on treatment initiation
+# Calculate basmi_score_before based on the last known basmi_score before or on treatment initiation
 data_sorted <- data_sorted %>%
   group_by(ttas_id) %>%
   mutate(basmi_score_before = lag(basmi_score, default = NA_real_)) %>%
   fill(basmi_score_before, .direction = "down") %>%
   ungroup()
 
-# Step 4: Filter only treatment days
+# Obtain the basmi_score_after as the last recorded basmi_score after each treatment starts
+data_sorted <- data_sorted %>%
+  group_by(ttas_id, treatment) %>%
+  mutate(basmi_score_after = lead(basmi_score, order_by = date)) %>%
+  fill(basmi_score_after, .direction = "up") %>%
+  ungroup() %>%
+  group_by(ttas_id, treatment) %>%
+  mutate(basmi_score_after = ifelse(date == max(date), basmi_score, basmi_score_after)) %>%
+  ungroup()
+
+# Filter only treatment days and select relevant columns
 final_data <- data_sorted %>%
   filter(!is.na(x3)) %>%
-  select(ttas_id, basmi_score, x3, hlab27status, diagnosis, date, stop_date, 
-         basmi_score_before, avg_basmi_score_throughout_treatment)
+  select(ttas_id, x3, hlab27status, diagnosis, date, stop_date, 
+         basmi_score_before, basmi_score_after, first_treatment_date, last_treatment_date)
 
 # Write to CSV or view the data
-write.csv(final_data, "final_treatment_data.csv", row.names = FALSE)
+# write.csv(final_data, "treatment_data_before_after.csv", row.names = FALSE)
 ```
+
 
 
