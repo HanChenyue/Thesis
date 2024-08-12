@@ -1680,14 +1680,43 @@ data_sorted <- data_sorted %>%
   fill(basmi_score_before, .direction = "down") %>%
   ungroup()
 
- 
-# # Step 5: Filter on treatment day and inspect the result
-# final_data <- data_sorted %>%
-#   filter(!is.na(x3)) %>%
-#   select(ttas_id, basmi_score, x3, hlab27status, diagnosis, date, stop_date, treatment, basmi_score_before, treatment_start, treatment_stop)
+# Step 5: Calculate overall_treatment_duration_in_days and create an index for each basmi_score in each period
+# Step 1: Calculate overall_treatment_duration_in_days
+data_sorted <- data_sorted %>%
+  group_by(ttas_id, treatment_period) %>%
+  mutate(
+    overall_treatment_duration_in_days = ifelse(
+      !is.na(stop_date_for_period_date_format), 
+      as.numeric(difftime(stop_date_for_period_date_format, date, units = "days")), 
+      NA_real_
+    )
+  ) %>%
+  ungroup()
 
+# Step 6: Pivot the basmi_score to wide format
+data_sorted <- data_sorted %>%
+  group_by(ttas_id, treatment_period) %>%
+  mutate(
+    basmi_score_index = row_number() - 1  # Create an index for each basmi_score, including NA values
+  ) %>%
+  ungroup()
+
+data_wide <- data_sorted %>%
+  pivot_wider(
+    id_cols = c(ttas_id, treatment_period),  # Ensure id columns include ttas_id and treatment_period
+    names_from = basmi_score_index, 
+    names_prefix = "basmi_score_", 
+    values_from = basmi_score
+  )
+
+# write.csv(data_wide, "test_basmi_score_wide.csv", row.names = FALSE)
+
+# Step 7: Filter on treatment day and inspect the result
+final_data <- data_wide %>%
+  filter(!is.na(x3)) %>%
+  select(ttas_id, x3, hlab27status, diagnosis, date, stop_date_for_period_date_format, treatment, treatment_period, has_valid_treatment, basmi_score_before, overall_treatment_duration_in_days, starts_with("basmi_score_"))
 # write.csv(data_sorted, "temp_check.csv", row.names = FALSE)
-write.csv(final_data, "basmi_score.csv", row.names = FALSE)
+write.csv(final_data, "test_basmi_score.csv", row.names = FALSE)
 ```
 
 
