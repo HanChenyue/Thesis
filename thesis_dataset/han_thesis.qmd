@@ -1631,7 +1631,7 @@ data_sorted$treatment <- as.character(data_sorted$treatment)
 # Convert dates to UNIX time
 data_sorted <- data_sorted %>%
   mutate(
-    date_unix = as.numeric(as.POSIXct(date)),
+    start_date_unix = as.numeric(as.POSIXct(date)),
     stop_date_unix = ifelse(is.na(stop_date), NA, as.numeric(as.POSIXct(stop_date)))
   )
 
@@ -1639,53 +1639,48 @@ data_sorted <- data_sorted %>%
 data_sorted <- data_sorted %>%
   group_by(ttas_id, treatment_period) %>%
   mutate(
+    # Check if there is any valid treatment in the period
+    has_valid_treatment = any(!is.na(treatment)),
+    
     # Find the unique stop_date_unix within each treatment_period
     # stop_date_for_period is identified as the maximum stop_date_unix within each treatment_period group. This assumes that each treatment period should only have one stop_date.
-    stop_date_for_period = max(stop_date_unix, na.rm = TRUE),
+    # Calculate stop_date_for_period based on whether there's a valid treatment
+    stop_date_for_period = ifelse(
+      !has_valid_treatment, 
+      NA_real_,  # If no valid treatment, set to NA
+      max(stop_date_unix, na.rm = TRUE)  # Else, find the max stop_date_unix
+    ),
     
     # If there is no stop_date but there in a period, stop_date_for_period is set to current date.
-    stop_date_for_period = ifelse(is.na(stop_date_for_period), Sys.Date(), stop_date_for_period),
+    stop_date_for_period = ifelse(is.infinite(stop_date_for_period), Sys.time(), stop_date_for_period),
     
-    # If the date is after the stop_date_for_period, reset treatment to NA for the row
-    treatment = ifelse(!is.na(treatment) & date_unix > stop_date_for_period, NA_character_, treatment)
     
+    # If start_date_unix is after the stop_date_for_period, reset treatment to NA for the row
+    treatment = ifelse(!is.na(treatment) & start_date_unix > stop_date_for_period, NA_character_, treatment),
+    
+    # If start_date_unix is after the stop_date_for_period, reset treatment_period to NA for the row
+    treatment_period = ifelse(start_date_unix > stop_date_for_period, NA_integer_, treatment_period),
+    
+    # If start_date_unix is after the stop_date_for_period, reset has_valid_treatment to FALSE for the row
+    has_valid_treatment = ifelse(start_date_unix > stop_date_for_period, FALSE, has_valid_treatment),
+    
+    # If start_date_unix is after the stop_date_for_period, reset stop_date_for_period to NA for the row
+    stop_date_for_period = ifelse(start_date_unix > stop_date_for_period, NA_real_, stop_date_for_period),
+    
+    # Add a new stop_date_for_period column in Date format
+    stop_date_for_period_date_format = as.Date(as.POSIXct(stop_date_for_period, origin = "1970-01-01"))
   ) %>%
   ungroup()
 
 
-# Convert UNIX time back to date immediately after Step 3
+# Step 4: Calculate basmi_score_before
 data_sorted <- data_sorted %>%
-  mutate(
-    date = as.Date(as.POSIXct(date_unix, origin = "1970-01-01")),
-    stop_date = as.Date(as.POSIXct(stop_date_unix, origin = "1970-01-01"))
-  )
+  group_by(ttas_id) %>%
+  mutate(basmi_score_before = lag(basmi_score, default = NA_real_)) %>%
+  fill(basmi_score_before, .direction = "down") %>%
+  ungroup()
 
-# # Step 2: Calculate basmi_score_before
-# data_sorted <- data_sorted %>%
-#   group_by(ttas_id) %>%
-#   mutate(basmi_score_before = lag(basmi_score, default = NA_real_)) %>%
-#   fill(basmi_score_before, .direction = "down") %>%
-#   ungroup()
-# 
-# # Step 3: Create a unique treatment period identifier
-# data_sorted <- data_sorted %>%
-#   group_by(ttas_id) %>%
-#   mutate(treatment_period = cumsum(!duplicated(treatment) & !is.na(treatment))) %>%
-#   ungroup()
-# 
-# # Step 4: Identify the start and stop dates for each treatment period
-# data_sorted <- data_sorted %>%
-#   group_by(ttas_id, treatment, treatment_period) %>%
-#   mutate(
-#     treatment_start = min(date, na.rm = TRUE),
-#     treatment_stop = case_when(
-#       !is.na(stop_date) ~ stop_date,      # Use `stop_date` if available
-#       is.na(stop_date) ~ Sys.Date(),      # If `stop_date` is `NA`, set to today's date
-#       TRUE ~ max(date, na.rm = TRUE)      # Otherwise, use the max date within the treatment period
-#     )
-#   ) %>%
-#   ungroup()
-# 
+ 
 # # Step 5: Filter on treatment day and inspect the result
 # final_data <- data_sorted %>%
 #   filter(!is.na(x3)) %>%
