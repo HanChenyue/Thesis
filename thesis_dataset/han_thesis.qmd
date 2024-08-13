@@ -197,6 +197,18 @@ kable(summary(demographics_sheet_data)) %>% kable_styling(bootstrap_options = "s
 ```
 
 ```{r}
+# TODO: Clean smoking and vaping columns
+# Cleaning the do_you_smoke column
+# Check for ttas_id that has more than one do_you_smoke column
+# Assuming your data frame is named df
+prom_sheet_data_clean_smoke <- prom_sheet_data %>%
+  filter(!is.na(do_you_smoke)) %>%  # Remove rows where do_you_smoke is NA
+  group_by(ttas_id) %>%
+  filter(n_distinct(do_you_smoke) > 1) %>%
+  distinct(ttas_id, do_you_smoke)
+```
+
+```{r}
 # ASQOL
 # Check for any negative values in as_qol and turn them into NA
 prom_sheet_data$as_qol <- ifelse(prom_sheet_data$as_qol < 0, NA, prom_sheet_data$as_qol)
@@ -1568,8 +1580,95 @@ data_sorted <- data_sorted %>%
   # Convert x3 back to factor after the above condition
   mutate(x3 = as.factor(x3))
 
-# write.csv(data_sorted, "temp_check.csv", row.names = FALSE)
-# write.csv(data_sorted, "before_final_treatment_data.csv", row.names = FALSE)
+write.csv(data_sorted, "temp_before_data_sorted.csv", row.names = FALSE)
+```
+
+```{r}
+# Manual intervention for ttas_id 13, 72, 156, 230, 792, 974, 1105, 1099, 1224
+# For ttas_id 13, if x3 is Benepali but stop_date is NA, set stop_date to current date
+data_sorted <- data_sorted %>%
+  mutate(
+    stop_date = case_when(
+      ttas_id == 13 & x3 == "Benepali" & is.na(stop_date) ~ Sys.Date(),
+      TRUE ~ stop_date
+    ))
+
+# For ttas_id 72, if x3 is Cosentyx but stop_date is NA, set stop_date to current date
+data_sorted <- data_sorted %>%
+  mutate(
+    stop_date = case_when(
+      ttas_id == 72 & x3 == "Cosentyx" & is.na(stop_date) ~ Sys.Date(),
+      TRUE ~ stop_date
+    ))
+
+# For ttas_id 156, if x3 is Imraldi but stop_date is NA, set stop_date to current date
+data_sorted <- data_sorted %>%
+  mutate(
+    stop_date = case_when(
+      ttas_id == 156 & x3 == "Imraldi" & is.na(stop_date) ~ Sys.Date(),
+      TRUE ~ stop_date
+    ))
+
+# For ttas_id 230, if x3 is Imraldi but stop_date is NA, set stop_date to current date
+data_sorted <- data_sorted %>%
+  mutate(
+    stop_date = case_when(
+      ttas_id == 230 & x3 == "Imraldi" & is.na(stop_date) ~ Sys.Date(),
+      TRUE ~ stop_date
+    ))
+
+# For ttas_id 792, if x3 is Simponi but stop_date is NA, set stop_date to current date
+data_sorted <- data_sorted %>%
+  mutate(
+    stop_date = case_when(
+      ttas_id == 792 & x3 == "Simponi" & is.na(stop_date) ~ Sys.Date(),
+      TRUE ~ stop_date
+    ))
+
+# For ttas_id 984, if x3 is Cosentyx but stop_date is NA, set stop_date to current date
+data_sorted <- data_sorted %>%
+  mutate(
+    stop_date = case_when(
+      ttas_id == 984 & x3 == "Cosentyx" & is.na(stop_date) ~ Sys.Date(),
+      TRUE ~ stop_date
+    ))
+
+# For ttas_id 1105, if x3 is Cosentyx but stop_date is NA, set stop_date to current date
+data_sorted <- data_sorted %>%
+  mutate(
+    stop_date = case_when(
+      ttas_id == 1105 & x3 == "Cosentyx" & is.na(stop_date) ~ Sys.Date(),
+      TRUE ~ stop_date
+    ))
+
+# For ttas_id 1099
+# No stop_date for past treatment Yuflyma, assume stop_date is 19/02/2024 which is one day before next entry
+# For ttas_id 1099, if x3 is Yuflyma but stop_date is NA, set stop_date to 19/02/2024 
+data_sorted <- data_sorted %>%
+  mutate(
+    stop_date = case_when(
+      ttas_id == 1099 & x3 == "Yuflyma" & is.na(stop_date) ~ as.Date("2024-02-19"),
+      TRUE ~ stop_date
+    ))
+
+# One of the Cosentyx entry for this patient has a stop_date of 15/01/2024 but start date of 20/02/2024, which is incorrect.
+# Change the 15/01/2024 stop_date to current date
+data_sorted <- data_sorted %>%
+  mutate(
+    stop_date = case_when(
+      ttas_id == 1099 & x3 == "Cosentyx" & stop_date == as.Date("2024-01-15") ~ Sys.Date(),
+      TRUE ~ stop_date
+    ))
+
+# For ttas_id 1224, if x3 is Benepali but stop_date is NA, set stop_date to current date
+data_sorted <- data_sorted %>%
+  mutate(
+    stop_date = case_when(
+      ttas_id == 1224 & x3 == "Benepali" & is.na(stop_date) ~ Sys.Date(),
+      TRUE ~ stop_date
+    ))
+
+# write.csv(data_sorted, "temp_manual_intervetion_check.csv", row.names = FALSE)
 ```
 
 ```{r}
@@ -1625,6 +1724,8 @@ data_sorted <- data_sorted %>%
   ) %>%
   ungroup()
 
+# write.csv(data_sorted, "temp_after_data_sorted_2.csv", row.names = FALSE)
+
 # Convert treatment to character
 data_sorted$treatment <- as.character(data_sorted$treatment)
 
@@ -1643,7 +1744,7 @@ data_sorted <- data_sorted %>%
     has_valid_treatment = any(!is.na(treatment)),
     
     # Find the unique stop_date_unix within each treatment_period
-    # stop_date_for_period is identified as the maximum stop_date_unix within each treatment_period group. This assumes that each treatment period should only have one stop_date.
+    # stop_date_for_period is identified as the maximum stop_date_unix within each treatment_period group. This assumes that each treatment_period should only have one stop_date.
     # Calculate stop_date_for_period based on whether there's a valid treatment
     stop_date_for_period = ifelse(
       !has_valid_treatment, 
@@ -1653,7 +1754,6 @@ data_sorted <- data_sorted %>%
     
     # If there is no stop_date but there in a period, stop_date_for_period is set to current date.
     stop_date_for_period = ifelse(is.infinite(stop_date_for_period), Sys.time(), stop_date_for_period),
-    
     
     # If start_date_unix is after the stop_date_for_period, reset treatment to NA for the row
     treatment = ifelse(!is.na(treatment) & start_date_unix > stop_date_for_period, NA_character_, treatment),
@@ -1705,25 +1805,27 @@ data_wide <- data_sorted %>%
   pivot_wider(
     id_cols = c(ttas_id, treatment_period),  # Ensure id columns include ttas_id and treatment_period
     names_from = basmi_score_index, 
-    names_prefix = "basmi_score_", 
+    names_prefix = "basmi_score_after_", 
     values_from = basmi_score
   )
 
 # write.csv(data_wide, "test_basmi_score_wide.csv", row.names = FALSE)
+```
 
+```{r}
 # Step 7: Filter on treatment day and inspect the result
 # Select the columns to retain
 final_data <- data_sorted %>%
   select(ttas_id, treatment_period, x3, hlab27status, diagnosis, date, stop_date, treatment, start_date_unix, stop_date_unix, has_valid_treatment, stop_date_for_period, stop_date_for_period_date_format, overall_treatment_duration_in_days, basmi_score_before) %>%
   distinct() %>%
   right_join(data_wide, by = c("ttas_id", "treatment_period"))
-
-# write.csv(data_sorted, "temp_check.csv", row.names = FALSE)
-write.csv(final_data, "test_basmi_score.csv", row.names = FALSE)
 ```
 
 ```{r}
-analysis_data <- final_data %>% 
+# Skip start_date_unix and stop_date_unix, stop_date_for_period
+basmi_analysis_data <- final_data %>% 
   filter(!is.na(x3)) %>%
-  select(ttas_id, treatment, x3, hlab27status, diagnosis, date, stop_date, treatment_period, has_valid_treatment, basmi_score_before, overall_treatment_duration_in_days, starts_with("basmi_score_"))
+  select(ttas_id, treatment_period, x3, hlab27status, diagnosis, date, stop_date, treatment, has_valid_treatment, stop_date_for_period_date_format, overall_treatment_duration_in_days, basmi_score_before, starts_with("basmi_score_"))
+
+write_csv(basmi_analysis_data, "basmi_analysis_data.csv")
 ```
