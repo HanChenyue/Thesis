@@ -1584,6 +1584,7 @@ write.csv(data_sorted, "temp_before_data_sorted.csv", row.names = FALSE)
 ```
 
 ```{r}
+# TODO: Clean this earlier
 # Manual intervention for ttas_id 13, 72, 156, 230, 792, 974, 1105, 1099, 1224
 # For ttas_id 13, if x3 is Benepali but stop_date is NA, set stop_date to current date
 data_sorted <- data_sorted %>%
@@ -1668,7 +1669,7 @@ data_sorted <- data_sorted %>%
       TRUE ~ stop_date
     ))
 
-write.csv(data_sorted, "temp_manual_intervetion_check.csv", row.names = FALSE)
+# write.csv(data_sorted, "temp_manual_intervetion_check.csv", row.names = FALSE)
 ```
 
 ```{r}
@@ -1716,7 +1717,7 @@ data_sorted <- data_sorted %>%
   ) %>%
   ungroup()
 
-write.csv(data_sorted, "temp_after_data_sorted_1.csv", row.names = FALSE)
+# write.csv(data_sorted, "temp_after_data_sorted_1.csv", row.names = FALSE)
 
 # Step 2: Create a unique treatment period identifier
 # TODO: Old code: Problematic as it doesn't consider stop and repeated treatment
@@ -1727,6 +1728,7 @@ write.csv(data_sorted, "temp_after_data_sorted_1.csv", row.names = FALSE)
 #   ) %>%
 #   ungroup()
 
+# TODO: Working fine for now, hope it stays that way
 data_sorted <- data_sorted %>%
   group_by(ttas_id) %>%
   mutate(
@@ -1809,6 +1811,17 @@ data_sorted <- data_sorted %>%
   ) %>%
   ungroup()
 
+# Step 6: Calculate weekly time within each treatment_period
+# Ensure date and stop_date_for_period_date_format are in Date format
+data_sorted$date <- as.Date(data_sorted$date)
+
+data_sorted <- data_sorted %>% 
+  group_by(ttas_id, treatment_period) %>%
+  mutate(
+    treatment_window_weekly_time = round(as.numeric(difftime(date, first(date), units = "weeks")) + 1, 2)) %>% 
+  ungroup()
+  
+
 write.csv(data_sorted, "temp_data_sorted_for_analysis_prior_to_pivot.csv", row.names = FALSE)
 ```
 
@@ -1843,7 +1856,7 @@ write.csv(final_data, "temp_data_sorted_after_pivot.csv", row.names = FALSE)
 ```{r}
 # Skip start_date_unix and stop_date_unix, stop_date_for_period
 basmi_analysis_data <- final_data %>%
-  filter(!is.na(treatment)) %>%
+  filter(!is.na(x3)) %>%
   select(ttas_id, treatment_period, x3, hlab27status, diagnosis, date, stop_date, treatment, has_valid_treatment, stop_date_for_period_date_format, overall_treatment_duration_in_days, basmi_score_before, starts_with("basmi_score_"))
 
 write_csv(basmi_analysis_data, "basmi_analysis_data.csv")
