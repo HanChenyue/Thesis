@@ -1720,11 +1720,11 @@ data_sorted <- data_sorted %>%
 # write.csv(data_sorted, "temp_after_data_sorted_1.csv", row.names = FALSE)
 
 # Step 2: Create a unique treatment period identifier
-# TODO: Old code: Problematic as it doesn't consider stop and repeated treatment
+# Old code: Problematic as it doesn't consider stop and repeated treatment
 # data_sorted <- data_sorted %>%
 #   group_by(ttas_id) %>%
 #   mutate(
-#     treatment_period = cumsum(!is.na(treatment) & (treatment != lag(treatment, default = first(treatment)) | is.na(lag(treatment))))
+#     treatment_period_unique_identifier = cumsum(!is.na(treatment) & (treatment != lag(treatment, default = first(treatment)) | is.na(lag(treatment))))
 #   ) %>%
 #   ungroup()
 
@@ -1738,7 +1738,7 @@ data_sorted <- data_sorted %>%
                         is.na(lag(treatment))),
 
     # Cumulative sum of treatment_change flags to create a unique treatment period identifier
-    treatment_period = cumsum(treatment_change)
+    treatment_period_unique_identifier = cumsum(treatment_change)
   ) %>%
   ungroup()
 
@@ -1756,13 +1756,13 @@ data_sorted <- data_sorted %>%
 
 # Step 3: Reset treatments to NA after the stop_date using numeric UNIX time
 data_sorted <- data_sorted %>%
-  group_by(ttas_id, treatment_period) %>%
+  group_by(ttas_id, treatment_period_unique_identifier) %>%
   mutate(
     # Check if there is any valid treatment in the period
     has_valid_treatment = any(!is.na(treatment)),
     
-    # Find the unique stop_date_unix within each treatment_period
-    # stop_date_for_period is identified as the maximum stop_date_unix within each treatment_period group. This assumes that each treatment_period should only have one stop_date.
+    # Find the unique stop_date_unix within each treatment_period_unique_identifier
+    # stop_date_for_period is identified as the maximum stop_date_unix within each treatment_period_unique_identifier group. This assumes that each treatment_period_unique_identifier should only have one stop_date.
     # Calculate stop_date_for_period based on whether there's a valid treatment
     stop_date_for_period = ifelse(
       !has_valid_treatment, 
@@ -1776,8 +1776,8 @@ data_sorted <- data_sorted %>%
     # If start_date_unix is after the stop_date_for_period, reset treatment to NA for the row
     treatment = ifelse(!is.na(treatment) & start_date_unix > stop_date_for_period, NA_character_, treatment),
     
-    # If start_date_unix is after the stop_date_for_period, reset treatment_period to NA for the row
-    treatment_period = ifelse(start_date_unix > stop_date_for_period, NA_integer_, treatment_period),
+    # If start_date_unix is after the stop_date_for_period, reset treatment_period_unique_identifier to NA for the row
+    treatment_period_unique_identifier = ifelse(start_date_unix > stop_date_for_period, NA_integer_, treatment_period_unique_identifier),
     
     # If start_date_unix is after the stop_date_for_period, reset has_valid_treatment to FALSE for the row
     has_valid_treatment = ifelse(start_date_unix > stop_date_for_period, FALSE, has_valid_treatment),
@@ -1794,14 +1794,14 @@ data_sorted <- data_sorted %>%
 # Step 4: Calculate basmi_score_before
 data_sorted <- data_sorted %>%
   group_by(ttas_id) %>%
-  mutate(basmi_score_before = lag(basmi_score, default = NA_real_)) %>%
-  fill(basmi_score_before, .direction = "down") %>%
+  mutate(basmi_score_before_treatment = lag(basmi_score, default = NA_real_)) %>%
+  fill(basmi_score_before_treatment, .direction = "down") %>%
   ungroup()
 
 # Step 5: Calculate overall_treatment_duration_in_days and create an index for each basmi_score in each period
 # Step 1: Calculate overall_treatment_duration_in_days
 data_sorted <- data_sorted %>%
-  group_by(ttas_id, treatment_period) %>%
+  group_by(ttas_id, treatment_period_unique_identifier) %>%
   mutate(
     overall_treatment_duration_in_days = ifelse(
       !is.na(stop_date_for_period_date_format), 
@@ -1811,25 +1811,33 @@ data_sorted <- data_sorted %>%
   ) %>%
   ungroup()
 
-# Step 6: Calculate weekly time within each treatment_period
+# Step 6: Calculate weekly time within each treatment_period_unique_identifier
 # Ensure date and stop_date_for_period_date_format are in Date format
 data_sorted$date <- as.Date(data_sorted$date)
 
 data_sorted <- data_sorted %>% 
-  group_by(ttas_id, treatment_period) %>%
+  group_by(ttas_id, treatment_period_unique_identifier) %>%
   mutate(
-    treatment_window_weekly_time = round(as.numeric(difftime(date, first(date), units = "weeks")) + 1, 2)) %>% 
+    treatment_window_weekly_time = round(as.numeric(difftime(date, first(date), units = "weeks")) + 1, 2)
+    ) %>% 
   ungroup()
   
 
 write.csv(data_sorted, "temp_data_sorted_for_analysis_prior_to_pivot.csv", row.names = FALSE)
 ```
+```{r}
+# General longitudinal analysis
+longitudinal_analysis_data <- data_sorted %>% 
+  filter(!is.na(treatment)) %>%
+  select(ttas_id, treatment, treatment_period_unique_identifier, has_valid_treatment, hlab27status, diagnosis, date, stop_date_for_period_date_format, overall_treatment_duration_in_days, treatment_window_weekly_time, basmi_score_before_treatment, basmi_score)
 
+write.csv(longitudinal_analysis_data, "longitudinal_analysis_data.csv", row.names = FALSE)
+```
 
 ```{r}
 # Pivot the basmi_score to wide format
 data_sorted <- data_sorted %>%
-  group_by(ttas_id, treatment_period) %>%
+  group_by(ttas_id, treatment_period_unique_identifier) %>%
   mutate(
     basmi_score_index = row_number() - 1  # Create an index for each basmi_score, including NA values
   ) %>%
@@ -1837,7 +1845,7 @@ data_sorted <- data_sorted %>%
 
 data_wide <- data_sorted %>%
   pivot_wider(
-    id_cols = c(ttas_id, treatment_period),  # Ensure id columns include ttas_id and treatment_period
+    id_cols = c(ttas_id, treatment_period_unique_identifier),  # Ensure id columns include ttas_id and treatment_period_unique_identifier
     names_from = basmi_score_index, 
     names_prefix = "basmi_score_after_", 
     values_from = basmi_score
@@ -1845,19 +1853,19 @@ data_wide <- data_sorted %>%
 
 # Filter on treatment day and inspect the result
 # Select the columns to retain
-final_data <- data_sorted %>%
-  select(ttas_id, treatment_period, x3, hlab27status, diagnosis, date, stop_date, treatment, start_date_unix, stop_date_unix, has_valid_treatment, stop_date_for_period, stop_date_for_period_date_format, overall_treatment_duration_in_days, basmi_score_before) %>%
+pivot_data <- data_sorted %>%
+  select(ttas_id, treatment_period_unique_identifier, x3, hlab27status, diagnosis, date, stop_date, treatment, start_date_unix, stop_date_unix, has_valid_treatment, stop_date_for_period, stop_date_for_period_date_format, overall_treatment_duration_in_days, basmi_score_before) %>%
   distinct() %>%
-  right_join(data_wide, by = c("ttas_id", "treatment_period"))
+  right_join(data_wide, by = c("ttas_id", "treatment_period_unique_identifier"))
 
-write.csv(final_data, "temp_data_sorted_after_pivot.csv", row.names = FALSE)
+write.csv(pivot_data, "temp_data_sorted_after_pivot.csv", row.names = FALSE)
 ```
 
 ```{r}
 # Skip start_date_unix and stop_date_unix, stop_date_for_period
-basmi_analysis_data <- final_data %>%
+basmi_analysis_data <- pivot_data %>%
   filter(!is.na(x3)) %>%
-  select(ttas_id, treatment_period, x3, hlab27status, diagnosis, date, stop_date, treatment, has_valid_treatment, stop_date_for_period_date_format, overall_treatment_duration_in_days, basmi_score_before, starts_with("basmi_score_"))
+  select(ttas_id, treatment_period_unique_identifier, x3, hlab27status, diagnosis, date, stop_date, treatment, has_valid_treatment, stop_date_for_period_date_format, overall_treatment_duration_in_days, basmi_score_before, starts_with("basmi_score_"))
 
 write_csv(basmi_analysis_data, "basmi_analysis_data.csv")
 ```
