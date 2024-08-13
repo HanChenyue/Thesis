@@ -656,7 +656,7 @@ combined_df_id_with_drugs_excluded <- combined_df_id_with_drugs %>% filter(!ttas
 # Select the columns to write to the csv
 combined_df_id_with_drugs_excluded <- combined_df_id_with_drugs_excluded %>%
   select(ttas_id, gender, hlab27status, diagnosis, age_at_onset, age_at_diag, date, do_you_smoke, smoke_in_a_day, years_smoked, year_quit_smoking, ecigarettes, vape_in_a_day, years_vaped, year_quit_vaping, basmi_score, age_at_prom, basdai, basfi, patient_global, back_pain_at_night, back_pain_anytime, as_qol, jenkins_sleep_1, jenkins_sleep_2, jenkins_sleep_3, jenkins_sleep_4, presentism, absenteeism, wpl, daily_activity_impairment, facit, margolis, x3, stop_date, high_cost_drug_stop_reason, high_cost_drug_stop_reason_text, age_at_start_date, comment)
-write_csv(combined_df_id_with_drugs_excluded, "test_combined_df_id_with_drugs_excluded.csv")
+write_csv(combined_df_id_with_drugs_excluded, "combined_df_id_with_drugs_excluded.csv")
 ```
 
 ```{r, warning=FALSE}
@@ -1668,7 +1668,7 @@ data_sorted <- data_sorted %>%
       TRUE ~ stop_date
     ))
 
-# write.csv(data_sorted, "temp_manual_intervetion_check.csv", row.names = FALSE)
+write.csv(data_sorted, "temp_manual_intervetion_check.csv", row.names = FALSE)
 ```
 
 ```{r}
@@ -1716,15 +1716,31 @@ data_sorted <- data_sorted %>%
   ) %>%
   ungroup()
 
+write.csv(data_sorted, "temp_after_data_sorted_1.csv", row.names = FALSE)
+
 # Step 2: Create a unique treatment period identifier
+# TODO: Old code: Problematic as it doesn't consider stop and repeated treatment
+# data_sorted <- data_sorted %>%
+#   group_by(ttas_id) %>%
+#   mutate(
+#     treatment_period = cumsum(!is.na(treatment) & (treatment != lag(treatment, default = first(treatment)) | is.na(lag(treatment))))
+#   ) %>%
+#   ungroup()
+
 data_sorted <- data_sorted %>%
   group_by(ttas_id) %>%
   mutate(
-    treatment_period = cumsum(!is.na(treatment) & (treatment != lag(treatment, default = first(treatment)) | is.na(lag(treatment))))
+    # Flag when treatment changes or is restarted
+    treatment_change = (treatment != lag(treatment, default = first(treatment)) | 
+                        !is.na(stop_date) | 
+                        is.na(lag(treatment))),
+
+    # Cumulative sum of treatment_change flags to create a unique treatment period identifier
+    treatment_period = cumsum(treatment_change)
   ) %>%
   ungroup()
 
-# write.csv(data_sorted, "temp_after_data_sorted_2.csv", row.names = FALSE)
+write.csv(data_sorted, "temp_after_data_sorted_2.csv", row.names = FALSE)
 
 # Convert treatment to character
 data_sorted$treatment <- as.character(data_sorted$treatment)
@@ -1793,7 +1809,12 @@ data_sorted <- data_sorted %>%
   ) %>%
   ungroup()
 
-# Step 6: Pivot the basmi_score to wide format
+write.csv(data_sorted, "temp_data_sorted_for_analysis_prior_to_pivot.csv", row.names = FALSE)
+```
+
+
+```{r}
+# Pivot the basmi_score to wide format
 data_sorted <- data_sorted %>%
   group_by(ttas_id, treatment_period) %>%
   mutate(
@@ -1809,22 +1830,20 @@ data_wide <- data_sorted %>%
     values_from = basmi_score
   )
 
-# write.csv(data_wide, "test_basmi_score_wide.csv", row.names = FALSE)
-```
-
-```{r}
-# Step 7: Filter on treatment day and inspect the result
+# Filter on treatment day and inspect the result
 # Select the columns to retain
 final_data <- data_sorted %>%
   select(ttas_id, treatment_period, x3, hlab27status, diagnosis, date, stop_date, treatment, start_date_unix, stop_date_unix, has_valid_treatment, stop_date_for_period, stop_date_for_period_date_format, overall_treatment_duration_in_days, basmi_score_before) %>%
   distinct() %>%
   right_join(data_wide, by = c("ttas_id", "treatment_period"))
+
+write.csv(final_data, "temp_data_sorted_after_pivot.csv", row.names = FALSE)
 ```
 
 ```{r}
 # Skip start_date_unix and stop_date_unix, stop_date_for_period
-basmi_analysis_data <- final_data %>% 
-  filter(!is.na(x3)) %>%
+basmi_analysis_data <- final_data %>%
+  filter(!is.na(treatment)) %>%
   select(ttas_id, treatment_period, x3, hlab27status, diagnosis, date, stop_date, treatment, has_valid_treatment, stop_date_for_period_date_format, overall_treatment_duration_in_days, basmi_score_before, starts_with("basmi_score_"))
 
 write_csv(basmi_analysis_data, "basmi_analysis_data.csv")
