@@ -1831,8 +1831,24 @@ longitudinal_analysis_data <- data_sorted %>%
   filter(!is.na(treatment)) %>%
   select(ttas_id, treatment, treatment_period_unique_identifier, has_valid_treatment, hlab27status, diagnosis, date, stop_date_for_period_date_format, overall_treatment_duration_in_days, treatment_window_weekly_time, basmi_score_before_treatment, basmi_score)
 
+# Create the zeroth time row
+zeroth_rows <- longitudinal_analysis_data %>% 
+  group_by(ttas_id, treatment_period_unique_identifier) %>% 
+  slice(1) %>%
+  mutate(
+    treatment_window_weekly_time = 0,
+    basmi_score = basmi_score_before_treatment
+  )
+
+longitudinal_analysis_data_with_zeroth <- longitudinal_analysis_data %>% 
+  bind_rows(zeroth_rows) %>% 
+  arrange(ttas_id, treatment_period_unique_identifier, treatment_window_weekly_time)
+
 write.csv(longitudinal_analysis_data, "longitudinal_analysis_data.csv", row.names = FALSE)
+write.csv(longitudinal_analysis_data_with_zeroth, "longitudinal_analysis_data_with_zeroth.csv", row.names = FALSE)
 ```
+
+
 
 ```{r}
 # Pivot the basmi_score to wide format
@@ -1869,3 +1885,5 @@ basmi_analysis_data <- pivot_data %>%
 
 write_csv(basmi_analysis_data, "basmi_analysis_data.csv")
 ```
+
+
