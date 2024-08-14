@@ -17,6 +17,7 @@ library(lubridate)
 library(kableExtra)
 library(zoo)
 library(lme4)
+library(plotly)
 ```
 
 # ```{r}
@@ -1848,7 +1849,57 @@ write.csv(longitudinal_analysis_data, "longitudinal_analysis_data.csv", row.name
 write.csv(longitudinal_analysis_data_with_zeroth, "longitudinal_analysis_data_with_zeroth.csv", row.names = FALSE)
 ```
 
+```{r}
+# Fit a mixed-effects model
+# Ensure ttas_id is a factor
+longitudinal_analysis_data_with_zeroth$ttas_id <- as.factor(longitudinal_analysis_data_with_zeroth$ttas_id)
+test_model <- lmer(basmi_score ~ (1 | ttas_id), data = longitudinal_analysis_data_with_zeroth)
+summary(test_model)
+```
 
+
+```{r}
+# Run an lmer model for Humira
+test_model_humira <- lmer(basmi_score ~ (1 | ttas_id), data = longitudinal_analysis_data_with_zeroth %>% filter(treatment == "Humira"))
+summary(test_model_humira)
+```
+
+```{r}
+# Run an lmer model for Humira with diagnosis as a fixed effect
+test_model_humira <- lmer(basmi_score ~ diagnosis + (1 | ttas_id), data = longitudinal_analysis_data_with_zeroth %>% filter(treatment == "Humira"))
+summary(test_model_humira)
+```
+
+```{r}
+# Plot the data
+test_1 <- ggplot(data = longitudinal_analysis_data_with_zeroth %>% filter(treatment == "Humira"),
+       aes(
+         x = treatment_window_weekly_time,
+         y = basmi_score,
+         group = ttas_id,
+         colour = "ttas_id"
+         )) +
+  geom_line() +
+  geom_point()
+
+ggplotly(test_1)
+```
+
+```{r}
+test_1 <- ggplot(data = longitudinal_analysis_data_with_zeroth,
+       aes(
+         x = treatment_window_weekly_time,
+         y = basmi_score,
+         group = ttas_id,
+         colour = "ttas_id"
+         )) +
+  geom_line() +
+  geom_point() +
+  facet_wrap(~ treatment_period_unique_identifier, scales = "free_y")
+
+
+# ggplotly(test_1)
+```
 
 ```{r}
 # Pivot the basmi_score to wide format
