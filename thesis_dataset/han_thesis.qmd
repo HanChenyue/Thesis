@@ -100,6 +100,13 @@ drug_sheet_data$comment <- as.factor(drug_sheet_data$comment)
 demographics_sheet_data <- demographics_sheet_data %>%
   mutate(across(where(is.character), ~na_if(., "Unknown"))) #%>%
   # mutate(across(where(is.character), ~na_if(., "")))
+
+# 2. However, if the hlba27status is "NA", replace it with "undiagnosed"
+demographics_sheet_data <- demographics_sheet_data %>%
+  mutate(hlab27status = case_when(
+    is.na(hlab27status) ~ "undiagnosed",
+    TRUE ~ hlab27status
+  ))
 ```
 
 ```{r}
@@ -1631,15 +1638,18 @@ Basic analysis for before and after treatment
 df <- combined_df_id_with_drugs_excluded
 
 data_sorted <- df %>%
-  select(ttas_id, basmi_score, x3, hlab27status, diagnosis, date, stop_date)
+  select(ttas_id, x3, gender, hlab27status, age_at_onset, age_at_diag, diagnosis, date, stop_date, basmi_score)
 
 data_sorted$ttas_id <- as.factor(data_sorted$ttas_id)
-data_sorted$basmi_score <- as.numeric(data_sorted$basmi_score)
 data_sorted$x3 <- as.factor(data_sorted$x3)
+data_sorted$gender <- as.factor(data_sorted$gender)
 data_sorted$hlab27status <- as.factor(data_sorted$hlab27status)
+data_sorted$age_at_onset <- as.numeric(data_sorted$age_at_onset)
+data_sorted$age_at_diag <- as.numeric(data_sorted$age_at_diag)
 data_sorted$diagnosis <- as.factor(data_sorted$diagnosis)
 data_sorted$date <- as.Date(data_sorted$date)
 data_sorted$stop_date <- as.Date(data_sorted$stop_date)
+data_sorted$basmi_score <- as.numeric(data_sorted$basmi_score)
 
 # If x3 is present but date == stop_date, make x3 and stop_date NA
 data_sorted <- data_sorted %>%
@@ -1920,7 +1930,7 @@ write.csv(data_sorted, "temp_data_sorted_for_analysis_prior_to_pivot.csv", row.n
 # General longitudinal analysis
 longitudinal_analysis_data <- data_sorted %>% 
   filter(!is.na(treatment)) %>%
-  select(ttas_id, treatment, treatment_period_unique_identifier, has_valid_treatment, hlab27status, diagnosis, date, stop_date_for_period_date_format, overall_treatment_duration_in_days, treatment_window_weekly_time, basmi_score_before_treatment, basmi_score)
+  select(ttas_id, gender, hlab27status, age_at_onset, age_at_diag, diagnosis, treatment, treatment_period_unique_identifier, date, stop_date_for_period_date_format, overall_treatment_duration_in_days, treatment_window_weekly_time, basmi_score_before_treatment, basmi_score)
 
 # Create the zeroth time row
 zeroth_rows <- longitudinal_analysis_data %>% 
@@ -1935,48 +1945,37 @@ longitudinal_analysis_data_with_zeroth <- longitudinal_analysis_data %>%
   bind_rows(zeroth_rows) %>% 
   arrange(ttas_id, treatment_period_unique_identifier, treatment_window_weekly_time)
 
+# Extra cleaning
+# Drop basmi_score with NA
+longitudinal_analysis_data_filtered <- longitudinal_analysis_data_with_zeroth %>%
+  filter(!is.na(basmi_score))
+# For each ttas_id, if there is only one treatment_period_unique_identifier, drop the row
+longitudinal_analysis_data_filtered <- longitudinal_analysis_data_filtered %>%
+  group_by(ttas_id, treatment_period_unique_identifier) %>%
+  filter(n() > 1) %>% # Keep only groups with more than one row after filtering out NAs
+  ungroup()
+
 write.csv(longitudinal_analysis_data, "longitudinal_analysis_data.csv", row.names = FALSE)
 write.csv(longitudinal_analysis_data_with_zeroth, "longitudinal_analysis_data_with_zeroth.csv", row.names = FALSE)
-```
-
-```{r}
-# Fit a mixed-effects model
-# Ensure ttas_id is a factor
-longitudinal_analysis_data_with_zeroth$ttas_id <- as.factor(longitudinal_analysis_data_with_zeroth$ttas_id)
-test_model <- lmer(basmi_score ~ (1 | ttas_id), data = longitudinal_analysis_data_with_zeroth)
-summary(test_model)
+write.csv(longitudinal_analysis_data_filtered, "longitudinal_analysis_data_filtered.csv", row.names = FALSE)
 ```
 
 
 ```{r}
-# Run an lmer model for Humira
-test_model_humira <- lmer(basmi_score ~ (1 | ttas_id), data = longitudinal_analysis_data_with_zeroth %>% filter(treatment == "Humira"))
+# Run an lmer model for Humira for longitudinal_analysis_extreme_data
+test_model_humira <- lmer(basmi_score ~ (1 | ttas_id), data = longitudinal_analysis_extreme_data %>% filter(treatment == "Humira"))
 summary(test_model_humira)
 ```
 
 ```{r}
-# Run an lmer model for Humira with diagnosis as a fixed effect
-test_model_humira <- lmer(basmi_score ~ diagnosis + (1 | ttas_id), data = longitudinal_analysis_data_with_zeroth %>% filter(treatment == "Humira"))
+# Run an lmer model for Humira with diagnosis as a fixed effect for longitudinal_analysis_extreme_data
+test_model_humira <- lmer(basmi_score ~ diagnosis + (1 | ttas_id), data = longitudinal_analysis_extreme_data %>% filter(treatment == "Humira"))
 summary(test_model_humira)
 ```
 
 ```{r}
 # Plot the data
-test_1 <- ggplot(data = longitudinal_analysis_data_with_zeroth %>% filter(treatment == "Humira"),
-       aes(
-         x = treatment_window_weekly_time,
-         y = basmi_score,
-         group = ttas_id,
-         colour = "ttas_id"
-         )) +
-  geom_line() +
-  geom_point()
-
-ggplotly(test_1)
-```
-
-```{r}
-test_1 <- ggplot(data = longitudinal_analysis_data_with_zeroth,
+test_1 <- ggplot(data = longitudinal_analysis_data_filtered %>% filter(treatment == "Humira"),
        aes(
          x = treatment_window_weekly_time,
          y = basmi_score,
@@ -1985,46 +1984,45 @@ test_1 <- ggplot(data = longitudinal_analysis_data_with_zeroth,
          )) +
   geom_line() +
   geom_point() +
-  facet_wrap(~ treatment_period_unique_identifier, scales = "free_y")
+  facet_wrap(~ ttas_id, scales = "free_y")
 
-
-# ggplotly(test_1)
+ggplotly(test_1)
 ```
 
 ```{r}
-# Pivot the basmi_score to wide format
-data_sorted <- data_sorted %>%
-  group_by(ttas_id, treatment_period_unique_identifier) %>%
-  mutate(
-    basmi_score_index = row_number() - 1  # Create an index for each basmi_score, including NA values
-  ) %>%
-  ungroup()
-
-data_wide <- data_sorted %>%
-  pivot_wider(
-    id_cols = c(ttas_id, treatment_period_unique_identifier),  # Ensure id columns include ttas_id and treatment_period_unique_identifier
-    names_from = basmi_score_index, 
-    names_prefix = "basmi_score_after_", 
-    values_from = basmi_score
-  )
-
-# Filter on treatment day and inspect the result
-# Select the columns to retain
-pivot_data <- data_sorted %>%
-  select(ttas_id, treatment_period_unique_identifier, x3, hlab27status, diagnosis, date, stop_date, treatment, start_date_unix, stop_date_unix, has_valid_treatment, stop_date_for_period, stop_date_for_period_date_format, overall_treatment_duration_in_days, basmi_score_before) %>%
-  distinct() %>%
-  right_join(data_wide, by = c("ttas_id", "treatment_period_unique_identifier"))
-
-write.csv(pivot_data, "temp_data_sorted_after_pivot.csv", row.names = FALSE)
+# # Pivot the basmi_score to wide format
+# data_sorted <- data_sorted %>%
+#   group_by(ttas_id, treatment_period_unique_identifier) %>%
+#   mutate(
+#     basmi_score_index = row_number() - 1  # Create an index for each basmi_score, including NA values
+#   ) %>%
+#   ungroup()
+# 
+# data_wide <- data_sorted %>%
+#   pivot_wider(
+#     id_cols = c(ttas_id, treatment_period_unique_identifier),  # Ensure id columns include ttas_id and treatment_period_unique_identifier
+#     names_from = basmi_score_index,
+#     names_prefix = "basmi_score_after_",
+#     values_from = basmi_score
+#   )
+# 
+# # Filter on treatment day and inspect the result
+# # Select the columns to retain
+# pivot_data <- data_sorted %>%
+#   select(ttas_id, treatment_period_unique_identifier, x3, hlab27status, diagnosis, date, stop_date, treatment, start_date_unix, stop_date_unix, has_valid_treatment, stop_date_for_period, stop_date_for_period_date_format, overall_treatment_duration_in_days, basmi_score_before) %>%
+#   distinct() %>%
+#   right_join(data_wide, by = c("ttas_id", "treatment_period_unique_identifier"))
+# 
+# write.csv(pivot_data, "temp_data_sorted_after_pivot.csv", row.names = FALSE)
 ```
 
 ```{r}
-# Skip start_date_unix and stop_date_unix, stop_date_for_period
-basmi_analysis_data <- pivot_data %>%
-  filter(!is.na(x3)) %>%
-  select(ttas_id, treatment_period_unique_identifier, x3, hlab27status, diagnosis, date, stop_date, treatment, has_valid_treatment, stop_date_for_period_date_format, overall_treatment_duration_in_days, basmi_score_before, starts_with("basmi_score_"))
-
-write_csv(basmi_analysis_data, "basmi_analysis_data.csv")
+# # Skip start_date_unix and stop_date_unix, stop_date_for_period
+# basmi_analysis_data <- pivot_data %>%
+#   filter(!is.na(x3)) %>%
+#   select(ttas_id, treatment_period_unique_identifier, x3, hlab27status, diagnosis, date, stop_date, treatment, has_valid_treatment, stop_date_for_period_date_format, overall_treatment_duration_in_days, basmi_score_before, starts_with("basmi_score_"))
+# 
+# write_csv(basmi_analysis_data, "basmi_analysis_data.csv")
 ```
 
 
