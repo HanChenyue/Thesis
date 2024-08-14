@@ -122,6 +122,96 @@ cat("After, ttas_id for 623: ttas_id=", subset_data_623$ttas_id, ", age_at_onset
 ```
 
 ```{r}
+# Manual intervention for ttas_id 13, 72, 156, 230, 792, 974, 1105, 1099, 1224
+# For ttas_id 13, if x3 is Benepali but stop_date is NA, set stop_date to current date
+write.csv(drug_sheet_data, "temp_manual_intervetion_check_before.csv", row.names = FALSE)
+
+drug_sheet_data <- drug_sheet_data %>%
+  mutate(
+    stop_date = case_when(
+      ttas_id == 13 & x3 == "Benepali" & is.na(stop_date) ~ Sys.Date(),
+      TRUE ~ stop_date
+    ))
+
+# For ttas_id 72, if x3 is Cosentyx but stop_date is NA, set stop_date to current date
+drug_sheet_data <- drug_sheet_data %>%
+  mutate(
+    stop_date = case_when(
+      ttas_id == 72 & x3 == "Cosentyx" & is.na(stop_date) ~ Sys.Date(),
+      TRUE ~ stop_date
+    ))
+
+# For ttas_id 156, if x3 is Imraldi but stop_date is NA, set stop_date to current date
+drug_sheet_data <- drug_sheet_data %>%
+  mutate(
+    stop_date = case_when(
+      ttas_id == 156 & x3 == "Imraldi" & is.na(stop_date) ~ Sys.Date(),
+      TRUE ~ stop_date
+    ))
+
+# For ttas_id 230, if x3 is Imraldi but stop_date is NA, set stop_date to current date
+drug_sheet_data <- drug_sheet_data %>%
+  mutate(
+    stop_date = case_when(
+      ttas_id == 230 & x3 == "Imraldi" & is.na(stop_date) ~ Sys.Date(),
+      TRUE ~ stop_date
+    ))
+
+# For ttas_id 792, if x3 is Simponi but stop_date is NA, set stop_date to current date
+drug_sheet_data <- drug_sheet_data %>%
+  mutate(
+    stop_date = case_when(
+      ttas_id == 792 & x3 == "Simponi" & is.na(stop_date) ~ Sys.Date(),
+      TRUE ~ stop_date
+    ))
+
+# For ttas_id 984, if x3 is Cosentyx but stop_date is NA, set stop_date to current date
+drug_sheet_data <- drug_sheet_data %>%
+  mutate(
+    stop_date = case_when(
+      ttas_id == 984 & x3 == "Cosentyx" & is.na(stop_date) ~ Sys.Date(),
+      TRUE ~ stop_date
+    ))
+
+# For ttas_id 1105, if x3 is Cosentyx but stop_date is NA, set stop_date to current date
+drug_sheet_data <- drug_sheet_data %>%
+  mutate(
+    stop_date = case_when(
+      ttas_id == 1105 & x3 == "Cosentyx" & is.na(stop_date) ~ Sys.Date(),
+      TRUE ~ stop_date
+    ))
+
+# For ttas_id 1099
+# No stop_date for past treatment Yuflyma, assume stop_date is 19/02/2024 which is one day before next entry
+# For ttas_id 1099, if x3 is Yuflyma but stop_date is NA, set stop_date to 19/02/2024
+drug_sheet_data <- drug_sheet_data %>%
+  mutate(
+    stop_date = case_when(
+      ttas_id == 1099 & x3 == "Yuflyma" & is.na(stop_date) ~ as.Date("2024-02-19"),
+      TRUE ~ stop_date
+    ))
+
+# One of the Cosentyx entry for this patient has a stop_date of 15/01/2024 but start date of 20/02/2024, which is incorrect.
+# Change the 15/01/2024 stop_date to current date
+drug_sheet_data <- drug_sheet_data %>%
+  mutate(
+    stop_date = case_when(
+      ttas_id == 1099 & x3 == "Cosentyx" & stop_date == as.Date("2024-01-15") ~ Sys.Date(),
+      TRUE ~ stop_date
+    ))
+
+# For ttas_id 1224, if x3 is Benepali but stop_date is NA, set stop_date to current date
+drug_sheet_data <- drug_sheet_data %>%
+  mutate(
+    stop_date = case_when(
+      ttas_id == 1224 & x3 == "Benepali" & is.na(stop_date) ~ Sys.Date(),
+      TRUE ~ stop_date
+    ))
+
+write.csv(drug_sheet_data, "temp_manual_intervetion_check_after.csv", row.names = FALSE)
+```
+
+```{r}
 # Summary of demographics_sheet_data
 kable(summary(demographics_sheet_data)) %>% kable_styling(bootstrap_options = "striped", full_width = F)
 ```
@@ -1585,92 +1675,92 @@ write.csv(data_sorted, "temp_before_data_sorted.csv", row.names = FALSE)
 ```
 
 ```{r}
-# TODO: Clean this earlier
-# Manual intervention for ttas_id 13, 72, 156, 230, 792, 974, 1105, 1099, 1224
-# For ttas_id 13, if x3 is Benepali but stop_date is NA, set stop_date to current date
-data_sorted <- data_sorted %>%
-  mutate(
-    stop_date = case_when(
-      ttas_id == 13 & x3 == "Benepali" & is.na(stop_date) ~ Sys.Date(),
-      TRUE ~ stop_date
-    ))
-
-# For ttas_id 72, if x3 is Cosentyx but stop_date is NA, set stop_date to current date
-data_sorted <- data_sorted %>%
-  mutate(
-    stop_date = case_when(
-      ttas_id == 72 & x3 == "Cosentyx" & is.na(stop_date) ~ Sys.Date(),
-      TRUE ~ stop_date
-    ))
-
-# For ttas_id 156, if x3 is Imraldi but stop_date is NA, set stop_date to current date
-data_sorted <- data_sorted %>%
-  mutate(
-    stop_date = case_when(
-      ttas_id == 156 & x3 == "Imraldi" & is.na(stop_date) ~ Sys.Date(),
-      TRUE ~ stop_date
-    ))
-
-# For ttas_id 230, if x3 is Imraldi but stop_date is NA, set stop_date to current date
-data_sorted <- data_sorted %>%
-  mutate(
-    stop_date = case_when(
-      ttas_id == 230 & x3 == "Imraldi" & is.na(stop_date) ~ Sys.Date(),
-      TRUE ~ stop_date
-    ))
-
-# For ttas_id 792, if x3 is Simponi but stop_date is NA, set stop_date to current date
-data_sorted <- data_sorted %>%
-  mutate(
-    stop_date = case_when(
-      ttas_id == 792 & x3 == "Simponi" & is.na(stop_date) ~ Sys.Date(),
-      TRUE ~ stop_date
-    ))
-
-# For ttas_id 984, if x3 is Cosentyx but stop_date is NA, set stop_date to current date
-data_sorted <- data_sorted %>%
-  mutate(
-    stop_date = case_when(
-      ttas_id == 984 & x3 == "Cosentyx" & is.na(stop_date) ~ Sys.Date(),
-      TRUE ~ stop_date
-    ))
-
-# For ttas_id 1105, if x3 is Cosentyx but stop_date is NA, set stop_date to current date
-data_sorted <- data_sorted %>%
-  mutate(
-    stop_date = case_when(
-      ttas_id == 1105 & x3 == "Cosentyx" & is.na(stop_date) ~ Sys.Date(),
-      TRUE ~ stop_date
-    ))
-
-# For ttas_id 1099
-# No stop_date for past treatment Yuflyma, assume stop_date is 19/02/2024 which is one day before next entry
-# For ttas_id 1099, if x3 is Yuflyma but stop_date is NA, set stop_date to 19/02/2024 
-data_sorted <- data_sorted %>%
-  mutate(
-    stop_date = case_when(
-      ttas_id == 1099 & x3 == "Yuflyma" & is.na(stop_date) ~ as.Date("2024-02-19"),
-      TRUE ~ stop_date
-    ))
-
-# One of the Cosentyx entry for this patient has a stop_date of 15/01/2024 but start date of 20/02/2024, which is incorrect.
-# Change the 15/01/2024 stop_date to current date
-data_sorted <- data_sorted %>%
-  mutate(
-    stop_date = case_when(
-      ttas_id == 1099 & x3 == "Cosentyx" & stop_date == as.Date("2024-01-15") ~ Sys.Date(),
-      TRUE ~ stop_date
-    ))
-
-# For ttas_id 1224, if x3 is Benepali but stop_date is NA, set stop_date to current date
-data_sorted <- data_sorted %>%
-  mutate(
-    stop_date = case_when(
-      ttas_id == 1224 & x3 == "Benepali" & is.na(stop_date) ~ Sys.Date(),
-      TRUE ~ stop_date
-    ))
-
-# write.csv(data_sorted, "temp_manual_intervetion_check.csv", row.names = FALSE)
+# # TODO: Clean this earlier
+# # Manual intervention for ttas_id 13, 72, 156, 230, 792, 974, 1105, 1099, 1224
+# # For ttas_id 13, if x3 is Benepali but stop_date is NA, set stop_date to current date
+# data_sorted <- data_sorted %>%
+#   mutate(
+#     stop_date = case_when(
+#       ttas_id == 13 & x3 == "Benepali" & is.na(stop_date) ~ Sys.Date(),
+#       TRUE ~ stop_date
+#     ))
+# 
+# # For ttas_id 72, if x3 is Cosentyx but stop_date is NA, set stop_date to current date
+# data_sorted <- data_sorted %>%
+#   mutate(
+#     stop_date = case_when(
+#       ttas_id == 72 & x3 == "Cosentyx" & is.na(stop_date) ~ Sys.Date(),
+#       TRUE ~ stop_date
+#     ))
+# 
+# # For ttas_id 156, if x3 is Imraldi but stop_date is NA, set stop_date to current date
+# data_sorted <- data_sorted %>%
+#   mutate(
+#     stop_date = case_when(
+#       ttas_id == 156 & x3 == "Imraldi" & is.na(stop_date) ~ Sys.Date(),
+#       TRUE ~ stop_date
+#     ))
+# 
+# # For ttas_id 230, if x3 is Imraldi but stop_date is NA, set stop_date to current date
+# data_sorted <- data_sorted %>%
+#   mutate(
+#     stop_date = case_when(
+#       ttas_id == 230 & x3 == "Imraldi" & is.na(stop_date) ~ Sys.Date(),
+#       TRUE ~ stop_date
+#     ))
+# 
+# # For ttas_id 792, if x3 is Simponi but stop_date is NA, set stop_date to current date
+# data_sorted <- data_sorted %>%
+#   mutate(
+#     stop_date = case_when(
+#       ttas_id == 792 & x3 == "Simponi" & is.na(stop_date) ~ Sys.Date(),
+#       TRUE ~ stop_date
+#     ))
+# 
+# # For ttas_id 984, if x3 is Cosentyx but stop_date is NA, set stop_date to current date
+# data_sorted <- data_sorted %>%
+#   mutate(
+#     stop_date = case_when(
+#       ttas_id == 984 & x3 == "Cosentyx" & is.na(stop_date) ~ Sys.Date(),
+#       TRUE ~ stop_date
+#     ))
+# 
+# # For ttas_id 1105, if x3 is Cosentyx but stop_date is NA, set stop_date to current date
+# data_sorted <- data_sorted %>%
+#   mutate(
+#     stop_date = case_when(
+#       ttas_id == 1105 & x3 == "Cosentyx" & is.na(stop_date) ~ Sys.Date(),
+#       TRUE ~ stop_date
+#     ))
+# 
+# # For ttas_id 1099
+# # No stop_date for past treatment Yuflyma, assume stop_date is 19/02/2024 which is one day before next entry
+# # For ttas_id 1099, if x3 is Yuflyma but stop_date is NA, set stop_date to 19/02/2024 
+# data_sorted <- data_sorted %>%
+#   mutate(
+#     stop_date = case_when(
+#       ttas_id == 1099 & x3 == "Yuflyma" & is.na(stop_date) ~ as.Date("2024-02-19"),
+#       TRUE ~ stop_date
+#     ))
+# 
+# # One of the Cosentyx entry for this patient has a stop_date of 15/01/2024 but start date of 20/02/2024, which is incorrect.
+# # Change the 15/01/2024 stop_date to current date
+# data_sorted <- data_sorted %>%
+#   mutate(
+#     stop_date = case_when(
+#       ttas_id == 1099 & x3 == "Cosentyx" & stop_date == as.Date("2024-01-15") ~ Sys.Date(),
+#       TRUE ~ stop_date
+#     ))
+# 
+# # For ttas_id 1224, if x3 is Benepali but stop_date is NA, set stop_date to current date
+# data_sorted <- data_sorted %>%
+#   mutate(
+#     stop_date = case_when(
+#       ttas_id == 1224 & x3 == "Benepali" & is.na(stop_date) ~ Sys.Date(),
+#       TRUE ~ stop_date
+#     ))
+# 
+# # write.csv(data_sorted, "temp_manual_intervetion_check.csv", row.names = FALSE)
 ```
 
 ```{r}
