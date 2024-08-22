@@ -18,6 +18,7 @@ library(kableExtra)
 library(zoo)
 library(lme4)
 library(plotly)
+library(MuMIn)
 ```
 
 # ```{r}
@@ -1947,7 +1948,7 @@ write.csv(data_sorted, "temp_data_sorted_for_analysis_prior_to_pivot.csv", row.n
 # General longitudinal analysis
 longitudinal_analysis_data <- data_sorted %>% 
   filter(!is.na(treatment)) %>%
-  select(ttas_id, gender, hlab27status, age_at_onset, age_at_diag, diagnosis, treatment, treatment_period_unique_identifier, date, stop_date_for_period_date_format, overall_treatment_duration_in_days, treatment_window_weekly_time, basmi_score)
+  select(ttas_id, gender, hlab27status, age_at_onset, age_at_diag, age_at_basmi, diagnosis, treatment, treatment_period_unique_identifier, date, stop_date_for_period_date_format, overall_treatment_duration_in_days, treatment_window_weekly_time, basmi_score)
 
 # Create the zeroth time row
 # zeroth_rows <- longitudinal_analysis_data %>% 
@@ -1958,13 +1959,13 @@ longitudinal_analysis_data <- data_sorted %>%
 #     basmi_score = basmi_score_before_treatment
 #   )
 
-longitudinal_analysis_data_with_zeroth <- longitudinal_analysis_data %>% 
-  bind_rows(zeroth_rows) %>% 
-  arrange(ttas_id, treatment_period_unique_identifier, treatment_window_weekly_time)
+# longitudinal_analysis_data_with_zeroth <- longitudinal_analysis_data %>% 
+#   bind_rows(zeroth_rows) %>% 
+#   arrange(ttas_id, treatment_period_unique_identifier, treatment_window_weekly_time)
 
 # Extra cleaning
 # Drop basmi_score with NA
-longitudinal_analysis_data_filtered <- longitudinal_analysis_data_with_zeroth %>%
+longitudinal_analysis_data_filtered <- longitudinal_analysis_data%>%
   filter(!is.na(basmi_score))
 # For each ttas_id, if there is only one treatment_period_unique_identifier, drop the row
 longitudinal_analysis_data_filtered <- longitudinal_analysis_data_filtered %>%
@@ -1973,13 +1974,13 @@ longitudinal_analysis_data_filtered <- longitudinal_analysis_data_filtered %>%
   ungroup()
 
 write.csv(longitudinal_analysis_data, "longitudinal_analysis_data.csv", row.names = FALSE)
-write.csv(longitudinal_analysis_data_with_zeroth, "longitudinal_analysis_data_with_zeroth.csv", row.names = FALSE)
+# write.csv(longitudinal_analysis_data_with_zeroth, "longitudinal_analysis_data_with_zeroth.csv", row.names = FALSE)
 write.csv(longitudinal_analysis_data_filtered, "longitudinal_analysis_data_filtered.csv", row.names = FALSE)
 ```
 
 
 ```{r}
-# Run an lmer model for Humira for longitudinal_analysis_extreme_data
+# Run an lmer model 
 test_model_humira <- lmer(basmi_score ~ (1 | ttas_id), data = longitudinal_analysis_data_filtered %>% filter(treatment == "Humira"))
 summary(test_model_humira)
 ```
@@ -1992,19 +1993,44 @@ summary(test_model_humira)
 
 ```{r}
 # Plot the data
-test_1 <- ggplot(data = longitudinal_analysis_data_filtered %>% filter(treatment == "Humira"),
-       aes(
-         x = treatment_window_weekly_time,
-         y = basmi_score,
-         group = ttas_id,
-         colour = "ttas_id"
-         )) +
-  geom_line() +
-  geom_point() +
-  facet_wrap(~ ttas_id, scales = "free_y")
-
-ggplotly(test_1)
+test_model_1 <- lmer(basmi_score ~ treatment + treatment_window_weekly_time + age_at_basmi + gender + hlab27status + (1 | ttas_id), data = longitudinal_analysis_data_filtered)
+print(summary(test_model_1), corr = TRUE)
 ```
+```{r}
+```
+```{r}
+# Error in initializePtr() : Downdated VtV is not positive definite
+# Fit a full model with all interactions of interest
+
+test_basmi_model_1_data <- na.omit(longitudinal_analysis_data_filtered)
+test_basmi_model_1 <- lmer(basmi_score ~ (gender + hlab27status + diagnosis + treatment + age_at_onset + age_at_diag
+                  + age_at_basmi)^2 + (1 | ttas_id),
+                  data = test_basmi_model_1_data, na.action = na.fail)
+
+# Perform model selection based on AIC
+test_basmi_model_1_dredge <-  dredge(test_basmi_model_1)
+```
+
+```{r}
+# Fit a full model with all interactions of interest
+test_basmi_model_2 <- lmer(basmi_score ~ (gender + hlab27status + diagnosis + treatment +
+                  + age_at_basmi)^4 + (1 | ttas_id),
+                  data = longitudinal_analysis_data_filtered, na.action = na.fail)
+
+# Perform model selection based on AIC
+test_basmi_model_2_dredge <-  dredge(test_basmi_model_2)
+
+# 
+# # View the top models
+# model_selection[1:5]  # Show top 5 models
+# 
+# # Choose the best model based on AIC
+# best_model <- get.models(model_selection, 1)[[1]]
+# 
+# # Summarise the best model
+# summary(best_model)
+```
+
 
 ```{r}
 # # Pivot the basmi_score to wide format
