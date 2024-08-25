@@ -773,7 +773,15 @@ combined_df_id_with_drugs_excluded <- combined_df_id_with_drugs %>% filter(!ttas
 combined_df_id_with_drugs_excluded <- combined_df_id_with_drugs_excluded %>%
   select(ttas_id, gender, hlab27status, diagnosis, age_at_onset, age_at_diag, date, do_you_smoke, smoke_in_a_day, years_smoked, year_quit_smoking, ecigarettes, vape_in_a_day, years_vaped, year_quit_vaping, age_at_basmi, basmi_score, age_at_prom, basdai, basfi, patient_global, back_pain_at_night, back_pain_anytime, as_qol, jenkins_sleep_1, jenkins_sleep_2, jenkins_sleep_3, jenkins_sleep_4, presentism, absenteeism, wpl, daily_activity_impairment, facit, margolis, x3, stop_date, high_cost_drug_stop_reason, high_cost_drug_stop_reason_text, age_at_start_date, comment)
 write_csv(combined_df_id_with_drugs_excluded, "combined_df_id_with_drugs_excluded.csv")
+
+
+
+# Including patients with and without drug data but exclude the ids in the exclude_ids list
+combined_df_with_and_without_drugs_excluded <- combined_df %>% filter(!ttas_id %in% exclude_ids)
+write_csv(combined_df_with_and_without_drugs_excluded, "test_combined_df_with_and_without_drugs_excluded.csv")
 ```
+
+# Checkpoint
 
 ```{r, warning=FALSE}
 for (current_id in unique_ids_drugs_only){
@@ -1703,6 +1711,57 @@ write.csv(data_sorted, "temp_before_data_sorted.csv", row.names = FALSE)
 ```
 
 ```{r}
+dataframe <- combined_df_with_and_without_drugs_excluded
+
+dataframe_sorted <- dataframe %>%
+  select(ttas_id, x3, gender, hlab27status, age_at_basmi, diagnosis, date, stop_date, basmi_score)
+
+dataframe_sorted$ttas_id <- as.factor(dataframe_sorted$ttas_id)
+dataframe_sorted$x3 <- as.factor(dataframe_sorted$x3)
+dataframe_sorted$gender <- as.factor(dataframe_sorted$gender)
+dataframe_sorted$hlab27status <- as.factor(dataframe_sorted$hlab27status)
+dataframe_sorted$age_at_basmi <- as.numeric(dataframe_sorted$age_at_basmi)
+dataframe_sorted$diagnosis <- as.factor(dataframe_sorted$diagnosis)
+dataframe_sorted$date <- as.Date(dataframe_sorted$date)
+dataframe_sorted$stop_date <- as.Date(dataframe_sorted$stop_date)
+dataframe_sorted$basmi_score <- as.numeric(dataframe_sorted$basmi_score)
+
+# If x3 is present but date == stop_date, make x3 and stop_date NA
+dataframe_sorted <- dataframe_sorted %>%
+  mutate(
+    x3 = case_when(
+      date == stop_date ~ NA_character_,
+      TRUE ~ as.character(x3)
+    ),
+    stop_date = case_when(
+      date == stop_date ~ NA_Date_,
+      TRUE ~ stop_date
+    )
+  ) %>% 
+  
+  # Ensure x3 is still a factor
+  mutate(x3 = as.factor(x3)) %>% 
+  
+  # If x3 is present but no start_date, make x3 and stop_date NA
+  mutate(
+    x3 = case_when(
+      !is.na(x3) & is.na(date) ~ NA_character_,
+      TRUE ~ as.character(x3)
+    ),
+    stop_date = case_when(
+      !is.na(x3) & is.na(date) ~ NA_Date_,
+      TRUE ~ stop_date
+    )
+  ) %>%
+  # Convert x3 back to factor after the above condition
+  mutate(x3 = as.factor(x3))
+
+write.csv(dataframe_sorted, "temp_dataframe_before_data_sorted.csv", row.names = FALSE)
+```
+
+
+
+```{r}
 # # Manual intervention for ttas_id 13, 72, 156, 230, 792, 974, 1105, 1099, 1224
 # # For ttas_id 13, if x3 is Benepali but stop_date is NA, set stop_date to current date
 # data_sorted <- data_sorted %>%
@@ -1944,6 +2003,104 @@ data_sorted <- data_sorted %>%
 
 write.csv(data_sorted, "temp_data_sorted_for_analysis_prior_to_pivot.csv", row.names = FALSE)
 ```
+
+```{r}
+# Step 1: Forward fill x3 to create a continuous treatment period indicator
+dataframe_sorted <- dataframe_sorted %>%
+  group_by(ttas_id) %>%
+  mutate(treatment = zoo::na.locf(x3, na.rm = FALSE)) %>%
+  ungroup()
+
+write.csv(dataframe_sorted, "temp_dataframe_after_data_sorted_1.csv", row.names = FALSE)
+
+# Step 2: Create a unique identifier for each treatment period
+dataframe_sorted <- dataframe_sorted %>%
+  group_by(ttas_id) %>%
+  mutate(
+    # Flag when treatment changes or is restarted
+    treatment_change = (treatment != lag(treatment, default = first(treatment)) | 
+                        !is.na(stop_date) | 
+                        is.na(lag(treatment))),
+
+    # Cumulative sum of treatment_change flags to create a unique treatment period identifier
+    treatment_period_unique_identifier = cumsum(treatment_change)
+  ) %>%
+  ungroup()
+
+write.csv(dataframe_sorted, "temp_dataframe_after_data_sorted_2.csv", row.names = FALSE)
+
+# Convert treatment to character
+dataframe_sorted$treatment <- as.character(dataframe_sorted$treatment)
+
+# Convert dates to UNIX time
+dataframe_sorted <- dataframe_sorted %>%
+  mutate(
+    start_date_unix = as.numeric(as.POSIXct(date)),
+    stop_date_unix = ifelse(is.na(stop_date), NA, as.numeric(as.POSIXct(stop_date)))
+  )
+
+# Step 3: Reset treatments to NA after the stop_date using numeric UNIX time
+dataframe_sorted <- dataframe_sorted %>%
+  group_by(ttas_id, treatment_period_unique_identifier) %>%
+  mutate(
+    # Check if there is any valid treatment in the period
+    has_valid_treatment = any(!is.na(treatment)),
+    
+    # Find the unique stop_date_unix within each treatment_period_unique_identifier
+    # stop_date_for_period is identified as the maximum stop_date_unix within each treatment_period_unique_identifier group. This assumes that each treatment_period_unique_identifier should only have one stop_date.
+    # Calculate stop_date_for_period based on whether there's a valid treatment
+    stop_date_for_period = ifelse(
+      !has_valid_treatment, 
+      NA_real_,  # If no valid treatment, set to NA
+      max(stop_date_unix, na.rm = TRUE)  # Else, find the max stop_date_unix
+    ),
+    
+    # If there is no stop_date but there in a period, stop_date_for_period is set to current date.
+    stop_date_for_period = ifelse(is.infinite(stop_date_for_period), Sys.time(), stop_date_for_period),
+    
+    # If start_date_unix is after the stop_date_for_period, reset treatment to NA for the row
+    treatment = ifelse(!is.na(treatment) & start_date_unix > stop_date_for_period, NA_character_, treatment),
+    
+    # If start_date_unix is after the stop_date_for_period, reset treatment_period_unique_identifier to NA for the row
+    treatment_period_unique_identifier = ifelse(start_date_unix > stop_date_for_period, NA_integer_, treatment_period_unique_identifier),
+    
+    # If start_date_unix is after the stop_date_for_period, reset has_valid_treatment to FALSE for the row
+    has_valid_treatment = ifelse(start_date_unix > stop_date_for_period, FALSE, has_valid_treatment),
+    
+    # If start_date_unix is after the stop_date_for_period, reset stop_date_for_period to NA for the row
+    stop_date_for_period = ifelse(start_date_unix > stop_date_for_period, NA_real_, stop_date_for_period),
+    
+    # Add a new stop_date_for_period column in Date format
+    stop_date_for_period_date_format = as.Date(as.POSIXct(stop_date_for_period, origin = "1970-01-01"))
+  ) %>%
+  ungroup()
+
+write.csv(dataframe_sorted, "temp_dataframe_after_data_sorted_3.csv", row.names = FALSE)
+
+# Step 4: Now fill all the NA values in treatment columns with "standard_non-high_cost_drug_treatment"
+dataframe_sorted <- dataframe_sorted %>%
+  mutate(
+    treatment = ifelse(is.na(treatment), "standard_non-high_cost_drug_treatment", treatment)
+  )
+
+write.csv(dataframe_sorted, "temp_dataframe_after_data_sorted_4.csv", row.names = FALSE)
+
+# Step 5: Create a true unique identifier for each treatment period
+dataframe_sorted <- dataframe_sorted %>%
+  group_by(ttas_id) %>%
+  mutate(
+    true_treatment_period_unique_identifier = cumsum(treatment != lag(treatment, default = first(treatment)) | is.na(lag(treatment)))
+  ) %>%
+  ungroup()
+
+write.csv(dataframe_sorted, "temp_dataframe_after_data_sorted_5.csv", row.names = FALSE)
+
+# Create a new stop_date for each true_treatment_period_unique_identifier if there is no stop_date for treatment = "standard_non-high_cost_drug_treatment"
+# If true_treatment_period_unique_identifier precedes another one, set stop_date_for_period to the next start_date_unix - 1
+# If true_treatment_period_unique_identifier is the last one, set stop_date_for_period to current date
+
+```
+
 ```{r}
 # General longitudinal analysis
 longitudinal_analysis_data <- data_sorted %>% 
@@ -1978,58 +2135,32 @@ write.csv(longitudinal_analysis_data, "longitudinal_analysis_data.csv", row.name
 write.csv(longitudinal_analysis_data_filtered, "longitudinal_analysis_data_filtered.csv", row.names = FALSE)
 ```
 
-
 ```{r}
-# Run an lmer model 
-test_model_humira <- lmer(basmi_score ~ (1 | ttas_id), data = longitudinal_analysis_data_filtered %>% filter(treatment == "Humira"))
-summary(test_model_humira)
-```
+# Ensure that longitudinal_analysis_data_filtered has the correct data types
+longitudinal_analysis_data_filtered$ttas_id <- as.factor(longitudinal_analysis_data_filtered$ttas_id)
+longitudinal_analysis_data_filtered$gender <- as.factor(longitudinal_analysis_data_filtered$gender)
+longitudinal_analysis_data_filtered$hlab27status <- as.factor(longitudinal_analysis_data_filtered$hlab27status)
+longitudinal_analysis_data_filtered$diagnosis <- as.factor(longitudinal_analysis_data_filtered$diagnosis)
+longitudinal_analysis_data_filtered$treatment <- as.factor(longitudinal_analysis_data_filtered$treatment)
+longitudinal_analysis_data_filtered$treatment_period_unique_identifier <- as.factor(longitudinal_analysis_data_filtered$treatment_period_unique_identifier)
 
-```{r}
-# Run an lmer model for Humira with diagnosis as a fixed effect for longitudinal_analysis_extreme_data
-test_model_humira <- lmer(basmi_score ~ diagnosis + (1 | ttas_id), data = longitudinal_analysis_extreme_data %>% filter(treatment == "Humira"))
-summary(test_model_humira)
+longitudinal_analysis_data_filtered$date <- as.Date(longitudinal_analysis_data_filtered$date)
+longitudinal_analysis_data_filtered$stop_date_for_period_date_format <- as.Date(longitudinal_analysis_data_filtered$stop_date_for_period_date_format)
+
+longitudinal_analysis_data_filtered$age_at_onset <- as.numeric(longitudinal_analysis_data_filtered$age_at_onset)
+longitudinal_analysis_data_filtered$age_at_diag <- as.numeric(longitudinal_analysis_data_filtered$age_at_diag)
+longitudinal_analysis_data_filtered$age_at_basmi <- as.numeric(longitudinal_analysis_data_filtered$age_at_basmi)
+longitudinal_analysis_data_filtered$overall_treatment_duration_in_days <- as.numeric(longitudinal_analysis_data_filtered$overall_treatment_duration_in_days)
+longitudinal_analysis_data_filtered$treatment_window_weekly_time <- as.numeric(longitudinal_analysis_data_filtered$treatment_window_weekly_time)
+longitudinal_analysis_data_filtered$basmi_score <- as.numeric(longitudinal_analysis_data_filtered$basmi_score)
 ```
 
 ```{r}
 # Plot the data
-test_model_1 <- lmer(basmi_score ~ treatment + treatment_window_weekly_time + age_at_basmi + gender + hlab27status + (1 | ttas_id), data = longitudinal_analysis_data_filtered)
+test_model_1 <- lmer(basmi_score ~ treatment + treatment_window_weekly_time + age_at_onset + age_at_diag + age_at_basmi + gender + hlab27status + (1 | ttas_id), data = longitudinal_analysis_data_filtered)
 print(summary(test_model_1), corr = TRUE)
 ```
-```{r}
-```
-```{r}
-# Error in initializePtr() : Downdated VtV is not positive definite
-# Fit a full model with all interactions of interest
 
-test_basmi_model_1_data <- na.omit(longitudinal_analysis_data_filtered)
-test_basmi_model_1 <- lmer(basmi_score ~ (gender + hlab27status + diagnosis + treatment + age_at_onset + age_at_diag
-                  + age_at_basmi)^2 + (1 | ttas_id),
-                  data = test_basmi_model_1_data, na.action = na.fail)
-
-# Perform model selection based on AIC
-test_basmi_model_1_dredge <-  dredge(test_basmi_model_1)
-```
-
-```{r}
-# Fit a full model with all interactions of interest
-test_basmi_model_2 <- lmer(basmi_score ~ (gender + hlab27status + diagnosis + treatment +
-                  + age_at_basmi)^4 + (1 | ttas_id),
-                  data = longitudinal_analysis_data_filtered, na.action = na.fail)
-
-# Perform model selection based on AIC
-test_basmi_model_2_dredge <-  dredge(test_basmi_model_2)
-
-# 
-# # View the top models
-# model_selection[1:5]  # Show top 5 models
-# 
-# # Choose the best model based on AIC
-# best_model <- get.models(model_selection, 1)[[1]]
-# 
-# # Summarise the best model
-# summary(best_model)
-```
 
 
 ```{r}
