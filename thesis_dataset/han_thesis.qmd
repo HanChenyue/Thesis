@@ -2095,10 +2095,35 @@ dataframe_sorted <- dataframe_sorted %>%
 
 write.csv(dataframe_sorted, "temp_dataframe_after_data_sorted_5.csv", row.names = FALSE)
 
-# Create a new stop_date for each true_treatment_period_unique_identifier if there is no stop_date for treatment = "standard_non-high_cost_drug_treatment"
+# Step 6: Create a new stop_date for each true_treatment_period_unique_identifier if there is no stop_date for treatment = "standard_non-high_cost_drug_treatment"
 # If true_treatment_period_unique_identifier precedes another one, set stop_date_for_period to the next start_date_unix - 1
 # If true_treatment_period_unique_identifier is the last one, set stop_date_for_period to current date
+dataframe_sorted_test <- dataframe_sorted %>% 
+  group_by(ttas_id) %>%
+  arrange(ttas_id, start_date_unix) %>%
+  mutate(
+    # Create a helper column that identifies the start date of the next non-standard treatment period
+    next_non_standard_start = lead(ifelse(treatment != "standard_non-high_cost_drug_treatment", start_date_unix, as.numeric(NA)), 
+                                   default = as.numeric(Sys.time())),
+    
+    # Assign stop_date_for_period for "standard_non-high_cost_drug_treatment" periods
+    stop_date_for_period = ifelse(
+      treatment == "standard_non-high_cost_drug_treatment" & is.na(stop_date_for_period),
+      next_non_standard_start - 1,
+      stop_date_for_period
+    )
+  ) %>%
+  ungroup()
 
+write.csv(dataframe_sorted_test, "temp_dataframe_after_data_sorted_6.csv", row.names = FALSE)
+
+# Step 7: Fill the stop_date_for_period within each true_treatment_period_unique_identifier
+dataframe_sorted_test <- dataframe_sorted_test %>%
+  group_by(ttas_id, true_treatment_period_unique_identifier) %>%
+  fill(stop_date_for_period, .direction = "downup") %>%
+  ungroup()
+
+write.csv(dataframe_sorted_test, "temp_dataframe_after_data_sorted_7.csv", row.names = FALSE)
 ```
 
 ```{r}
