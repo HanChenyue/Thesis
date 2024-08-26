@@ -2124,6 +2124,8 @@ dataframe_sorted_test <- dataframe_sorted_test %>%
   ungroup()
 
 write.csv(dataframe_sorted_test, "temp_dataframe_after_data_sorted_7.csv", row.names = FALSE)
+
+# Convert the stop_date_for_period to Date format for "standard_non-high_cost_drug_treatment" periods
 ```
 
 ```{r}
