@@ -2098,7 +2098,7 @@ write.csv(dataframe_sorted, "temp_dataframe_after_data_sorted_5.csv", row.names 
 # Step 6: Create a new stop_date for each true_treatment_period_unique_identifier if there is no stop_date for treatment = "standard_non-high_cost_drug_treatment"
 # If true_treatment_period_unique_identifier precedes another one, set stop_date_for_period to the next start_date_unix - 1
 # If true_treatment_period_unique_identifier is the last one, set stop_date_for_period to current date
-dataframe_sorted_test <- dataframe_sorted %>% 
+dataframe_sorted<- dataframe_sorted %>% 
   group_by(ttas_id) %>%
   arrange(ttas_id, start_date_unix) %>%
   mutate(
@@ -2115,27 +2115,27 @@ dataframe_sorted_test <- dataframe_sorted %>%
   ) %>%
   ungroup()
 
-write.csv(dataframe_sorted_test, "temp_dataframe_after_data_sorted_6.csv", row.names = FALSE)
+write.csv(dataframe_sorted, "temp_dataframe_after_data_sorted_6.csv", row.names = FALSE)
 
 # Step 7: Fill the stop_date_for_period within each true_treatment_period_unique_identifier
-dataframe_sorted_test <- dataframe_sorted_test %>%
+dataframe_sorted<- dataframe_sorted%>%
   group_by(ttas_id, true_treatment_period_unique_identifier) %>%
   fill(stop_date_for_period, .direction = "downup") %>%
   ungroup()
 
-write.csv(dataframe_sorted_test, "temp_dataframe_after_data_sorted_7.csv", row.names = FALSE)
+write.csv(dataframe_sorted, "temp_dataframe_after_data_sorted_7.csv", row.names = FALSE)
 
 # Convert the stop_date_for_period to Date format for "standard_non-high_cost_drug_treatment" periods
-dataframe_sorted_test <- dataframe_sorted_test %>%
+dataframe_sorted<- dataframe_sorted%>%
   mutate(
     stop_date_for_period_date_format = as.Date(as.POSIXct(stop_date_for_period, origin = "1970-01-01"))
   )
 
-write.csv(dataframe_sorted_test, "temp_dataframe_after_data_sorted_8.csv", row.names = FALSE)
+write.csv(dataframe_sorted, "temp_dataframe_after_data_sorted_8.csv", row.names = FALSE)
 
 # Step 8: Calculate overall_treatment_duration_in_days and create an index for each basmi_score in each period
 # Calculate overall_treatment_duration_in_days
-dataframe_sorted_test <- dataframe_sorted_test %>%
+dataframe_sorted<- dataframe_sorted%>%
   group_by(ttas_id, true_treatment_period_unique_identifier) %>%
   mutate(
     overall_treatment_duration_in_days = ifelse(
@@ -2146,21 +2146,54 @@ dataframe_sorted_test <- dataframe_sorted_test %>%
   ) %>%
   ungroup()
 
-write.csv(dataframe_sorted_test, "temp_dataframe_after_data_sorted_9.csv", row.names = FALSE)
+write.csv(dataframe_sorted, "temp_dataframe_after_data_sorted_9.csv", row.names = FALSE)
 
 # Step 9: Calculate weekly time within each true_treatment_period_unique_identifier
 # Ensure date and stop_date_for_period_date_format are in Date format
-dataframe_sorted_test$date <- as.Date(dataframe_sorted_test$date)
-dataframe_sorted_test$stop_date_for_period_date_format <- as.Date(dataframe_sorted_test$stop_date_for_period_date_format)
+dataframe_sorted$date <- as.Date(dataframe_sorted$date)
+dataframe_sorted$stop_date_for_period_date_format <- as.Date(dataframe_sorted$stop_date_for_period_date_format)
 
-dataframe_sorted_test <- dataframe_sorted_test %>% 
+dataframe_sorted<- dataframe_sorted%>% 
   group_by(ttas_id, true_treatment_period_unique_identifier) %>%
   mutate(
     treatment_window_weekly_time = round(as.numeric(difftime(date, first(date), units = "weeks")) + 0, 2)
     ) %>% 
   ungroup()
 
-write.csv(dataframe_sorted_test, "temp_dataframe_after_data_sorted_10.csv", row.names = FALSE)
+write.csv(dataframe_sorted, "temp_dataframe_after_data_sorted_10.csv", row.names = FALSE)
+```
+
+```{r}
+# General longitudinal analysis for those with and without drugs
+dataframe_sorted <- dataframe_sorted %>%
+  filter(!is.na(basmi_score)) %>%
+  select(ttas_id, gender, hlab27status, age_at_basmi, diagnosis, treatment, true_treatment_period_unique_identifier, date, stop_date_for_period_date_format, overall_treatment_duration_in_days, treatment_window_weekly_time, basmi_score)
+
+write.csv(dataframe_sorted, "temp_dataframe_after_dataframe_sorted_for_analysis.csv", row.names = FALSE)
+```
+
+```{r}
+data_tt1 <- dataframe_sorted %>% 
+  filter(ttas_id %in% c(1, 25))
+  
+# Run a test lmer model
+test_model <- lmer(
+  basmi_score ~ treatment + treatment_window_weekly_time + age_at_basmi + 
+  (1 | ttas_id/true_treatment_period_unique_identifier),
+  data = data_tt1
+)
+
+ggplot(data_tt1, aes(x = treatment_window_weekly_time, y = basmi_score,
+                     colour = interaction(factor(ttas_id),
+                                          factor(true_treatment_period_unique_identifier)
+                                          ))) +
+  geom_point() +
+  geom_smooth(method = "loess", se = FALSE) +
+  labs(title = "BASMI Score Over Time by Treatment Periods for ttas_id 1", 
+       x = "Treatment window weekly time", 
+       y = "BASMI score", 
+       colour = "Patient and Treatment Period") +
+  theme_minimal()
 ```
 
 ```{r}
