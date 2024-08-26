@@ -2126,6 +2126,41 @@ dataframe_sorted_test <- dataframe_sorted_test %>%
 write.csv(dataframe_sorted_test, "temp_dataframe_after_data_sorted_7.csv", row.names = FALSE)
 
 # Convert the stop_date_for_period to Date format for "standard_non-high_cost_drug_treatment" periods
+dataframe_sorted_test <- dataframe_sorted_test %>%
+  mutate(
+    stop_date_for_period_date_format = as.Date(as.POSIXct(stop_date_for_period, origin = "1970-01-01"))
+  )
+
+write.csv(dataframe_sorted_test, "temp_dataframe_after_data_sorted_8.csv", row.names = FALSE)
+
+# Step 8: Calculate overall_treatment_duration_in_days and create an index for each basmi_score in each period
+# Calculate overall_treatment_duration_in_days
+dataframe_sorted_test <- dataframe_sorted_test %>%
+  group_by(ttas_id, true_treatment_period_unique_identifier) %>%
+  mutate(
+    overall_treatment_duration_in_days = ifelse(
+      !is.na(stop_date_for_period_date_format), 
+      as.numeric(difftime(stop_date_for_period_date_format, date, units = "days")), 
+      NA_real_
+    )
+  ) %>%
+  ungroup()
+
+write.csv(dataframe_sorted_test, "temp_dataframe_after_data_sorted_9.csv", row.names = FALSE)
+
+# Step 9: Calculate weekly time within each true_treatment_period_unique_identifier
+# Ensure date and stop_date_for_period_date_format are in Date format
+dataframe_sorted_test$date <- as.Date(dataframe_sorted_test$date)
+dataframe_sorted_test$stop_date_for_period_date_format <- as.Date(dataframe_sorted_test$stop_date_for_period_date_format)
+
+dataframe_sorted_test <- dataframe_sorted_test %>% 
+  group_by(ttas_id, true_treatment_period_unique_identifier) %>%
+  mutate(
+    treatment_window_weekly_time = round(as.numeric(difftime(date, first(date), units = "weeks")) + 0, 2)
+    ) %>% 
+  ungroup()
+
+write.csv(dataframe_sorted_test, "temp_dataframe_after_data_sorted_10.csv", row.names = FALSE)
 ```
 
 ```{r}
