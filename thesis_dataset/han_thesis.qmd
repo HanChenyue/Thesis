@@ -2208,7 +2208,7 @@ dataframe_sorted_and_reclassified <- dataframe_sorted_and_reclassified %>%
 write.csv(dataframe_sorted_and_reclassified, "temp_dataframe_after_dataframe_sorted_for_analysis_filtered_with_treatment_category_and_diagnosis_and_treatment_reclassified.csv", row.names = FALSE)
 ```
 
-```{r, fig.height = 10}
+```{r, fig.height = 8}
 data_tt1 <- dataframe_sorted_and_reclassified %>% 
   filter(ttas_id %in% c(1, 2, 3, 4))
 
@@ -2238,6 +2238,8 @@ ggplot(data_tt1, aes(x = treatment_window_weekly_time, y = basmi_score,
   facet_wrap(~ttas_id) +
   scale_colour_manual(labels = custom_labels, values = scales::hue_pal()(length(custom_labels))) +
   theme(legend.position = "bottom")
+
+ggsave
 ```
 
 ```{r}
@@ -2288,6 +2290,10 @@ model_6_vif <- vif(model_6)
 print(summary(model_6, corr = TRUE))
 model_6_vif
 ```
+```{r}
+
+```
+
 ```{r}
 # Check the normality of residuals of model_6
 residuals_model_6 <- residuals(model_6)
