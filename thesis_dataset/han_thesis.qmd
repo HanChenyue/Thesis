@@ -2410,9 +2410,14 @@ model_10 <- lmer(basmi_score ~ gender + hlab27status + age_at_basmi + diagnosis 
 ```{r}
 model_11 <- lmer(basmi_score ~ gender + hlab27status + age_at_basmi + diagnosis + true_treatment_period_unique_identifier + treatment_reclassified*diagnosis + time_in_years + (time_in_years | ttas_id), data = dataframe_sorted_and_reclassified)
 
-model_11_vif <- vif(model_11)
-print(summary(model_11, corr = TRUE))
-model_11_vif
+model_11
+# model_11_vif <- vif(model_11)
+# print(summary(model_11, corr = TRUE))
+# model_11_vif
+```
+
+```{r}
+model_11_full
 ```
 
 ```{r}
@@ -2427,6 +2432,25 @@ model_12_vif
 # Conduct F-test for model_11 and model_12
 anova(model_11, model_12)
 ```
+
+```{r}
+# Questions for the professor
+# Question to ask: Is the F-test to compare full and reduced to check whether interaction terms are significant correct? Or was it for something else?
+# Reduced model encountered a convergence error, hence I tweaked the optimizer and maxfun, model_11_full is slightly different from model_11 but I believe it is the correct one. Should I include this in the report?
+# Should I include a brief overview of the bobqa optimizer and maxfun in the report?
+
+
+# Conduct an F-test for a full-model and reduced model for model_11
+model_11_full <- lmer(basmi_score ~ gender + hlab27status + age_at_basmi + diagnosis + true_treatment_period_unique_identifier + treatment_reclassified*diagnosis + time_in_years + (time_in_years | ttas_id), data = dataframe_sorted_and_reclassified,
+                         control = lmerControl(optimizer = "bobyqa", optCtrl = list(maxfun = 2e5))
+                      )
+model_11_reduced <- lmer(basmi_score ~ gender + hlab27status + age_at_basmi + true_treatment_period_unique_identifier + treatment_reclassified + diagnosis + time_in_years + (time_in_years | ttas_id), data = dataframe_sorted_and_reclassified,
+                         control = lmerControl(optimizer = "bobyqa", optCtrl = list(maxfun = 2e5))
+                         )
+
+anova(model_11_full, model_11_reduced)
+```
+
 
 ```{r}
 # General longitudinal analysis
