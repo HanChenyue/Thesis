@@ -2408,11 +2408,24 @@ model_10 <- lmer(basmi_score ~ gender + hlab27status + age_at_basmi + diagnosis 
 ```
 
 ```{r}
-model_11 <- lmer(basmi_score ~ gender + hlab27status + age_at_basmi + diagnosis + treatment_reclassified*diagnosis + time_in_years + (time_in_years | ttas_id), data = dataframe_sorted_and_reclassified)
+model_11 <- lmer(basmi_score ~ gender + hlab27status + age_at_basmi + diagnosis + true_treatment_period_unique_identifier + treatment_reclassified*diagnosis + time_in_years + (time_in_years | ttas_id), data = dataframe_sorted_and_reclassified)
 
 model_11_vif <- vif(model_11)
 print(summary(model_11, corr = TRUE))
 model_11_vif
+```
+
+```{r}
+model_12 <- lmer(basmi_score ~ gender + hlab27status + age_at_basmi + diagnosis + true_treatment_period_unique_identifier + treatment_reclassified*diagnosis + time_in_years + (1 | ttas_id), data = dataframe_sorted_and_reclassified)
+
+model_12_vif <- vif(model_12)
+print(summary(model_12, corr = TRUE))
+model_12_vif
+```
+
+```{r}
+# Conduct F-test for model_11 and model_12
+anova(model_11, model_12)
 ```
 
 ```{r}
@@ -2471,11 +2484,9 @@ longitudinal_analysis_data_filtered$basmi_score <- as.numeric(longitudinal_analy
 
 ```{r}
 # Plot the data
-test_model_1 <- lmer(basmi_score ~ treatment + treatment_window_weekly_time + age_at_onset + age_at_diag + age_at_basmi + gender + hlab27status + (1 | ttas_id), data = longitudinal_analysis_data_filtered)
-print(summary(test_model_1), corr = TRUE)
+# test_model_1 <- lmer(basmi_score ~ treatment + treatment_window_weekly_time + age_at_onset + age_at_diag + age_at_basmi + gender + hlab27status + (1 | ttas_id), data = longitudinal_analysis_data_filtered)
+# print(summary(test_model_1), corr = TRUE)
 ```
-
-
 
 ```{r}
 # # Pivot the basmi_score to wide format
