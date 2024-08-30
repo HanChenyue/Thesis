@@ -20,6 +20,7 @@ library(lme4)
 library(plotly)
 library(MuMIn)
 library(car)
+library(lmerTest)
 ```
 
 # ```{r}
@@ -2238,24 +2239,25 @@ custom_labels <- c(
   "4.2" = "Patient 4, Anti-TNF"
 )
   
-ggplot(data_tt1, aes(x = time_in_weeks, y = basmi_score,
+# ggplot(data_tt1, aes(x = time_in_weeks, y = basmi_score,
 # ggplot(data_tt1, aes(x = time_in_days, y = basmi_score,
 # ggplot(data_tt1, aes(x = time_in_months, y = basmi_score,
+ggplot(data_tt1, aes(x = time_in_years, y = basmi_score,
                      colour = interaction(factor(ttas_id),
                                           factor(true_treatment_period_unique_identifier)
                                           ))) +
   geom_point(alpha = 0.5) +
   geom_line(alpha = 0.75) +
   labs(title = "BASMI Score Over Time by Treatment Periods for Patient 1 to Patient 4", 
-       x = "Time (Weeks)",
+       # x = "Time (Weeks)",
        # x = "Time (Days)",
        # x = "Time (Months)",
+       # x = "Time (Years)"
        y = "BASMI Score", 
        colour = "Patient and Treatment Period") +
   facet_wrap(~ttas_id) +
   scale_colour_manual(labels = custom_labels, values = scales::hue_pal()(length(custom_labels))) +
   theme(legend.position = "bottom")
-
 ```
 
 ```{r}
@@ -2276,6 +2278,7 @@ dataframe_sorted_and_reclassified$basmi_score <- as.numeric(dataframe_sorted_and
 dataframe_sorted_and_reclassified$time_in_days <- as.numeric(dataframe_sorted_and_reclassified$time_in_days)
 dataframe_sorted_and_reclassified$time_in_weeks <- as.numeric(dataframe_sorted_and_reclassified$time_in_weeks)
 dataframe_sorted_and_reclassified$time_in_months <- as.numeric(dataframe_sorted_and_reclassified$time_in_months)
+dataframe_sorted_and_reclassified$time_in_years <- as.numeric(dataframe_sorted_and_reclassified$time_in_years)
 ```
 
 
@@ -2313,7 +2316,6 @@ print(summary(model_6, corr = TRUE))
 model_6_vif
 ```
 ```{r}
-library(lmerTest)
 model_6_lmerTest <- lmerTest::lmer(basmi_score ~ gender + hlab27status + age_at_basmi + diagnosis + treatment_reclassified*diagnosis + treatment_window_weekly_time + (1 | ttas_id/true_treatment_period_unique_identifier), data = dataframe_sorted_and_reclassified)
 
 summary(model_6_lmerTest)
@@ -2406,7 +2408,7 @@ model_10 <- lmer(basmi_score ~ gender + hlab27status + age_at_basmi + diagnosis 
 ```
 
 ```{r}
-model_11 <- lmer(basmi_score ~ gender + hlab27status + age_at_basmi + diagnosis + treatment_reclassified*diagnosis + time_in_weeks + (time_in_weeks | ttas_id), data = dataframe_sorted_and_reclassified)
+model_11 <- lmer(basmi_score ~ gender + hlab27status + age_at_basmi + diagnosis + treatment_reclassified*diagnosis + time_in_years + (time_in_years | ttas_id), data = dataframe_sorted_and_reclassified)
 
 model_11_vif <- vif(model_11)
 print(summary(model_11, corr = TRUE))
