@@ -2160,13 +2160,26 @@ dataframe_sorted<- dataframe_sorted%>%
   ungroup()
 
 write.csv(dataframe_sorted, "temp_dataframe_after_data_sorted_10.csv", row.names = FALSE)
+
+# Step 10: Calculate the daily and weekly time within each ttas_id
+dataframe_sorted<- dataframe_sorted%>%
+  group_by(ttas_id) %>%
+  mutate(
+    time_in_days = as.numeric(difftime(date, first(date), units = "days")),
+    time_in_weeks = round(as.numeric(difftime(date, first(date), units = "weeks")) + 0, 2),
+    time_in_months = round(time_in_weeks / 4.34524, 2),
+    time_in_years = round(time_in_weeks / 52.1429, 2)
+    ) %>% 
+  ungroup()
+
+write.csv(dataframe_sorted, "temp_dataframe_after_data_sorted_11.csv", row.names = FALSE)
 ```
 
 ```{r}
 # General longitudinal analysis for those with and without drugs
 dataframe_sorted <- dataframe_sorted %>%
   filter(!is.na(basmi_score)) %>%
-  select(ttas_id, gender, hlab27status, age_at_basmi, diagnosis, treatment, true_treatment_period_unique_identifier, date, stop_date_for_period_date_format, overall_treatment_duration_in_days, treatment_window_weekly_time, basmi_score)
+  select(ttas_id, gender, hlab27status, age_at_basmi, diagnosis, treatment, true_treatment_period_unique_identifier, date, stop_date_for_period_date_format, overall_treatment_duration_in_days, treatment_window_weekly_time, time_in_days, time_in_weeks, time_in_months, time_in_years, basmi_score)
 
 write.csv(dataframe_sorted, "temp_dataframe_after_dataframe_sorted_for_analysis.csv", row.names = FALSE)
 
@@ -2225,21 +2238,24 @@ custom_labels <- c(
   "4.2" = "Patient 4, Anti-TNF"
 )
   
-ggplot(data_tt1, aes(x = treatment_window_weekly_time, y = basmi_score,
+ggplot(data_tt1, aes(x = time_in_weeks, y = basmi_score,
+# ggplot(data_tt1, aes(x = time_in_days, y = basmi_score,
+# ggplot(data_tt1, aes(x = time_in_months, y = basmi_score,
                      colour = interaction(factor(ttas_id),
                                           factor(true_treatment_period_unique_identifier)
                                           ))) +
   geom_point(alpha = 0.5) +
   geom_line(alpha = 0.75) +
   labs(title = "BASMI Score Over Time by Treatment Periods for Patient 1 to Patient 4", 
-       x = "Treatment window (Weekly Time Scale)", 
+       x = "Time (Weeks)",
+       # x = "Time (Days)",
+       # x = "Time (Months)",
        y = "BASMI Score", 
        colour = "Patient and Treatment Period") +
   facet_wrap(~ttas_id) +
   scale_colour_manual(labels = custom_labels, values = scales::hue_pal()(length(custom_labels))) +
   theme(legend.position = "bottom")
 
-ggsave
 ```
 
 ```{r}
@@ -2257,7 +2273,13 @@ dataframe_sorted_and_reclassified$stop_date_for_period_date_format <- as.Date(da
 dataframe_sorted_and_reclassified$overall_treatment_duration_in_days <- as.numeric(dataframe_sorted_and_reclassified$overall_treatment_duration_in_days)
 dataframe_sorted_and_reclassified$treatment_window_weekly_time <- as.numeric(dataframe_sorted_and_reclassified$treatment_window_weekly_time)
 dataframe_sorted_and_reclassified$basmi_score <- as.numeric(dataframe_sorted_and_reclassified$basmi_score)
+dataframe_sorted_and_reclassified$time_in_days <- as.numeric(dataframe_sorted_and_reclassified$time_in_days)
+dataframe_sorted_and_reclassified$time_in_weeks <- as.numeric(dataframe_sorted_and_reclassified$time_in_weeks)
+dataframe_sorted_and_reclassified$time_in_months <- as.numeric(dataframe_sorted_and_reclassified$time_in_months)
+```
 
+
+```{r}
 # Run an lmer model for dataframe_sorted_and_reclassified
 model_1 <- lmer(basmi_score ~ gender + hlab27status + age_at_basmi + diagnosis + treatment_reclassified + treatment_window_weekly_time + (1 | ttas_id/true_treatment_period_unique_identifier), data = dataframe_sorted_and_reclassified)
 
@@ -2291,7 +2313,10 @@ print(summary(model_6, corr = TRUE))
 model_6_vif
 ```
 ```{r}
+library(lmerTest)
+model_6_lmerTest <- lmerTest::lmer(basmi_score ~ gender + hlab27status + age_at_basmi + diagnosis + treatment_reclassified*diagnosis + treatment_window_weekly_time + (1 | ttas_id/true_treatment_period_unique_identifier), data = dataframe_sorted_and_reclassified)
 
+summary(model_6_lmerTest)
 ```
 
 ```{r}
@@ -2369,7 +2394,7 @@ abline(h = 0, col = "red")
 ```
 
 ```{r}
-model_9 <- lmer(basmi_score ~ gender + hlab27status +  age_at_basmi * treatment_reclassified + diagnosis + treatment_window_weekly_time + (1 | ttas_id/true_treatment_period_unique_identifier), data = dataframe_sorted_and_reclassified)
+model_9 <- lmer(basmi_score ~ gender + hlab27status +  diagnosis * treatment_reclassified + age_at_basmi + treatment_window_weekly_time + (treatment_window_weekly_time | ttas_id/true_treatment_period_unique_identifier), data = dataframe_sorted_and_reclassified)
 
 model_9_vif <- vif(model_9)
 print(summary(model_9, corr = TRUE))
@@ -2378,6 +2403,14 @@ model_9_vif
 ```{r}
 model_10 <- lmer(basmi_score ~ gender + hlab27status + age_at_basmi + diagnosis + treatment_reclassified + poly(treatment_window_weekly_time, 2) + treatment_window_weekly_time * treatment_reclassified + (1 | ttas_id/true_treatment_period_unique_identifier)
 , data = dataframe_sorted_and_reclassified)
+```
+
+```{r}
+model_11 <- lmer(basmi_score ~ gender + hlab27status + age_at_basmi + diagnosis + treatment_reclassified*diagnosis + time_in_weeks + (time_in_weeks | ttas_id), data = dataframe_sorted_and_reclassified)
+
+model_11_vif <- vif(model_11)
+print(summary(model_11, corr = TRUE))
+model_11_vif
 ```
 
 ```{r}
