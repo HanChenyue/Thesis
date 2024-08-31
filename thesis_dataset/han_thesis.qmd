@@ -2435,6 +2435,7 @@ anova(model_11, model_12)
 
 ```{r}
 # Questions for the professor
+# Update: Scaling the time variable to years has resolved convergence issue as weeks can go up to 3 digits value but basmi_score is between 0 and 10.
 # Question to ask: Is the F-test to compare full and reduced to check whether interaction terms are significant correct? Or was it for something else?
 # Reduced model encountered a convergence error, hence I tweaked the optimizer and maxfun, model_11_full is slightly different from model_11 but I believe it is the correct one. Should I include this in the report?
 # Should I include a brief overview of the bobqa optimizer and maxfun in the report?
