@@ -816,8 +816,8 @@ for (current_id in unique_ids_drugs_only){
       gender, hlab27status, diagnosis, age_at_onset, age_at_diag
     ) %>% 
     distinct() %>%
-    unite("Gender, HLAB27 Status, Diagnosis, Age at Onset, Age at Diagnosis", gender, hlab27status, diagnosis, age_at_onset, age_at_diag, sep = " | ", remove = FALSE, na.rm = FALSE) %>% 
-    pull("Gender, HLAB27 Status, Diagnosis, Age at Onset, Age at Diagnosis")
+    unite("Gender, HLAB27 Status, Diagnosis", gender, hlab27status, diagnosis, sep = " | ", remove = FALSE, na.rm = FALSE) %>% 
+    pull("Gender, HLAB27 Status, Diagnosis")
   
   plot <- ggplot(filtered_data, aes(x = date, y = Score, colour = Measure)) +
     geom_point() +
@@ -847,8 +847,28 @@ for (current_id in unique_ids_drugs_only){
     # Use a colour pallete with enough colours for all drugs
     scale_fill_manual(values = drug_colours, na.value = "gray") +
     facet_wrap(~ ttas_id, ncol = 1, scales = "free_y") +
-    labs(title = paste0("Timeline plot for TTAS ID:", current_id)) +
-    ggtitle(paste0("Gender, HLAB27 Status, Diagnosis, Age at Onset, Age at Diagnosis: ", patient_info))
+    labs(title = paste0("Timeline plot for TTAS ID:", current_id), x = "Date", y = "Score") +
+    scale_colour_discrete(
+      labels = c(
+        "absenteeism" = "Absenteeism",
+        "as_qol" = "AsQoL",
+        "back_pain_anytime" = "Back Pain Anytime",
+        "back_pain_at_night" = "Back Pain at Night",
+        "basdai" = "BASDAI",
+        "basfi" = "BASFI",
+        "basmi_score" = "BASMI Score",
+        "daily_activity_impairment" = "Daily Activity Impairment",
+        "facit" = "FACIT",
+        "jenkins_sleep_1" = "Jenkins Sleep 1",
+        "jenkins_sleep_2" = "Jenkins Sleep 2",
+        "jenkins_sleep_3" = "Jenkins Sleep 3",
+        "jenkins_sleep_4" = "Jenkins Sleep 4",
+        "margolis" = "Margolis",
+        "patient_global" = "Patient Global",
+        "presentism" = "Presentism",
+        "wpl" = "WPL"
+      )) +
+    ggtitle(paste0("Gender, HLAB27 Status, Diagnosis: ", patient_info))
   
   file_name <- paste0(output_folder_2, "/", current_id, "_overall.png")
   ggsave(file_name, plot, width = 10, height = 6, dpi = 300)
@@ -2345,8 +2365,8 @@ qqnorm(ranef_model_6$ttas_id[,1])
 qqline(ranef_model_6$ttas_id[,1])
 
 # Plot QQ plot for random intercepts at the treatment period level within each patient
-qqnorm(ranef_model_6$ttas_id:true_treatment_period_unique_identifier[,1])
-qqline(ranef_model_6$ttas_id:true_treatment_period_unique_identifier[,1])
+# qqnorm(ranef_model_6$ttas_id:true_treatment_period_unique_identifier[,1])
+# qqline(ranef_model_6$ttas_id:true_treatment_period_unique_identifier[,1])
 ```
 
 ```{r}
@@ -2436,6 +2456,7 @@ anova(model_11, model_12)
 ```{r}
 # Questions for the professor
 # Update: Scaling the time variable to years has resolved convergence issue as weeks can go up to 3 digits value but basmi_score is between 0 and 10.
+# TODO: Don't go into too much detail int optimisation
 # Question to ask: Is the F-test to compare full and reduced to check whether interaction terms are significant correct? Or was it for something else?
 # Reduced model encountered a convergence error, hence I tweaked the optimizer and maxfun, model_11_full is slightly different from model_11 but I believe it is the correct one. Should I include this in the report?
 # Should I include a brief overview of the bobqa optimizer and maxfun in the report?
@@ -2452,6 +2473,10 @@ model_11_reduced <- lmer(basmi_score ~ gender + hlab27status + age_at_basmi + tr
 anova(model_11_full, model_11_reduced)
 ```
 
+```{r}
+# Check distribution of response, Y
+
+```
 
 ```{r}
 # General longitudinal analysis
