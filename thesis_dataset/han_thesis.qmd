@@ -333,7 +333,7 @@ write_csv(prom_sheet_data_clean_ecigarettes, "test_check_ecigarettes_data.csv")
 prom_sheet_data <- prom_sheet_data %>%
   mutate(do_you_smoke = case_when(
     ttas_id == 7 & do_you_smoke == "Never" ~ NA_character_,
-    ttas_id == 7 & do_you_smoke == "Ex-smoke" ~ NA_character_,
+    ttas_id == 7 & do_you_smoke == "Ex-smoker" ~ NA_character_,
     ttas_id == 7 & do_you_smoke == "Currently smoke" ~ NA_character_,
     TRUE ~ do_you_smoke
   ))
@@ -343,7 +343,7 @@ prom_sheet_data <- prom_sheet_data %>%
 prom_sheet_data <- prom_sheet_data %>%
   mutate(do_you_smoke = case_when(
     ttas_id == 72 & do_you_smoke == "Never" ~ NA_character_,
-    ttas_id == 72 & do_you_smoke == "Ex-smoke" ~ NA_character_,
+    ttas_id == 72 & do_you_smoke == "Ex-smoker" ~ NA_character_,
     ttas_id == 72 & do_you_smoke == "Currently smoke" ~ NA_character_,
     TRUE ~ do_you_smoke
   ))
@@ -731,18 +731,191 @@ prom_sheet_data <- prom_sheet_data %>%
 ```
 
 ```{r}
+# Manual intervention for ttas_id 73: Contains contradicting information
+prom_sheet_data <- prom_sheet_data %>%
+  mutate(ecigarettes = case_when(
+    ttas_id == 73 & ecigarettes == "Previously used E-cigarettes" ~ NA_character_,
+    ttas_id == 73 & ecigarettes == "Currently use E-cigarettes" ~ NA_character_,
+    ttas_id == 73 & ecigarettes == "Never" ~ NA_character_,
+    TRUE ~ ecigarettes
+  ))
+
+# Manual intervention for ttas_id 74: Contains contradicting information
+prom_sheet_data <- prom_sheet_data %>%
+  mutate(ecigarettes = case_when(
+    ttas_id == 74 & ecigarettes == "Previously used E-cigarettes" ~ NA_character_,
+    ttas_id == 74 & ecigarettes == "Currently use E-cigarettes" ~ NA_character_,
+    ttas_id == 74 & ecigarettes == "Never" ~ NA_character_,
+    TRUE ~ ecigarettes
+  ))
+
+# Manual intervention for ttas_id 133: Contains contradicting information
+prom_sheet_data <- prom_sheet_data %>%
+  mutate(ecigarettes = case_when(
+    ttas_id == 133 & ecigarettes == "Previously used E-cigarettes" ~ NA_character_,
+    ttas_id == 133 & ecigarettes == "Currently use E-cigarettes" ~ NA_character_,
+    ttas_id == 133 & ecigarettes == "Never" ~ NA_character_,
+    TRUE ~ ecigarettes
+  ))
+
+# Manual intervention for ttas_id 201: Contains contradicting information
+prom_sheet_data <- prom_sheet_data %>%
+  mutate(ecigarettes = case_when(
+    ttas_id == 201 & ecigarettes == "Previously used E-cigarettes" ~ NA_character_,
+    ttas_id == 201 & ecigarettes == "Currently use E-cigarettes" ~ NA_character_,
+    ttas_id == 201 & ecigarettes == "Never" ~ NA_character_,
+    TRUE ~ ecigarettes
+  ))
+
+# Manual intervention for ttas_id 280: Contains contradicting information
+prom_sheet_data <- prom_sheet_data %>%
+  mutate(ecigarettes = case_when(
+    ttas_id == 280 & ecigarettes == "Previously used E-cigarettes" ~ NA_character_,
+    ttas_id == 280 & ecigarettes == "Currently use E-cigarettes" ~ NA_character_,
+    ttas_id == 280 & ecigarettes == "Never" ~ NA_character_,
+    TRUE ~ ecigarettes
+  ))
+
+# Manual intervention for ttas_id 448: Contains contradicting information
+prom_sheet_data <- prom_sheet_data %>%
+  mutate(ecigarettes = case_when(
+    ttas_id == 448 & ecigarettes == "Previously used E-cigarettes" ~ NA_character_,
+    ttas_id == 448 & ecigarettes == "Currently use E-cigarettes" ~ NA_character_,
+    ttas_id == 448 & ecigarettes == "Never" ~ NA_character_,
+    TRUE ~ ecigarettes
+  ))
+
+# Manual intervention for ttas_id 759: Contains contradicting information
+prom_sheet_data <- prom_sheet_data %>%
+  mutate(ecigarettes = case_when(
+    ttas_id == 759 & ecigarettes == "Previously used E-cigarettes" ~ NA_character_,
+    ttas_id == 759 & ecigarettes == "Currently use E-cigarettes" ~ NA_character_,
+    ttas_id == 759 & ecigarettes == "Never" ~ NA_character_,
+    TRUE ~ ecigarettes
+  ))
+
+# Manual intervention for ttas_id 771: Contains contradicting information
+prom_sheet_data <- prom_sheet_data %>%
+  mutate(ecigarettes = case_when(
+    ttas_id == 771 & ecigarettes == "Previously used E-cigarettes" ~ NA_character_,
+    ttas_id == 771 & ecigarettes == "Currently use E-cigarettes" ~ NA_character_,
+    ttas_id == 771 & ecigarettes == "Never" ~ NA_character_,
+    TRUE ~ ecigarettes
+  ))
+
+# Manual intervention for ttas_id 888: Contains contradicting information
+prom_sheet_data <- prom_sheet_data %>%
+  mutate(ecigarettes = case_when(
+    ttas_id == 888 & ecigarettes == "Previously used E-cigarettes" ~ NA_character_,
+    ttas_id == 888 & ecigarettes == "Currently use E-cigarettes" ~ NA_character_,
+    ttas_id == 888 & ecigarettes == "Never" ~ NA_character_,
+    TRUE ~ ecigarettes
+  ))
+
+# Manual intervention for ttas_id 907: Contains contradicting information
+prom_sheet_data <- prom_sheet_data %>%
+  mutate(ecigarettes = case_when(
+    ttas_id == 907 & ecigarettes == "Previously used E-cigarettes" ~ NA_character_,
+    ttas_id == 907 & ecigarettes == "Currently use E-cigarettes" ~ NA_character_,
+    ttas_id == 907 & ecigarettes == "Never" ~ NA_character_,
+    TRUE ~ ecigarettes
+  ))
+
+# Manual intervention for ttas_id 926: Contains contradicting information
+prom_sheet_data <- prom_sheet_data %>%
+  mutate(ecigarettes = case_when(
+    ttas_id == 926 & ecigarettes == "Previously used E-cigarettes" ~ NA_character_,
+    ttas_id == 926 & ecigarettes == "Currently use E-cigarettes" ~ NA_character_,
+    ttas_id == 926 & ecigarettes == "Never" ~ NA_character_,
+    TRUE ~ ecigarettes
+  ))
+
+# Manual intervention for ttas_id 955: Contains contradicting information
+prom_sheet_data <- prom_sheet_data %>%
+  mutate(ecigarettes = case_when(
+    ttas_id == 955 & ecigarettes == "Previously used E-cigarettes" ~ NA_character_,
+    ttas_id == 955 & ecigarettes == "Currently use E-cigarettes" ~ NA_character_,
+    ttas_id == 955 & ecigarettes == "Never" ~ NA_character_,
+    TRUE ~ ecigarettes
+  ))
+
+# Manual intervention for ttas_id 1077: Contains contradicting information
+prom_sheet_data <- prom_sheet_data %>%
+  mutate(ecigarettes = case_when(
+    ttas_id == 1077 & ecigarettes == "Previously used E-cigarettes" ~ NA_character_,
+    ttas_id == 1077 & ecigarettes == "Currently use E-cigarettes" ~ NA_character_,
+    ttas_id == 1077 & ecigarettes == "Never" ~ NA_character_,
+    TRUE ~ ecigarettes
+  ))
+
+# Manual intervention for ttas_id 1083: Contains contradicting information
+prom_sheet_data <- prom_sheet_data %>%
+  mutate(ecigarettes = case_when(
+    ttas_id == 1083 & ecigarettes == "Previously used E-cigarettes" ~ NA_character_,
+    ttas_id == 1083 & ecigarettes == "Currently use E-cigarettes" ~ NA_character_,
+    ttas_id == 1083 & ecigarettes == "Never" ~ NA_character_,
+    TRUE ~ ecigarettes
+  ))
+
+# Manual intervention for ttas_id 1085: Contains contradicting information
+prom_sheet_data <- prom_sheet_data %>%
+  mutate(ecigarettes = case_when(
+    ttas_id == 1085 & ecigarettes == "Previously used E-cigarettes" ~ NA_character_,
+    ttas_id == 1085 & ecigarettes == "Currently use E-cigarettes" ~ NA_character_,
+    ttas_id == 1085 & ecigarettes == "Never" ~ NA_character_,
+    TRUE ~ ecigarettes
+  ))
+
+# Manual intervention for ttas_id 1137: Contains contradicting information
+prom_sheet_data <- prom_sheet_data %>%
+  mutate(ecigarettes = case_when(
+    ttas_id == 1137 & ecigarettes == "Previously used E-cigarettes" ~ NA_character_,
+    ttas_id == 1137 & ecigarettes == "Currently use E-cigarettes" ~ NA_character_,
+    ttas_id == 1137 & ecigarettes == "Never" ~ NA_character_,
+    TRUE ~ ecigarettes
+  ))
+
+# Manual intervention for ttas_id 1138: Contains contradicting information
+prom_sheet_data <- prom_sheet_data %>%
+  mutate(ecigarettes = case_when(
+    ttas_id == 1138 & ecigarettes == "Previously used E-cigarettes" ~ NA_character_,
+    ttas_id == 1138 & ecigarettes == "Currently use E-cigarettes" ~ NA_character_,
+    ttas_id == 1138 & ecigarettes == "Never" ~ NA_character_,
+    TRUE ~ ecigarettes
+  ))
+
+# Manual intervention for ttas_id 1178: Contains contradicting information
+prom_sheet_data <- prom_sheet_data %>%
+  mutate(ecigarettes = case_when(
+    ttas_id == 1178 & ecigarettes == "Previously used E-cigarettes" ~ NA_character_,
+    ttas_id == 1178 & ecigarettes == "Currently use E-cigarettes" ~ NA_character_,
+    ttas_id == 1178 & ecigarettes == "Never" ~ NA_character_,
+    TRUE ~ ecigarettes
+  ))
+
+# Manual intervention for ttas_id 1199: Contains contradicting information
+prom_sheet_data <- prom_sheet_data %>%
+  mutate(ecigarettes = case_when(
+    ttas_id == 1199 & ecigarettes == "Previously used E-cigarettes" ~ NA_character_,
+    ttas_id == 1199 & ecigarettes == "Currently use E-cigarettes" ~ NA_character_,
+    ttas_id == 1199 & ecigarettes == "Never" ~ NA_character_,
+    TRUE ~ ecigarettes
+  ))
+```
+
+```{r}
 # This is justified because we do not have any exact date on the last known smoking status of the patient should they have quitted smoking year
 # Create a new column for each patient's last known smoking status
 # If the patient has never smoked, the value is "never"
 # If the patient has quitted smoking, the value is "ex-smoker"
 # If the patient is currently smoking, the value is "smoker"
 # If there is no information, the value is "no information"
-prom_sheet_data_clean_smoke <- prom_sheet_data %>%
+prom_sheet_data <- prom_sheet_data %>%
   arrange(ttas_id, prom_datasheet_record_date) %>%
   group_by(ttas_id) %>%
   # Find the latest non-NA smoking status for each ttas_id
   mutate(latest_smoke = last(na.omit(do_you_smoke)),
-         smoking_status = case_when(
+         last_known_smoking_status = case_when(
            latest_smoke == "Never" ~ "never",  # Handle "Never"
            latest_smoke == "Ex-smoker" ~ "ex-smoker",  # Handle "Ex-smoker"
            latest_smoke == "Currently smoke" ~ "smoker",  # Handle "Currently smoke"
@@ -751,11 +924,22 @@ prom_sheet_data_clean_smoke <- prom_sheet_data %>%
          )) %>%
   ungroup()
 
+# Do the same for vaping
+prom_sheet_data <- prom_sheet_data %>%
+  arrange(ttas_id, prom_datasheet_record_date) %>%
+  group_by(ttas_id) %>%
+  # Find the latest non-NA vaping status for each ttas_id
+  mutate(latest_vape = last(na.omit(ecigarettes)),
+         last_known_vaping_status = case_when(
+           latest_vape == "Never" ~ "never",  # Handle "Never"
+           latest_vape == "Previously used E-cigarettes" ~ "ex-vaper",  # Handle "Previously used E-cigarettes"
+           latest_vape == "Currently use E-cigarettes" ~ "vaper",  # Handle "Currently use E-cigarettes"
+           is.na(latest_vape) ~ "no information",  # If all values are NA
+           TRUE ~ "no information"
+         )) %>%
+  ungroup()
 
-prom_sheet_data_clean_smoke <- prom_sheet_data_clean_smoke %>%
-  select(ttas_id, do_you_smoke, smoking_status)
-
-write_csv(prom_sheet_data_clean_smoke, "test_checking_smoking_status_data.csv")
+write_csv(prom_sheet_data, "test_last_known_smoking_and_vaping_status.csv")
 ```
 
 ```{r}
