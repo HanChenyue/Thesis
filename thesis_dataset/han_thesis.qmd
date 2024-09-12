@@ -1188,6 +1188,20 @@ combined_df <- combined_df %>% rename(date = basmi_datasheet_record_date)
 ```
 
 ```{r}
+combined_df <- combined_df %>% 
+  group_by(ttas_id) %>%
+    # Fill NA values for last_known_smoking_status and last_known_vaping_status
+  fill(last_known_smoking_status, last_known_vaping_status, .direction = "downup") %>%
+  ungroup()
+
+# If last_known_smoking_status is NA, set it to "no information"
+combined_df$last_known_smoking_status[is.na(combined_df$last_known_smoking_status)] <- "no information"
+
+# If last_known_vaping_status is NA, set it to "no information"
+combined_df$last_known_vaping_status[is.na(combined_df$last_known_vaping_status)] <- "no information"
+```
+
+```{r}
 write_csv(combined_df, "test_combined_df.csv")
 write_csv(drug_sheet_data, "test_drug_sheet_data.csv")
 ```
