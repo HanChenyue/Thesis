@@ -327,6 +327,438 @@ write_csv(prom_sheet_data_clean_ecigarettes, "test_check_ecigarettes_data.csv")
 ```
 
 ```{r}
+# If contradiction exists, treat data for this patient as unreliable
+# Manual intervention for ttas_id 7: Contains contradicting information
+# Convert Never to NA
+prom_sheet_data <- prom_sheet_data %>%
+  mutate(do_you_smoke = case_when(
+    ttas_id == 7 & do_you_smoke == "Never" ~ NA_character_,
+    ttas_id == 7 & do_you_smoke == "Ex-smoke" ~ NA_character_,
+    ttas_id == 7 & do_you_smoke == "Currently smoke" ~ NA_character_,
+    TRUE ~ do_you_smoke
+  ))
+
+# Manual intervention for ttas_id 72: Contains contradicting information
+# Convert Never to NA
+prom_sheet_data <- prom_sheet_data %>%
+  mutate(do_you_smoke = case_when(
+    ttas_id == 72 & do_you_smoke == "Never" ~ NA_character_,
+    ttas_id == 72 & do_you_smoke == "Ex-smoke" ~ NA_character_,
+    ttas_id == 72 & do_you_smoke == "Currently smoke" ~ NA_character_,
+    TRUE ~ do_you_smoke
+  ))
+
+# Manual intervention for ttas_id 118: Contains contradicting information
+# Convert Ex-smoker to NA
+# Convert Never to NA
+prom_sheet_data <- prom_sheet_data %>%
+  mutate(do_you_smoke = case_when(
+    ttas_id == 118 & do_you_smoke == "Ex-smoker" ~ NA_character_,
+    ttas_id == 118 & do_you_smoke == "Never" ~ NA_character_,
+    ttas_id == 118 & do_you_smoke == "Currently smoke" ~ NA_character_,
+    TRUE ~ do_you_smoke
+  ))
+
+# Manual intervention for ttas_id 146: Contains contradicting information
+# Convert Ex-smoker to NA
+# Convert Never to NA
+prom_sheet_data <- prom_sheet_data %>%
+  mutate(do_you_smoke = case_when(
+    ttas_id == 146 & do_you_smoke == "Ex-smoker" ~ NA_character_,
+    ttas_id == 146 & do_you_smoke == "Never" ~ NA_character_,
+    ttas_id == 146 & do_you_smoke == "Currently smoke" ~ NA_character_,
+    TRUE ~ do_you_smoke
+  ))
+
+# Manual intervention for ttas_id 176: Contains contradicting information
+# Convert Ex-smoker to NA (year quit smoking is 1996 but has a Never entry in 2022)
+# Convert Never to NA
+prom_sheet_data <- prom_sheet_data %>%
+  mutate(do_you_smoke = case_when(
+    ttas_id == 176 & do_you_smoke == "Ex-smoker" ~ NA_character_,
+    ttas_id == 176 & do_you_smoke == "Never" ~ NA_character_,
+    ttas_id == 176 & do_you_smoke == "Currently smoke" ~ NA_character_,
+    TRUE ~ do_you_smoke
+  ))
+
+# Manual intervention for ttas_id 199: Contains contradicting information
+# Convert Ex-smoker to NA
+# Convert Never to NA
+prom_sheet_data <- prom_sheet_data %>%
+  mutate(do_you_smoke = case_when(
+    ttas_id == 199 & do_you_smoke == "Ex-smoker" ~ NA_character_,
+    ttas_id == 199 & do_you_smoke == "Never" ~ NA_character_,
+    ttas_id == 199 & do_you_smoke == "Currently smoke" ~ NA_character_,
+    TRUE ~ do_you_smoke
+  ))
+
+# Manual intervention for ttas_id 214: Contains contradicting information, different values for year_quit_smoking
+# Convert Ex-smoker to NA
+# Convert Never to NA
+prom_sheet_data <- prom_sheet_data %>%
+  mutate(do_you_smoke = case_when(
+    ttas_id == 214 & do_you_smoke == "Ex-smoker" ~ NA_character_,
+    ttas_id == 214 & do_you_smoke == "Never" ~ NA_character_,
+    ttas_id == 214 & do_you_smoke == "Currently smoke" ~ NA_character_,
+    TRUE ~ do_you_smoke
+  ))
+
+# Manual intervention for ttas_id 266: Contains contradicting information
+# Convert Ex-smoker to NA (year quit smoking is 2008 but has a Never entry in 2022)
+# Convert Never to NA
+prom_sheet_data <- prom_sheet_data %>%
+  mutate(do_you_smoke = case_when(
+    ttas_id == 266 & do_you_smoke == "Ex-smoker" ~ NA_character_,
+    ttas_id == 266 & do_you_smoke == "Never" ~ NA_character_,
+    ttas_id == 266 & do_you_smoke == "Currently smoke" ~ NA_character_,
+    TRUE ~ do_you_smoke
+  ))
+
+# Manual intervention for ttas_id 306: Contains contradicting information
+prom_sheet_data <- prom_sheet_data %>%
+  mutate(do_you_smoke = case_when(
+    ttas_id == 306 & do_you_smoke == "Ex-smoker" ~ NA_character_,
+    ttas_id == 306 & do_you_smoke == "Never" ~ NA_character_,
+    ttas_id == 306 & do_you_smoke == "Currently smoke" ~ NA_character_,
+    TRUE ~ do_you_smoke
+  ))
+
+# Manual intervention for ttas_id 325: Contains contradicting information
+prom_sheet_data <- prom_sheet_data %>%
+  mutate(do_you_smoke = case_when(
+    ttas_id == 325 & do_you_smoke == "Ex-smoker" ~ NA_character_,
+    ttas_id == 325 & do_you_smoke == "Never" ~ NA_character_,
+    ttas_id == 325 & do_you_smoke == "Currently smoke" ~ NA_character_,
+    TRUE ~ do_you_smoke
+  ))
+
+# Manual intervention for ttas_id 409: Contains contradicting information
+prom_sheet_data <- prom_sheet_data %>%
+  mutate(do_you_smoke = case_when(
+    ttas_id == 409 & do_you_smoke == "Ex-smoker" ~ NA_character_,
+    ttas_id == 409 & do_you_smoke == "Never" ~ NA_character_,
+    ttas_id == 409 & do_you_smoke == "Currently smoke" ~ NA_character_,
+    TRUE ~ do_you_smoke
+  ))
+
+# Manual intervention for ttas_id 411: Contains contradicting information
+prom_sheet_data <- prom_sheet_data %>%
+  mutate(do_you_smoke = case_when(
+    ttas_id == 411 & do_you_smoke == "Ex-smoker" ~ NA_character_,
+    ttas_id == 411 & do_you_smoke == "Never" ~ NA_character_,
+    ttas_id == 411 & do_you_smoke == "Currently smoke" ~ NA_character_,
+    TRUE ~ do_you_smoke
+  ))
+
+# Manual intervention for ttas_id 428: Contains contradicting information
+prom_sheet_data <- prom_sheet_data %>%
+  mutate(do_you_smoke = case_when(
+    ttas_id == 428 & do_you_smoke == "Ex-smoker" ~ NA_character_,
+    ttas_id == 428 & do_you_smoke == "Never" ~ NA_character_,
+    ttas_id == 428 & do_you_smoke == "Currently smoke" ~ NA_character_,
+    TRUE ~ do_you_smoke
+  ))
+
+# Manual intervention for ttas_id 440: Contains contradicting information
+prom_sheet_data <- prom_sheet_data %>%
+  mutate(do_you_smoke = case_when(
+    ttas_id == 440 & do_you_smoke == "Ex-smoker" ~ NA_character_,
+    ttas_id == 440 & do_you_smoke == "Never" ~ NA_character_,
+    ttas_id == 440 & do_you_smoke == "Currently smoke" ~ NA_character_,
+    TRUE ~ do_you_smoke
+  ))
+
+# Manual intervention for ttas_id 453: Contains contradicting information
+prom_sheet_data <- prom_sheet_data %>%
+  mutate(do_you_smoke = case_when(
+    ttas_id == 453 & do_you_smoke == "Ex-smoker" ~ NA_character_,
+    ttas_id == 453 & do_you_smoke == "Never" ~ NA_character_,
+    ttas_id == 453 & do_you_smoke == "Currently smoke" ~ NA_character_,
+    TRUE ~ do_you_smoke
+  ))
+
+# Manual intervention for ttas_id 496: Contains contradicting information
+prom_sheet_data <- prom_sheet_data %>%
+  mutate(do_you_smoke = case_when(
+    ttas_id == 496 & do_you_smoke == "Ex-smoker" ~ NA_character_,
+    ttas_id == 496 & do_you_smoke == "Never" ~ NA_character_,
+    ttas_id == 496 & do_you_smoke == "Currently smoke" ~ NA_character_,
+    TRUE ~ do_you_smoke
+  ))
+
+# Manual intervention for ttas_id 722: Contains contradicting information
+prom_sheet_data <- prom_sheet_data %>%
+  mutate(do_you_smoke = case_when(
+    ttas_id == 722 & do_you_smoke == "Ex-smoker" ~ NA_character_,
+    ttas_id == 722 & do_you_smoke == "Never" ~ NA_character_,
+    ttas_id == 722 & do_you_smoke == "Currently smoke" ~ NA_character_,
+    TRUE ~ do_you_smoke
+  ))
+
+# Manual intervention for ttas_id 751: Contains contradicting information
+prom_sheet_data <- prom_sheet_data %>%
+  mutate(do_you_smoke = case_when(
+    ttas_id == 751 & do_you_smoke == "Ex-smoker" ~ NA_character_,
+    ttas_id == 751 & do_you_smoke == "Never" ~ NA_character_,
+    ttas_id == 751 & do_you_smoke == "Currently smoke" ~ NA_character_,
+    TRUE ~ do_you_smoke
+  ))
+
+# Manual intervention for ttas_id 763: Contains contradicting information
+prom_sheet_data <- prom_sheet_data %>%
+  mutate(do_you_smoke = case_when(
+    ttas_id == 763 & do_you_smoke == "Ex-smoker" ~ NA_character_,
+    ttas_id == 763 & do_you_smoke == "Never" ~ NA_character_,
+    ttas_id == 763 & do_you_smoke == "Currently smoke" ~ NA_character_,
+    TRUE ~ do_you_smoke
+  ))
+
+# Manual intervention for ttas_id 771: Contains contradicting information
+prom_sheet_data <- prom_sheet_data %>%
+  mutate(do_you_smoke = case_when(
+    ttas_id == 771 & do_you_smoke == "Ex-smoker" ~ NA_character_,
+    ttas_id == 771 & do_you_smoke == "Never" ~ NA_character_,
+    ttas_id == 771 & do_you_smoke == "Currently smoke" ~ NA_character_,
+    TRUE ~ do_you_smoke
+  ))
+
+# Manual intervention for ttas_id 788: Contains contradicting information
+prom_sheet_data <- prom_sheet_data %>%
+  mutate(do_you_smoke = case_when(
+    ttas_id == 788 & do_you_smoke == "Ex-smoker" ~ NA_character_,
+    ttas_id == 788 & do_you_smoke == "Never" ~ NA_character_,
+    ttas_id == 788 & do_you_smoke == "Currently smoke" ~ NA_character_,
+    TRUE ~ do_you_smoke
+  ))
+
+# Manual intervention for ttas_id 800 Contains contradicting information
+prom_sheet_data <- prom_sheet_data %>%
+  mutate(do_you_smoke = case_when(
+    ttas_id == 800 & do_you_smoke == "Ex-smoker" ~ NA_character_,
+    ttas_id == 800 & do_you_smoke == "Never" ~ NA_character_,
+    ttas_id == 800 & do_you_smoke == "Currently smoke" ~ NA_character_,
+    TRUE ~ do_you_smoke
+  ))
+
+# Manual intervention for ttas_id 811: Contains contradicting information
+prom_sheet_data <- prom_sheet_data %>%
+  mutate(do_you_smoke = case_when(
+    ttas_id == 811 & do_you_smoke == "Ex-smoker" ~ NA_character_,
+    ttas_id == 811 & do_you_smoke == "Never" ~ NA_character_,
+    ttas_id == 811 & do_you_smoke == "Currently smoke" ~ NA_character_,
+    TRUE ~ do_you_smoke
+  ))
+
+# Manual intervention for ttas_id 823: Contains contradicting information
+prom_sheet_data <- prom_sheet_data %>%
+  mutate(do_you_smoke = case_when(
+    ttas_id == 823 & do_you_smoke == "Ex-smoker" ~ NA_character_,
+    ttas_id == 823 & do_you_smoke == "Never" ~ NA_character_,
+    ttas_id == 823 & do_you_smoke == "Currently smoke" ~ NA_character_,
+    TRUE ~ do_you_smoke
+  ))
+
+# Manual intervention for ttas_id 835: Contains contradicting information
+prom_sheet_data <- prom_sheet_data %>%
+  mutate(do_you_smoke = case_when(
+    ttas_id == 835 & do_you_smoke == "Ex-smoker" ~ NA_character_,
+    ttas_id == 835 & do_you_smoke == "Never" ~ NA_character_,
+    ttas_id == 835 & do_you_smoke == "Currently smoke" ~ NA_character_,
+    TRUE ~ do_you_smoke
+  ))
+
+# Manual intervention for ttas_id 857: Contains contradicting information
+prom_sheet_data <- prom_sheet_data %>%
+  mutate(do_you_smoke = case_when(
+    ttas_id == 857 & do_you_smoke == "Ex-smoker" ~ NA_character_,
+    ttas_id == 857 & do_you_smoke == "Never" ~ NA_character_,
+    ttas_id == 857 & do_you_smoke == "Currently smoke" ~ NA_character_,
+    TRUE ~ do_you_smoke
+  ))
+
+# Manual intervention for ttas_id 872: Contains contradicting information
+prom_sheet_data <- prom_sheet_data %>%
+  mutate(do_you_smoke = case_when(
+    ttas_id == 872 & do_you_smoke == "Ex-smoker" ~ NA_character_,
+    ttas_id == 872 & do_you_smoke == "Never" ~ NA_character_,
+    ttas_id == 872 & do_you_smoke == "Currently smoke" ~ NA_character_,
+    TRUE ~ do_you_smoke
+  ))
+
+# Manual intervention for ttas_id 893: Contains contradicting information
+prom_sheet_data <- prom_sheet_data %>%
+  mutate(do_you_smoke = case_when(
+    ttas_id == 893 & do_you_smoke == "Ex-smoker" ~ NA_character_,
+    ttas_id == 893 & do_you_smoke == "Never" ~ NA_character_,
+    ttas_id == 893 & do_you_smoke == "Currently smoke" ~ NA_character_,
+    TRUE ~ do_you_smoke
+  ))
+
+# Manual intervention for ttas_id 928: Contains contradicting information
+prom_sheet_data <- prom_sheet_data %>%
+  mutate(do_you_smoke = case_when(
+    ttas_id == 928 & do_you_smoke == "Ex-smoker" ~ NA_character_,
+    ttas_id == 928 & do_you_smoke == "Never" ~ NA_character_,
+    ttas_id == 928 & do_you_smoke == "Currently smoke" ~ NA_character_,
+    TRUE ~ do_you_smoke
+  ))
+
+# Manual intervention for ttas_id 935: Contains contradicting information
+prom_sheet_data <- prom_sheet_data %>%
+  mutate(do_you_smoke = case_when(
+    ttas_id == 935 & do_you_smoke == "Ex-smoker" ~ NA_character_,
+    ttas_id == 935 & do_you_smoke == "Never" ~ NA_character_,
+    ttas_id == 935 & do_you_smoke == "Currently smoke" ~ NA_character_,
+    TRUE ~ do_you_smoke
+  ))
+
+# Manual intervention for ttas_id 938: Contains contradicting information
+prom_sheet_data <- prom_sheet_data %>%
+  mutate(do_you_smoke = case_when(
+    ttas_id == 938 & do_you_smoke == "Ex-smoker" ~ NA_character_,
+    ttas_id == 938 & do_you_smoke == "Never" ~ NA_character_,
+    ttas_id == 938 & do_you_smoke == "Currently smoke" ~ NA_character_,
+    TRUE ~ do_you_smoke
+  ))
+
+# Manual intervention for ttas_id 1021: Contains contradicting information
+prom_sheet_data <- prom_sheet_data %>%
+  mutate(do_you_smoke = case_when(
+    ttas_id == 1021 & do_you_smoke == "Ex-smoker" ~ NA_character_,
+    ttas_id == 1021 & do_you_smoke == "Never" ~ NA_character_,
+    ttas_id == 1021 & do_you_smoke == "Currently smoke" ~ NA_character_,
+    TRUE ~ do_you_smoke
+  ))
+
+# Manual intervention for ttas_id 1039: Contains contradicting information
+prom_sheet_data <- prom_sheet_data %>%
+  mutate(do_you_smoke = case_when(
+    ttas_id == 1039 & do_you_smoke == "Ex-smoker" ~ NA_character_,
+    ttas_id == 1039 & do_you_smoke == "Never" ~ NA_character_,
+    ttas_id == 1039 & do_you_smoke == "Currently smoke" ~ NA_character_,
+    TRUE ~ do_you_smoke
+  ))
+
+# Manual intervention for ttas_id 1040: Contains contradicting information
+prom_sheet_data <- prom_sheet_data %>%
+  mutate(do_you_smoke = case_when(
+    ttas_id == 1040 & do_you_smoke == "Ex-smoker" ~ NA_character_,
+    ttas_id == 1040 & do_you_smoke == "Never" ~ NA_character_,
+    ttas_id == 1040 & do_you_smoke == "Currently smoke" ~ NA_character_,
+    TRUE ~ do_you_smoke
+  ))
+
+# Manual intervention for ttas_id 1055: Contains contradicting information
+prom_sheet_data <- prom_sheet_data %>%
+  mutate(do_you_smoke = case_when(
+    ttas_id == 1055 & do_you_smoke == "Ex-smoker" ~ NA_character_,
+    ttas_id == 1055 & do_you_smoke == "Never" ~ NA_character_,
+    ttas_id == 1055 & do_you_smoke == "Currently smoke" ~ NA_character_,
+    TRUE ~ do_you_smoke
+  ))
+
+# Manual intervention for ttas_id 1064: Contains contradicting information
+prom_sheet_data <- prom_sheet_data %>%
+  mutate(do_you_smoke = case_when(
+    ttas_id == 1064 & do_you_smoke == "Ex-smoker" ~ NA_character_,
+    ttas_id == 1064 & do_you_smoke == "Never" ~ NA_character_,
+    ttas_id == 1064 & do_you_smoke == "Currently smoke" ~ NA_character_,
+    TRUE ~ do_you_smoke
+  ))
+
+# Manual intervention for ttas_id 1083: Contains contradicting information
+prom_sheet_data <- prom_sheet_data %>%
+  mutate(do_you_smoke = case_when(
+    ttas_id == 1083 & do_you_smoke == "Ex-smoker" ~ NA_character_,
+    ttas_id == 1083 & do_you_smoke == "Never" ~ NA_character_,
+    ttas_id == 1083 & do_you_smoke == "Currently smoke" ~ NA_character_,
+    TRUE ~ do_you_smoke
+  ))
+
+# Manual intervention for ttas_id 1086: Contains contradicting information
+prom_sheet_data <- prom_sheet_data %>%
+  mutate(do_you_smoke = case_when(
+    ttas_id == 1086 & do_you_smoke == "Ex-smoker" ~ NA_character_,
+    ttas_id == 1086 & do_you_smoke == "Never" ~ NA_character_,
+    ttas_id == 1086 & do_you_smoke == "Currently smoke" ~ NA_character_,
+    TRUE ~ do_you_smoke
+  ))
+
+# Manual intervention for ttas_id 1103: Contains contradicting information
+prom_sheet_data <- prom_sheet_data %>%
+  mutate(do_you_smoke = case_when(
+    ttas_id == 1103 & do_you_smoke == "Ex-smoker" ~ NA_character_,
+    ttas_id == 1103 & do_you_smoke == "Never" ~ NA_character_,
+    ttas_id == 1103 & do_you_smoke == "Currently smoke" ~ NA_character_,
+    TRUE ~ do_you_smoke
+  ))
+
+# Manual intervention for ttas_id 1110: Contains contradicting information
+prom_sheet_data <- prom_sheet_data %>%
+  mutate(do_you_smoke = case_when(
+    ttas_id == 1110 & do_you_smoke == "Ex-smoker" ~ NA_character_,
+    ttas_id == 1110 & do_you_smoke == "Never" ~ NA_character_,
+    ttas_id == 1110 & do_you_smoke == "Currently smoke" ~ NA_character_,
+    TRUE ~ do_you_smoke
+  ))
+
+# Manual intervention for ttas_id 1137: Contains contradicting information
+prom_sheet_data <- prom_sheet_data %>%
+  mutate(do_you_smoke = case_when(
+    ttas_id == 1137 & do_you_smoke == "Ex-smoker" ~ NA_character_,
+    ttas_id == 1137 & do_you_smoke == "Never" ~ NA_character_,
+    ttas_id == 1137 & do_you_smoke == "Currently smoke" ~ NA_character_,
+    TRUE ~ do_you_smoke
+  ))
+
+# Manual intervention for ttas_id 1207: Contains contradicting information
+prom_sheet_data <- prom_sheet_data %>%
+  mutate(do_you_smoke = case_when(
+    ttas_id == 1207 & do_you_smoke == "Ex-smoker" ~ NA_character_,
+    ttas_id == 1207 & do_you_smoke == "Never" ~ NA_character_,
+    ttas_id == 1207 & do_you_smoke == "Currently smoke" ~ NA_character_,
+    TRUE ~ do_you_smoke
+  ))
+
+# Manual intervention for ttas_id 1233: Contains contradicting information
+prom_sheet_data <- prom_sheet_data %>%
+  mutate(do_you_smoke = case_when(
+    ttas_id == 1233 & do_you_smoke == "Ex-smoker" ~ NA_character_,
+    ttas_id == 1233 & do_you_smoke == "Never" ~ NA_character_,
+    ttas_id == 1233 & do_you_smoke == "Currently smoke" ~ NA_character_,
+    TRUE ~ do_you_smoke
+  ))
+```
+
+```{r}
+# This is justified because we do not have any exact date on the last known smoking status of the patient should they have quitted smoking year
+# Create a new column for each patient's last known smoking status
+# If the patient has never smoked, the value is "never"
+# If the patient has quitted smoking, the value is "ex-smoker"
+# If the patient is currently smoking, the value is "smoker"
+# If there is no information, the value is "no information"
+prom_sheet_data_clean_smoke <- prom_sheet_data %>%
+  arrange(ttas_id, prom_datasheet_record_date) %>%
+  group_by(ttas_id) %>%
+  # Find the latest non-NA smoking status for each ttas_id
+  mutate(latest_smoke = last(na.omit(do_you_smoke)),
+         smoking_status = case_when(
+           latest_smoke == "Never" ~ "never",  # Handle "Never"
+           latest_smoke == "Ex-smoker" ~ "ex-smoker",  # Handle "Ex-smoker"
+           latest_smoke == "Currently smoke" ~ "smoker",  # Handle "Currently smoke"
+           is.na(latest_smoke) ~ "no information",  # If all values are NA
+           TRUE ~ "no information"
+         )) %>%
+  ungroup()
+
+
+prom_sheet_data_clean_smoke <- prom_sheet_data_clean_smoke %>%
+  select(ttas_id, do_you_smoke, smoking_status)
+
+write_csv(prom_sheet_data_clean_smoke, "test_checking_smoking_status_data.csv")
+```
+
+```{r}
 # ASQOL
 # Check for any negative values in as_qol and turn them into NA
 prom_sheet_data$as_qol <- ifelse(prom_sheet_data$as_qol < 0, NA, prom_sheet_data$as_qol)
@@ -2464,7 +2896,8 @@ anova(model_11, model_12)
 
 # Conduct an F-test for a full-model and reduced model for model_11
 model_11_full <- lmer(basmi_score ~ gender + hlab27status + age_at_basmi + diagnosis + true_treatment_period_unique_identifier + treatment_reclassified*diagnosis + time_in_years + (time_in_years | ttas_id), data = dataframe_sorted_and_reclassified,
-                         control = lmerControl(optimizer = "bobyqa", optCtrl = list(maxfun = 2e5))
+                         # control = lmerControl(optimizer = "bobyqa", optCtrl = list(maxfun = 2e5))
+                         control = lmerControl(optCtrl = list(maxfun = 2e5))
                       )
 model_11_reduced <- lmer(basmi_score ~ gender + hlab27status + age_at_basmi + true_treatment_period_unique_identifier + treatment_reclassified + diagnosis + time_in_years + (time_in_years | ttas_id), data = dataframe_sorted_and_reclassified,
                          control = lmerControl(optimizer = "bobyqa", optCtrl = list(maxfun = 2e5))
