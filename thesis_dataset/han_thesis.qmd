@@ -1396,21 +1396,26 @@ dir.create(output_folder_2, showWarnings = FALSE)
 
 unique_ids_drugs_only <- unique(combined_df_id_with_drugs$ttas_id)
 
+# Data cleaning
 # Excluding the following ids
 exclude_ids <- c(38, 555, 872, 924, 974, 988, 1028, 1032, 1035, 1038, 1051, 1069, 1144, 1149, 1162, 1197, 1212)
 
 # Write csv without excluded ids
 combined_df_id_with_drugs_excluded <- combined_df_id_with_drugs %>% filter(!ttas_id %in% exclude_ids)
+
 # Select the columns to write to the csv
 combined_df_id_with_drugs_excluded <- combined_df_id_with_drugs_excluded %>%
   select(ttas_id, gender, hlab27status, diagnosis, age_at_onset, age_at_diag, date, do_you_smoke, smoke_in_a_day, years_smoked, year_quit_smoking, ecigarettes, vape_in_a_day, years_vaped, year_quit_vaping, age_at_basmi, basmi_score, age_at_prom, basdai, basfi, patient_global, back_pain_at_night, back_pain_anytime, as_qol, jenkins_sleep_1, jenkins_sleep_2, jenkins_sleep_3, jenkins_sleep_4, presentism, absenteeism, wpl, daily_activity_impairment, facit, margolis, x3, stop_date, high_cost_drug_stop_reason, high_cost_drug_stop_reason_text, age_at_start_date, comment)
 write_csv(combined_df_id_with_drugs_excluded, "combined_df_id_with_drugs_excluded.csv")
 
 
-
 # Including patients with and without drug data but exclude the ids in the exclude_ids list
 combined_df_with_and_without_drugs_excluded <- combined_df %>% filter(!ttas_id %in% exclude_ids)
 write_csv(combined_df_with_and_without_drugs_excluded, "test_combined_df_with_and_without_drugs_excluded.csv")
+
+# Including all patients with and without drug data: For analysis
+combined_df_with_and_without_drugs <- combined_df
+write_csv(combined_df_with_and_without_drugs, "test_combined_df_with_and_without_drugs.csv")
 ```
 
 # Checkpoint
@@ -2312,6 +2317,7 @@ for (current_id in unique_ids_drugs_only){
 
 
 ```{r}
+# Code for users with drugs only
 df <- combined_df_id_with_drugs_excluded
 
 data_sorted <- df %>%
@@ -2363,10 +2369,14 @@ write.csv(data_sorted, "temp_before_data_sorted.csv", row.names = FALSE)
 ```
 
 ```{r}
-dataframe <- combined_df_with_and_without_drugs_excluded
+# Old code: Without excluded ids
+# dataframe <- combined_df_with_and_without_drugs_excluded
+
+# New code: With excluded ids
+dataframe <- combined_df_with_and_without_drugs
 
 dataframe_sorted <- dataframe %>%
-  select(ttas_id, x3, gender, hlab27status, age_at_basmi, diagnosis, date, stop_date, basmi_score)
+  select(ttas_id, x3, gender, hlab27status, age_at_basmi, diagnosis, date, stop_date, last_known_smoking_status, last_known_vaping_status, basmi_score)
 
 dataframe_sorted$ttas_id <- as.factor(dataframe_sorted$ttas_id)
 dataframe_sorted$x3 <- as.factor(dataframe_sorted$x3)
@@ -2376,6 +2386,8 @@ dataframe_sorted$age_at_basmi <- as.numeric(dataframe_sorted$age_at_basmi)
 dataframe_sorted$diagnosis <- as.factor(dataframe_sorted$diagnosis)
 dataframe_sorted$date <- as.Date(dataframe_sorted$date)
 dataframe_sorted$stop_date <- as.Date(dataframe_sorted$stop_date)
+dataframe_sorted$last_known_smoking_status <- as.factor(dataframe_sorted$last_known_smoking_status)
+dataframe_sorted$last_known_vaping_status <- as.factor(dataframe_sorted$last_known_vaping_status)
 dataframe_sorted$basmi_score <- as.numeric(dataframe_sorted$basmi_score)
 
 # If x3 is present but date == stop_date, make x3 and stop_date NA
@@ -2830,7 +2842,7 @@ write.csv(dataframe_sorted, "temp_dataframe_after_data_sorted_11.csv", row.names
 # General longitudinal analysis for those with and without drugs
 dataframe_sorted <- dataframe_sorted %>%
   filter(!is.na(basmi_score)) %>%
-  select(ttas_id, gender, hlab27status, age_at_basmi, diagnosis, treatment, true_treatment_period_unique_identifier, date, stop_date_for_period_date_format, overall_treatment_duration_in_days, treatment_window_weekly_time, time_in_days, time_in_weeks, time_in_months, time_in_years, basmi_score)
+  select(ttas_id, gender, hlab27status, age_at_basmi, diagnosis, treatment, last_known_smoking_status, last_known_vaping_status, true_treatment_period_unique_identifier, date, stop_date_for_period_date_format, overall_treatment_duration_in_days, treatment_window_weekly_time, time_in_days, time_in_weeks, time_in_months, time_in_years, basmi_score)
 
 write.csv(dataframe_sorted, "temp_dataframe_after_dataframe_sorted_for_analysis.csv", row.names = FALSE)
 
@@ -2929,6 +2941,8 @@ dataframe_sorted_and_reclassified$time_in_days <- as.numeric(dataframe_sorted_an
 dataframe_sorted_and_reclassified$time_in_weeks <- as.numeric(dataframe_sorted_and_reclassified$time_in_weeks)
 dataframe_sorted_and_reclassified$time_in_months <- as.numeric(dataframe_sorted_and_reclassified$time_in_months)
 dataframe_sorted_and_reclassified$time_in_years <- as.numeric(dataframe_sorted_and_reclassified$time_in_years)
+dataframe_sorted_and_reclassified$last_known_smoking_status <- as.factor(dataframe_sorted_and_reclassified$last_known_smoking_status)
+dataframe_sorted_and_reclassified$last_known_vaping_status <- as.factor(dataframe_sorted_and_reclassified$last_known_vaping_status)
 ```
 
 
@@ -3058,16 +3072,12 @@ model_10 <- lmer(basmi_score ~ gender + hlab27status + age_at_basmi + diagnosis 
 ```
 
 ```{r}
-model_11 <- lmer(basmi_score ~ gender + hlab27status + age_at_basmi + diagnosis + true_treatment_period_unique_identifier + treatment_reclassified*diagnosis + time_in_years + (time_in_years | ttas_id), data = dataframe_sorted_and_reclassified)
+model_11 <- lmer(basmi_score ~ gender + hlab27status + last_known_smoking_status + last_known_vaping_status + age_at_basmi + diagnosis + true_treatment_period_unique_identifier + treatment_reclassified*diagnosis + time_in_years + (time_in_years | ttas_id), data = dataframe_sorted_and_reclassified)
 
 model_11
 # model_11_vif <- vif(model_11)
 # print(summary(model_11, corr = TRUE))
 # model_11_vif
-```
-
-```{r}
-model_11_full
 ```
 
 ```{r}
@@ -3093,14 +3103,24 @@ anova(model_11, model_12)
 
 
 # Conduct an F-test for a full-model and reduced model for model_11
-model_11_full <- lmer(basmi_score ~ gender + hlab27status + age_at_basmi + diagnosis + true_treatment_period_unique_identifier + treatment_reclassified*diagnosis + time_in_years + (time_in_years | ttas_id), data = dataframe_sorted_and_reclassified,
+model_11_full <- lmer(basmi_score ~ gender + hlab27status + age_at_basmi + diagnosis + true_treatment_period_unique_identifier + last_known_smoking_status + last_known_vaping_status + treatment_reclassified*diagnosis + time_in_years + (time_in_years | ttas_id), data = dataframe_sorted_and_reclassified,
                          # control = lmerControl(optimizer = "bobyqa", optCtrl = list(maxfun = 2e5))
                          control = lmerControl(optCtrl = list(maxfun = 2e5))
                       )
-model_11_reduced <- lmer(basmi_score ~ gender + hlab27status + age_at_basmi + true_treatment_period_unique_identifier + treatment_reclassified + diagnosis + time_in_years + (time_in_years | ttas_id), data = dataframe_sorted_and_reclassified,
+model_11_reduced <- lmer(basmi_score ~ gender + hlab27status + age_at_basmi + true_treatment_period_unique_identifier + last_known_smoking_status + last_known_vaping_status + treatment_reclassified + diagnosis + time_in_years + (time_in_years | ttas_id), data = dataframe_sorted_and_reclassified,
                          control = lmerControl(optimizer = "bobyqa", optCtrl = list(maxfun = 2e5))
                          )
+```
 
+```{r}
+model_11_full
+```
+
+```{r}
+model_11_reduced
+```
+
+```{r}
 anova(model_11_full, model_11_reduced)
 ```
 
