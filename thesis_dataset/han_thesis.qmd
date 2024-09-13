@@ -2376,7 +2376,7 @@ write.csv(data_sorted, "temp_before_data_sorted.csv", row.names = FALSE)
 dataframe <- combined_df_with_and_without_drugs
 
 dataframe_sorted <- dataframe %>%
-  select(ttas_id, x3, gender, hlab27status, age_at_basmi, diagnosis, date, stop_date, last_known_smoking_status, last_known_vaping_status, basmi_score)
+  select(ttas_id, x3, gender, hlab27status, age_at_basmi, diagnosis, date, stop_date, last_known_smoking_status, last_known_vaping_status, basmi_score, basdai, basfi, patient_global, back_pain_at_night, back_pain_anytime, as_qol, jenkins_sleep_1, jenkins_sleep_2, jenkins_sleep_3, jenkins_sleep_4, wpl, daily_activity_impairment, presentism, absenteeism, facit, margolis)
 
 dataframe_sorted$ttas_id <- as.factor(dataframe_sorted$ttas_id)
 dataframe_sorted$x3 <- as.factor(dataframe_sorted$x3)
@@ -2389,6 +2389,23 @@ dataframe_sorted$stop_date <- as.Date(dataframe_sorted$stop_date)
 dataframe_sorted$last_known_smoking_status <- as.factor(dataframe_sorted$last_known_smoking_status)
 dataframe_sorted$last_known_vaping_status <- as.factor(dataframe_sorted$last_known_vaping_status)
 dataframe_sorted$basmi_score <- as.numeric(dataframe_sorted$basmi_score)
+dataframe_sorted$basdai <- as.numeric(dataframe_sorted$basdai)
+dataframe_sorted$basfi <- as.numeric(dataframe_sorted$basfi)
+dataframe_sorted$patient_global <- as.numeric(dataframe_sorted$patient_global)
+dataframe_sorted$back_pain_at_night <- as.numeric(dataframe_sorted$back_pain_at_night)
+dataframe_sorted$back_pain_anytime <- as.numeric(dataframe_sorted$back_pain_anytime)
+dataframe_sorted$as_qol <- as.numeric(dataframe_sorted$as_qol)
+dataframe_sorted$jenkins_sleep_1 <- as.numeric(dataframe_sorted$jenkins_sleep_1)
+dataframe_sorted$jenkins_sleep_2 <- as.numeric(dataframe_sorted$jenkins_sleep_2)
+dataframe_sorted$jenkins_sleep_3 <- as.numeric(dataframe_sorted$jenkins_sleep_3)
+dataframe_sorted$jenkins_sleep_4 <- as.numeric(dataframe_sorted$jenkins_sleep_4)
+dataframe_sorted$wpl <- as.numeric(dataframe_sorted$wpl)
+dataframe_sorted$daily_activity_impairment <- as.numeric(dataframe_sorted$daily_activity_impairment)
+dataframe_sorted$presentism <- as.numeric(dataframe_sorted$presentism)
+dataframe_sorted$absenteeism <- as.numeric(dataframe_sorted$absenteeism)
+dataframe_sorted$facit <- as.numeric(dataframe_sorted$facit)
+dataframe_sorted$margolis <- as.numeric(dataframe_sorted$margolis)
+
 
 # If x3 is present but date == stop_date, make x3 and stop_date NA
 dataframe_sorted <- dataframe_sorted %>%
@@ -2751,15 +2768,15 @@ write.csv(dataframe_sorted, "temp_dataframe_after_data_sorted_4.csv", row.names 
 dataframe_sorted <- dataframe_sorted %>%
   group_by(ttas_id) %>%
   mutate(
-    true_treatment_period_unique_identifier = cumsum(treatment != lag(treatment, default = first(treatment)) | is.na(lag(treatment)))
+    treatment_order = cumsum(treatment != lag(treatment, default = first(treatment)) | is.na(lag(treatment)))
   ) %>%
   ungroup()
 
 write.csv(dataframe_sorted, "temp_dataframe_after_data_sorted_5.csv", row.names = FALSE)
 
-# Step 6: Create a new stop_date for each true_treatment_period_unique_identifier if there is no stop_date for treatment = "standard_non-high_cost_drug_treatment"
-# If true_treatment_period_unique_identifier precedes another one, set stop_date_for_period to the next start_date_unix - 1
-# If true_treatment_period_unique_identifier is the last one, set stop_date_for_period to current date
+# Step 6: Create a new stop_date for each treatment_order if there is no stop_date for treatment = "standard_non-high_cost_drug_treatment"
+# If treatment_order precedes another one, set stop_date_for_period to the next start_date_unix - 1
+# If treatment_order is the last one, set stop_date_for_period to current date
 dataframe_sorted<- dataframe_sorted %>% 
   group_by(ttas_id) %>%
   arrange(ttas_id, start_date_unix) %>%
@@ -2779,9 +2796,9 @@ dataframe_sorted<- dataframe_sorted %>%
 
 write.csv(dataframe_sorted, "temp_dataframe_after_data_sorted_6.csv", row.names = FALSE)
 
-# Step 7: Fill the stop_date_for_period within each true_treatment_period_unique_identifier
+# Step 7: Fill the stop_date_for_period within each treatment_order
 dataframe_sorted<- dataframe_sorted%>%
-  group_by(ttas_id, true_treatment_period_unique_identifier) %>%
+  group_by(ttas_id, treatment_order) %>%
   fill(stop_date_for_period, .direction = "downup") %>%
   ungroup()
 
@@ -2798,7 +2815,7 @@ write.csv(dataframe_sorted, "temp_dataframe_after_data_sorted_8.csv", row.names 
 # Step 8: Calculate overall_treatment_duration_in_days and create an index for each basmi_score in each period
 # Calculate overall_treatment_duration_in_days
 dataframe_sorted<- dataframe_sorted%>%
-  group_by(ttas_id, true_treatment_period_unique_identifier) %>%
+  group_by(ttas_id, treatment_order) %>%
   mutate(
     overall_treatment_duration_in_days = ifelse(
       !is.na(stop_date_for_period_date_format), 
@@ -2810,13 +2827,13 @@ dataframe_sorted<- dataframe_sorted%>%
 
 write.csv(dataframe_sorted, "temp_dataframe_after_data_sorted_9.csv", row.names = FALSE)
 
-# Step 9: Calculate weekly time within each true_treatment_period_unique_identifier
+# Step 9: Calculate weekly time within each treatment_order
 # Ensure date and stop_date_for_period_date_format are in Date format
 dataframe_sorted$date <- as.Date(dataframe_sorted$date)
 dataframe_sorted$stop_date_for_period_date_format <- as.Date(dataframe_sorted$stop_date_for_period_date_format)
 
 dataframe_sorted<- dataframe_sorted%>% 
-  group_by(ttas_id, true_treatment_period_unique_identifier) %>%
+  group_by(ttas_id, treatment_order) %>%
   mutate(
     treatment_window_weekly_time = round(as.numeric(difftime(date, first(date), units = "weeks")) + 0, 2)
     ) %>% 
@@ -2840,24 +2857,24 @@ write.csv(dataframe_sorted, "temp_dataframe_after_data_sorted_11.csv", row.names
 
 ```{r}
 # General longitudinal analysis for those with and without drugs
-dataframe_sorted <- dataframe_sorted %>%
+dataframe_sorted_1 <- dataframe_sorted %>%
   filter(!is.na(basmi_score)) %>%
-  select(ttas_id, gender, hlab27status, age_at_basmi, diagnosis, treatment, last_known_smoking_status, last_known_vaping_status, true_treatment_period_unique_identifier, date, stop_date_for_period_date_format, overall_treatment_duration_in_days, treatment_window_weekly_time, time_in_days, time_in_weeks, time_in_months, time_in_years, basmi_score)
+  select(ttas_id, gender, hlab27status, age_at_basmi, diagnosis, treatment, last_known_smoking_status, last_known_vaping_status, treatment_order, date, stop_date_for_period_date_format, overall_treatment_duration_in_days, treatment_window_weekly_time, time_in_days, time_in_weeks, time_in_months, time_in_years, basmi_score)
 
-write.csv(dataframe_sorted, "temp_dataframe_after_dataframe_sorted_for_analysis.csv", row.names = FALSE)
+write.csv(dataframe_sorted_1, "temp_dataframe_after_dataframe_sorted_for_analysis.csv", row.names = FALSE)
 
 # Ignore if there is only one instance of row per treatment_period_unique_identifier in each ttas_id
-dataframe_sorted <- dataframe_sorted %>%
-  group_by(ttas_id, true_treatment_period_unique_identifier) %>%
+dataframe_sorted_1 <- dataframe_sorted_1 %>%
+  group_by(ttas_id, treatment_order) %>%
   filter(n() > 1) %>% # Keep only groups with more than one row after filtering out NAs
   ungroup()
 
-write.csv(dataframe_sorted, "temp_dataframe_after_dataframe_sorted_for_analysis_filtered.csv", row.names = FALSE)
+write.csv(dataframe_sorted_1, "temp_dataframe_after_dataframe_sorted_for_analysis_filtered.csv", row.names = FALSE)
 ```
 
 ```{r}
 # Reclassify the drugs
-dataframe_sorted_and_reclassified <- dataframe_sorted %>%
+dataframe_sorted_and_reclassified <- dataframe_sorted_1 %>%
   mutate(treatment_reclassified = case_when(
     treatment %in% c("Amgevita", "Humira", "Imraldi", "Yuflyma", "Benepali", "Enbrel", "Simponi", "Remicade", "Remsima", "Cimzia") ~ "Anti-TNF",
     treatment %in% c("Cosentyx", "Taltz", "Bimzelx") ~ "Anti-IL17",
@@ -2871,7 +2888,7 @@ write.csv(dataframe_sorted_and_reclassified, "temp_dataframe_after_dataframe_sor
 ```
 
 ```{r}
-# If diagnosis is "Undifferentiated spondyloarthritis (uSpA) (17 ttas_id)" and "Axial SpA- No subgroup" (1 ttas_id), remove it as all of them are on standard treatment and is their representation is limited
+# If diagnosis is "Undifferentiated spondyloarthritis (uSpA) (17 ttas_id)" and "Axial SpA- No subgroup" (1 ttas_id), remove it as most of them are on standard treatment and is their representation is limited
 dataframe_sorted_and_reclassified <- dataframe_sorted_and_reclassified %>%
   filter(diagnosis != "Undifferentiated spondyloarthritis (uSpA)" & diagnosis != "Axial SpA- No subgroup")
 
@@ -2906,7 +2923,7 @@ custom_labels <- c(
 # ggplot(data_tt1, aes(x = time_in_months, y = basmi_score,
 ggplot(data_tt1, aes(x = time_in_years, y = basmi_score,
                      colour = interaction(factor(ttas_id),
-                                          factor(true_treatment_period_unique_identifier)
+                                          factor(treatment_order)
                                           ))) +
   geom_point(alpha = 0.5) +
   geom_line(alpha = 0.75) +
@@ -2930,7 +2947,7 @@ dataframe_sorted_and_reclassified$hlab27status <- as.factor(dataframe_sorted_and
 dataframe_sorted_and_reclassified$age_at_basmi <- as.numeric(dataframe_sorted_and_reclassified$age_at_basmi)
 dataframe_sorted_and_reclassified$diagnosis <- as.factor(dataframe_sorted_and_reclassified$diagnosis)
 dataframe_sorted_and_reclassified$treatment <- as.factor(dataframe_sorted_and_reclassified$treatment)
-dataframe_sorted_and_reclassified$true_treatment_period_unique_identifier <- as.factor(dataframe_sorted_and_reclassified$true_treatment_period_unique_identifier)
+dataframe_sorted_and_reclassified$treatment_order <- as.factor(dataframe_sorted_and_reclassified$treatment_order)
 dataframe_sorted_and_reclassified$treatment_reclassified <- as.factor(dataframe_sorted_and_reclassified$treatment_reclassified)
 dataframe_sorted_and_reclassified$date <- as.Date(dataframe_sorted_and_reclassified$date)
 dataframe_sorted_and_reclassified$stop_date_for_period_date_format <- as.Date(dataframe_sorted_and_reclassified$stop_date_for_period_date_format)
@@ -2947,150 +2964,151 @@ dataframe_sorted_and_reclassified$last_known_vaping_status <- as.factor(datafram
 
 
 ```{r}
-# Run an lmer model for dataframe_sorted_and_reclassified
-model_1 <- lmer(basmi_score ~ gender + hlab27status + age_at_basmi + diagnosis + treatment_reclassified + treatment_window_weekly_time + (1 | ttas_id/true_treatment_period_unique_identifier), data = dataframe_sorted_and_reclassified)
-
-model_1_vif <- vif(model_1)
-print(summary(model_1, corr = TRUE))
-model_1_vif
+# # Run an lmer model for dataframe_sorted_and_reclassified
+# model_1 <- lmer(basmi_score ~ gender + hlab27status + age_at_basmi + diagnosis + treatment_reclassified + treatment_window_weekly_time + (1 | ttas_id/treatment_order), data = dataframe_sorted_and_reclassified)
+# 
+# model_1_vif <- vif(model_1)
+# print(summary(model_1, corr = TRUE))
+# model_1_vif
 ```
 
 ```{r}
 # Encountered error: boundary (singular) fit: see ?isSingular
-# model_2 <- lmer(basmi_score ~ gender + hlab27status + age_at_basmi + diagnosis + treatment_reclassified + treatment_window_weekly_time + (1 + treatment_window_weekly_time | ttas_id/true_treatment_period_unique_identifier), data = dataframe_sorted_and_reclassified)
-# model_3 <- lmer(basmi_score ~ gender + hlab27status + age_at_basmi + diagnosis + treatment_reclassified + treatment_window_weekly_time + (treatment_window_weekly_time | ttas_id/true_treatment_period_unique_identifier), data = dataframe_sorted_and_reclassified)
+# model_2 <- lmer(basmi_score ~ gender + hlab27status + age_at_basmi + diagnosis + treatment_reclassified + treatment_window_weekly_time + (1 + treatment_window_weekly_time | ttas_id/treatment_order), data = dataframe_sorted_and_reclassified)
+# model_3 <- lmer(basmi_score ~ gender + hlab27status + age_at_basmi + diagnosis + treatment_reclassified + treatment_window_weekly_time + (treatment_window_weekly_time | ttas_id/treatment_order), data = dataframe_sorted_and_reclassified)
 
 # Model failed to converge. Model is nearly unidentifiable: very large eigenvalue
-# model_4 <- lmer(basmi_score ~ gender + hlab27status + age_at_basmi + diagnosis + treatment_reclassified + treatment_window_weekly_time + (age_at_basmi | ttas_id/true_treatment_period_unique_identifier), data = dataframe_sorted_and_reclassified)
+# model_4 <- lmer(basmi_score ~ gender + hlab27status + age_at_basmi + diagnosis + treatment_reclassified + treatment_window_weekly_time + (age_at_basmi | ttas_id/treatment_order), data = dataframe_sorted_and_reclassified)
 ```
 
 ```{r}
-model_5 <- lmer(basmi_score ~ gender + hlab27status + age_at_basmi + diagnosis + treatment_reclassified*gender + treatment_window_weekly_time + (1 | ttas_id/true_treatment_period_unique_identifier), data = dataframe_sorted_and_reclassified)
-
-model_5_vif <- vif(model_5)
-print(summary(model_5, corr = TRUE))
-model_5_vif
+# model_5 <- lmer(basmi_score ~ gender + hlab27status + age_at_basmi + diagnosis + treatment_reclassified*gender + treatment_window_weekly_time + (1 | ttas_id/treatment_order), data = dataframe_sorted_and_reclassified)
+# 
+# model_5_vif <- vif(model_5)
+# print(summary(model_5, corr = TRUE))
+# model_5_vif
 ```
 
 ```{r}
-model_6 <- lmer(basmi_score ~ gender + hlab27status + age_at_basmi + diagnosis + treatment_reclassified*diagnosis + treatment_window_weekly_time + (1 | ttas_id/true_treatment_period_unique_identifier), data = dataframe_sorted_and_reclassified)
-
-model_6_vif <- vif(model_6)
-print(summary(model_6, corr = TRUE))
-model_6_vif
+# model_6 <- lmer(basmi_score ~ gender + hlab27status + age_at_basmi + diagnosis + treatment_reclassified*diagnosis + treatment_window_weekly_time + (1 | ttas_id/treatment_order), data = dataframe_sorted_and_reclassified)
+# 
+# model_6_vif <- vif(model_6)
+# print(summary(model_6, corr = TRUE))
+# model_6_vif
 ```
 ```{r}
-model_6_lmerTest <- lmerTest::lmer(basmi_score ~ gender + hlab27status + age_at_basmi + diagnosis + treatment_reclassified*diagnosis + treatment_window_weekly_time + (1 | ttas_id/true_treatment_period_unique_identifier), data = dataframe_sorted_and_reclassified)
-
-summary(model_6_lmerTest)
+# model_6_lmerTest <- lmerTest::lmer(basmi_score ~ gender + hlab27status + age_at_basmi + diagnosis + treatment_reclassified*diagnosis + treatment_window_weekly_time + (1 | ttas_id/treatment_order), data = dataframe_sorted_and_reclassified)
+# 
+# summary(model_6_lmerTest)
 ```
 
 ```{r}
-# Check the normality of residuals of model_6
-residuals_model_6 <- residuals(model_6)
-
-# Shapiro-Wilk test
-# shapiro.test(residuals_model_6)
-
-# QQ plot
-qqnorm(residuals_model_6)
-qqline(residuals_model_6)
-
-# Histogram
-hist(residuals_model_6)
+# # Check the normality of residuals of model_6
+# residuals_model_6 <- residuals(model_6)
+# 
+# # Shapiro-Wilk test
+# # shapiro.test(residuals_model_6)
+# 
+# # QQ plot
+# qqnorm(residuals_model_6)
+# qqline(residuals_model_6)
+# 
+# # Histogram
+# hist(residuals_model_6)
 ```
 
 ```{r}
 # Normality of random effects for model_6
-ranef_model_6 <- ranef(model_6, condVar = TRUE)
-
-# Plot QQ plot for random intercepts at the patient level
-qqnorm(ranef_model_6$ttas_id[,1])
-qqline(ranef_model_6$ttas_id[,1])
+# ranef_model_6 <- ranef(model_6, condVar = TRUE)
+# 
+# # Plot QQ plot for random intercepts at the patient level
+# qqnorm(ranef_model_6$ttas_id[,1])
+# qqline(ranef_model_6$ttas_id[,1])
 
 # Plot QQ plot for random intercepts at the treatment period level within each patient
-# qqnorm(ranef_model_6$ttas_id:true_treatment_period_unique_identifier[,1])
-# qqline(ranef_model_6$ttas_id:true_treatment_period_unique_identifier[,1])
+# qqnorm(ranef_model_6$ttas_id:treatment_order[,1])
+# qqline(ranef_model_6$ttas_id:treatment_order[,1])
 ```
 
 ```{r}
 # Fitted values from the model
-fitted_values_model_6 <- fitted(model_6)
-
-# Residuals vs. Fitted values
-plot(fitted_values_model_6, residuals_model_6, 
-     main = "Residuals vs Fitted", 
-     xlab = "Fitted Values", 
-     ylab = "Residuals")
-abline(h = 0, col = "red")
-
-# Residuals vs. Age at BASMI
-plot(dataframe_sorted_and_reclassified$age_at_basmi, residuals_model_6, 
-     main = "Residuals vs Age at BASMI", 
-     xlab = "Age at BASMI", 
-     ylab = "Residuals")
-abline(h = 0, col = "red")
+# fitted_values_model_6 <- fitted(model_6)
+# 
+# # Residuals vs. Fitted values
+# plot(fitted_values_model_6, residuals_model_6, 
+#      main = "Residuals vs Fitted", 
+#      xlab = "Fitted Values", 
+#      ylab = "Residuals")
+# abline(h = 0, col = "red")
+# 
+# # Residuals vs. Age at BASMI
+# plot(dataframe_sorted_and_reclassified$age_at_basmi, residuals_model_6, 
+#      main = "Residuals vs Age at BASMI", 
+#      xlab = "Age at BASMI", 
+#      ylab = "Residuals")
+# abline(h = 0, col = "red")
 
 ```
 
 ```{r}
-# Plot Residuals vs Fitted values again for homoscedasticity check
-plot(fitted_values_model_6, residuals_model_6, 
-     main = "Residuals vs Fitted", 
-     xlab = "Fitted Values", 
-     ylab = "Residuals")
-abline(h = 0, col = "red")
+# # Plot Residuals vs Fitted values again for homoscedasticity check
+# plot(fitted_values_model_6, residuals_model_6, 
+#      main = "Residuals vs Fitted", 
+#      xlab = "Fitted Values", 
+#      ylab = "Residuals")
+# abline(h = 0, col = "red")
 ```
 
 ```{r}
-# If you have a time variable in your data, plot Residuals vs Time
-plot(dataframe_sorted_and_reclassified$treatment_window_weekly_time, residuals_model_6,
-     main = "Residuals vs Time", 
-     xlab = "Time (Weeks)", 
-     ylab = "Residuals")
-abline(h = 0, col = "red")
+# # If you have a time variable in your data, plot Residuals vs Time
+# plot(dataframe_sorted_and_reclassified$treatment_window_weekly_time, residuals_model_6,
+#      main = "Residuals vs Time", 
+#      xlab = "Time (Weeks)", 
+#      ylab = "Residuals")
+# abline(h = 0, col = "red")
 ```
 
 ```{r}
 # Fixed-effect model matrix is rank deficient so dropping 2 column / coefficient
-# model_7 <- lmer(basmi_score ~ gender + hlab27status + age_at_basmi + diagnosis + treatment_reclassified*hlab27status + treatment_window_weekly_time + (1 | ttas_id/true_treatment_period_unique_identifier), data = dataframe_sorted_and_reclassified)
+# model_7 <- lmer(basmi_score ~ gender + hlab27status + age_at_basmi + diagnosis + treatment_reclassified*hlab27status + treatment_window_weekly_time + (1 | ttas_id/treatment_order), data = dataframe_sorted_and_reclassified)
 
 # Fixed-effect model matrix is rank deficient so dropping 2 columns / coefficients
-# model_8 <- lmer(basmi_score ~ gender + hlab27status + age_at_basmi + diagnosis + treatment_reclassified*gender*diagnosis + treatment_window_weekly_time + (1 | ttas_id/true_treatment_period_unique_identifier), data = dataframe_sorted_and_reclassified)
+# model_8 <- lmer(basmi_score ~ gender + hlab27status + age_at_basmi + diagnosis + treatment_reclassified*gender*diagnosis + treatment_window_weekly_time + (1 | ttas_id/treatment_order), data = dataframe_sorted_and_reclassified)
 ```
 
 ```{r}
-model_9 <- lmer(basmi_score ~ gender + hlab27status +  diagnosis * treatment_reclassified + age_at_basmi + treatment_window_weekly_time + (treatment_window_weekly_time | ttas_id/true_treatment_period_unique_identifier), data = dataframe_sorted_and_reclassified)
-
-model_9_vif <- vif(model_9)
-print(summary(model_9, corr = TRUE))
-model_9_vif
+# model_9 <- lmer(basmi_score ~ gender + hlab27status +  diagnosis * treatment_reclassified + age_at_basmi + treatment_window_weekly_time + (treatment_window_weekly_time | ttas_id/treatment_order), data = dataframe_sorted_and_reclassified)
+# 
+# model_9_vif <- vif(model_9)
+# print(summary(model_9, corr = TRUE))
+# model_9_vif
 ```
 ```{r}
-model_10 <- lmer(basmi_score ~ gender + hlab27status + age_at_basmi + diagnosis + treatment_reclassified + poly(treatment_window_weekly_time, 2) + treatment_window_weekly_time * treatment_reclassified + (1 | ttas_id/true_treatment_period_unique_identifier)
-, data = dataframe_sorted_and_reclassified)
+# model_10 <- lmer(basmi_score ~ gender + hlab27status + age_at_basmi + diagnosis + treatment_reclassified + poly(treatment_window_weekly_time, 2) + treatment_window_weekly_time * treatment_reclassified + (1 | ttas_id/treatment_order)
+# , data = dataframe_sorted_and_reclassified)
 ```
 
 ```{r}
-model_11 <- lmer(basmi_score ~ gender + hlab27status + last_known_smoking_status + last_known_vaping_status + age_at_basmi + diagnosis + true_treatment_period_unique_identifier + treatment_reclassified*diagnosis + time_in_years + (time_in_years | ttas_id), data = dataframe_sorted_and_reclassified)
-
-model_11
+# model_1 <- lmer(basmi_score ~ gender + hlab27status + last_known_smoking_status + last_known_vaping_status + age_at_basmi + diagnosis + treatment_order + treatment_reclassified*diagnosis + time_in_years + (time_in_years | ttas_id), data = dataframe_sorted_and_reclassified)
+# 
+# model_1
 # model_11_vif <- vif(model_11)
 # print(summary(model_11, corr = TRUE))
 # model_11_vif
 ```
 
 ```{r}
-model_12 <- lmer(basmi_score ~ gender + hlab27status + age_at_basmi + diagnosis + true_treatment_period_unique_identifier + treatment_reclassified*diagnosis + time_in_years + (1 | ttas_id), data = dataframe_sorted_and_reclassified)
-
-model_12_vif <- vif(model_12)
-print(summary(model_12, corr = TRUE))
-model_12_vif
+# Old code: When time_in_year is not a random variable
+# model_12 <- lmer(basmi_score ~ gender + hlab27status + age_at_basmi + diagnosis + treatment_order + treatment_reclassified*diagnosis + time_in_years + (1 | ttas_id), data = dataframe_sorted_and_reclassified)
+# 
+# model_12_vif <- vif(model_12)
+# print(summary(model_12, corr = TRUE))
+# model_12_vif
 ```
 
 ```{r}
 # Conduct F-test for model_11 and model_12
-anova(model_11, model_12)
+# anova(model_11, model_12)
 ```
 
 ```{r}
@@ -3103,25 +3121,27 @@ anova(model_11, model_12)
 
 
 # Conduct an F-test for a full-model and reduced model for model_11
-model_11_full <- lmer(basmi_score ~ gender + hlab27status + age_at_basmi + diagnosis + true_treatment_period_unique_identifier + last_known_smoking_status + last_known_vaping_status + treatment_reclassified*diagnosis + time_in_years + (time_in_years | ttas_id), data = dataframe_sorted_and_reclassified,
-                         # control = lmerControl(optimizer = "bobyqa", optCtrl = list(maxfun = 2e5))
-                         control = lmerControl(optCtrl = list(maxfun = 2e5))
+model_1_full <- lmer(basmi_score ~ gender + hlab27status + age_at_basmi + diagnosis + treatment_order + last_known_smoking_status + last_known_vaping_status + treatment_reclassified*diagnosis + time_in_years + (time_in_years | ttas_id), data = dataframe_sorted_and_reclassified,
+                         control = lmerControl(optimizer = "bobyqa", optCtrl = list(maxfun = 2e5))
                       )
-model_11_reduced <- lmer(basmi_score ~ gender + hlab27status + age_at_basmi + true_treatment_period_unique_identifier + last_known_smoking_status + last_known_vaping_status + treatment_reclassified + diagnosis + time_in_years + (time_in_years | ttas_id), data = dataframe_sorted_and_reclassified,
+model_1_reduced <- lmer(basmi_score ~ gender + hlab27status + age_at_basmi + treatment_order + last_known_smoking_status + last_known_vaping_status + treatment_reclassified + diagnosis + time_in_years + (time_in_years | ttas_id), data = dataframe_sorted_and_reclassified,
                          control = lmerControl(optimizer = "bobyqa", optCtrl = list(maxfun = 2e5))
                          )
 ```
 
 ```{r}
-model_11_full
+model_1_full
+model_1_full_vif <- vif(model_1_full)
+print(summary(model_1_full, corr = TRUE))
+model_1_full_vif
 ```
 
 ```{r}
-model_11_reduced
+model_1_reduced
 ```
 
 ```{r}
-anova(model_11_full, model_11_reduced)
+anova(model_1_full, model_1_reduced)
 ```
 
 ```{r}
