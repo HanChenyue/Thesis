@@ -1,7 +1,9 @@
 ---
 title: "Thesis"
 author: "Han Chenyue"
-format: pdf editor: visual
+format:
+  pdf:
+    editor: visual
 ---
 
 
@@ -21,23 +23,25 @@ library(plotly)
 library(MuMIn)
 library(car)
 library(lmerTest)
+library(gt)
+library(webshot2)
+library(rmarkdown)
+library(knitr)
 ```
 
-# ```{r}
+```{r, include=FALSE}
 # # Combine sheets into a single data frame
 # file_path <- file_path <- "C:/Users/hn/OneDrive - University of Bath/Thesis/thesis_dataset/TTAS All data anon.xlsx"
 # sheet_names <- c("Demographics", "PROMs ALL DATA", "BASMI data", "Highcost drug data")
 # 
 # # Perform full join
 # data <- sheet_names %>%felse
-
+# 
 #   map(read_excel, path = file_path) %>%
 #   reduce(full_join, by = "TTAS_ID")
-# 
-# 
-# ```
+```
 
-```{r}
+```{r, include=FALSE}
 # Load data
 demographics_sheet_data <- read_excel("TTAS\ All\ data\ anon.xlsx", sheet = "Demographics")
 prom_sheet_data <- read_excel("TTAS\ All\ data\ anon.xlsx", sheet = "PROMs\ ALL\ DATA")
@@ -51,7 +55,7 @@ basmi_sheet_data <- clean_names(basmi_sheet_data)
 drug_sheet_data <- clean_names(drug_sheet_data)
 ```
 
-```{r}
+```{r, include=FALSE}
 # Data Cleaning
 # 1. Convert all dates column to date type
 # basmi_sheet_data$date <- as.Date(basmi_sheet_data$date, format = "%d/%m/%Y")
@@ -75,7 +79,7 @@ drug_sheet_data$drug_start_date <- as.Date(drug_sheet_data$drug_start_date, form
 drug_sheet_data$stop_date <- as.Date(drug_sheet_data$stop_date, format = "%d/%m/%Y")
 ```
 
-```{r}
+```{r, include=FALSE}
 # Ensure that categorical variables are factors
 demographics_sheet_data$ttas_id <- as.factor(demographics_sheet_data$ttas_id)
 demographics_sheet_data$diagnosis <- as.factor(demographics_sheet_data$diagnosis)
@@ -98,7 +102,7 @@ drug_sheet_data$high_cost_drug_stop_reason_text <- as.factor(drug_sheet_data$hig
 drug_sheet_data$comment <- as.factor(drug_sheet_data$comment)
 ```
 
-```{r}
+```{r, include=FALSE}
 # Demographics data cleaning
 # 1. Replace all unknown and blank values with NA
 demographics_sheet_data <- demographics_sheet_data %>%
@@ -114,7 +118,7 @@ demographics_sheet_data <- demographics_sheet_data %>%
   ))
 ```
 
-```{r}
+```{r, include=FALSE}
 # 2. Replace negative value of age_at_onset with NA for ttas_id 375 and 623
 subset_data_375 <- demographics_sheet_data[demographics_sheet_data$ttas_id == 375, c("ttas_id", "age_at_onset")]
 cat("Before, ttas_id for 375: ttas_id=", subset_data_375$ttas_id, ", age_at_onset=", subset_data_375$age_at_onset, "\n")
@@ -130,7 +134,7 @@ subset_data_623 <- demographics_sheet_data[demographics_sheet_data$ttas_id == 62
 cat("After, ttas_id for 623: ttas_id=", subset_data_623$ttas_id, ", age_at_onset=", subset_data_623$age_at_onset, "\n")
 ```
 
-```{r}
+```{r, include=FALSE}
 # Manual intervention for ttas_id 13, 72, 156, 230, 792, 974, 1105, 1099, 1224
 # For ttas_id 13, if x3 is Benepali but stop_date is NA, set stop_date to current date
 write.csv(drug_sheet_data, "temp_manual_intervetion_check_before.csv", row.names = FALSE)
@@ -228,12 +232,12 @@ drug_sheet_data <- drug_sheet_data %>%
 write.csv(drug_sheet_data, "temp_manual_intervetion_check_after.csv", row.names = FALSE)
 ```
 
-```{r}
+```{r, include=FALSE}
 # Summary of demographics_sheet_data
 kable(summary(demographics_sheet_data)) %>% kable_styling(bootstrap_options = "striped", full_width = F)
 ```
 
-```{r}
+```{r, include=FALSE}
 # # Old code
 # # The final calculation for ASQOL is wrong, replace blank values with 0 and recalculate the final score for any rows with a non-blank value in as_qol
 # # Define a list of columns named 'asqol_cols' containing the columns that are used to calculate the final ASQOL score
@@ -279,7 +283,7 @@ kable(summary(demographics_sheet_data)) %>% kable_styling(bootstrap_options = "s
 # prom_sheet_data$asqol_18 <- as.factor(prom_sheet_data$asqol_18)
 # ```
 # 
-# ```{r}
+# ```{r, include=FALSE}
 # # The final calculation for FACIT is wrong, replace blank values with 0 and recalculate the final score for any rows with a non-blank value in facit
 # # Define a list of columns named 'facit_cols' containing the columns that are used to calculate the final FACIT score
 # facit_cols <- c("facit_1", "facit_2", "facit_3", "facit_4", "facit_5", "facit_6", "facit_7", "facit_8", "facit_9", "facit_10", "facit_11", "facit_12", "facit_13", "facit")
@@ -304,7 +308,7 @@ kable(summary(demographics_sheet_data)) %>% kable_styling(bootstrap_options = "s
 # prom_sheet_data$corrected_facit <- apply(prom_sheet_data, 1, recalculate_facit)
 ```
 
-```{r}
+```{r, include=FALSE}
 # TODO: Clean smoking and vaping columns
 # Cleaning the do_you_smoke column
 # Check for ttas_id that has more than one do_you_smoke column
@@ -327,7 +331,7 @@ prom_sheet_data_clean_ecigarettes <- prom_sheet_data %>%
 write_csv(prom_sheet_data_clean_ecigarettes, "test_check_ecigarettes_data.csv")
 ```
 
-```{r}
+```{r, include=FALSE}
 # If contradiction exists, treat data for this patient as unreliable
 # Manual intervention for ttas_id 7: Contains contradicting information
 # Convert Never to NA
@@ -731,7 +735,7 @@ prom_sheet_data <- prom_sheet_data %>%
   ))
 ```
 
-```{r}
+```{r, include=FALSE}
 # Manual intervention for ttas_id 73: Contains contradicting information
 prom_sheet_data <- prom_sheet_data %>%
   mutate(ecigarettes = case_when(
@@ -904,7 +908,7 @@ prom_sheet_data <- prom_sheet_data %>%
   ))
 ```
 
-```{r}
+```{r, include=FALSE}
 # This is justified because we do not have any exact date on the last known smoking status of the patient should they have quitted smoking year
 # Create a new column for each patient's last known smoking status
 # If the patient has never smoked, the value is "never"
@@ -943,19 +947,19 @@ prom_sheet_data <- prom_sheet_data %>%
 write_csv(prom_sheet_data, "test_last_known_smoking_and_vaping_status.csv")
 ```
 
-```{r}
+```{r, include=FALSE}
 # ASQOL
 # Check for any negative values in as_qol and turn them into NA
 prom_sheet_data$as_qol <- ifelse(prom_sheet_data$as_qol < 0, NA, prom_sheet_data$as_qol)
 ```
 
-```{r}
+```{r, include=FALSE}
 # FACIT
 # Check for any negative values in facit and turn them into NA
 prom_sheet_data$facit <- ifelse(prom_sheet_data$facit < 0, NA, prom_sheet_data$facit)
 ```
 
-```{r}
+```{r, include=FALSE}
 # # The final calculation for Jenkins Sleep Scale is wrong, replace blank values with 0 and recalculate the final score for any rows with a non-blank value in jenkins_sleep_scale
 # # Define a list of columns named 'jenkins_sleep_scale_cols' containing the columns that are used to calculate the final Jenkins Sleep Scale score
 # jenkins_sleep_scale_cols <- c("jenkins_sleep_1", "jenkins_sleep_2", "jenkins_sleep_3", "jenkins_sleep_4", "jenkins_sleep_scale")
@@ -981,7 +985,7 @@ prom_sheet_data$facit <- ifelse(prom_sheet_data$facit < 0, NA, prom_sheet_data$f
 ```
 
 
-```{r}
+```{r, include=FALSE}
 # Calculating the WPAI scoring
 # Ensure wpai_1 to wpai_6 are numeric
 prom_sheet_data$wpai_1 <- as.numeric(prom_sheet_data$wpai_1)
@@ -1046,57 +1050,57 @@ prom_sheet_data <- prom_sheet_data %>%
 # write_csv(prom_sheet_data, "check_wpai_data.csv")
 ```
 
-```{r}
+```{r, include=FALSE}
 # Write to csv to check the data
 # write_csv(prom_sheet_data, "data_check_prom_sheet_data.csv")
 ```
 
-```{r}
+```{r, include=FALSE}
 # Histogram for age_at_onset
 hist(demographics_sheet_data$age_at_onset, main = "Histogram of Age at Onset", xlab = "Age at Onset")
 ```
 
-```{r}
+```{r, include=FALSE}
 # Kernel density plot for age_at_onset
 plot(density(demographics_sheet_data$age_at_onset, na.rm = TRUE), main = "Kernel Density Plot of Age at Onset", xlab = "Age at Onset")
 ```
 
-```{r}
+```{r, include=FALSE}
 # Sorted data against index for age_at_onset
 plot(sort(demographics_sheet_data$age_at_onset, na.last = NA), main = "Sorted Age at Onset", xlab = "Index", ylab = "Age at Onset")
 ```
 
-```{r}
+```{r, include=FALSE}
 # Histogram for age_at_diag
 hist(demographics_sheet_data$age_at_diag, main = "Histogram of Age at Diagnosis", xlab = "Age at Diagnosis")
 ```
 
-```{r}
+```{r, include=FALSE}
 # Kernel density plot for age_at_diag
 plot(density(demographics_sheet_data$age_at_diag, na.rm = TRUE), main = "Kernel Density Plot of Age at Diagnosis", xlab = "Age at Diagnosis")
 ```
 
-```{r}
+```{r, include=FALSE}
 # Sorted data against index for age_at_diag
 plot(sort(demographics_sheet_data$age_at_diag, na.last = NA), main = "Sorted Age at Diagnosis", xlab = "Index", ylab = "Age at Diagnosis")
 ```
 
-```{r}
+```{r, include=FALSE}
 # Histogram for age_at_diag
 hist(demographics_sheet_data$age_at_diag, main = "Histogram of Age at Diagnosis", xlab = "Age at Diagnosis")
 ```
 
-```{r}
+```{r, include=FALSE}
 # Kernel density plot for age_at_diag
 plot(density(demographics_sheet_data$age_at_diag, na.rm = TRUE), main = "Kernel Density Plot of Age at Diagnosis", xlab = "Age at Diagnosis")
 ```
 
-```{r}
+```{r, include=FALSE}
 # Sorted data against index for age_at_diag
 plot(sort(demographics_sheet_data$age_at_diag, na.last = NA), main = "Sorted Age at Diagnosis", xlab = "Index", ylab = "Age at Diagnosis")
 ```
 
-```{r}
+```{r, include=FALSE}
 # Summary of basmi_sheet_data
 kable(summary(basmi_sheet_data)) %>% kable_styling(bootstrap_options = "striped", full_width = F)
 
@@ -1105,37 +1109,37 @@ kable(summary(basmi_sheet_data)) %>% kable_styling(bootstrap_options = "striped"
 # No changes made to the data for now as the BASMI score will be the core focus
 ```
 
-```{r}
+```{r, include=FALSE}
 # Histogram for age_at_basmi
 hist(basmi_sheet_data$age_at_basmi, main = "Histogram of Age at BASMI", xlab = "Age at BASMI")
 ```
 
-```{r}
+```{r, include=FALSE}
 # Kernel density plot for age_at_basmi
 plot(density(basmi_sheet_data$age_at_basmi, na.rm = TRUE), main = "Kernel Density Plot of Age at BASMI", xlab = "Age at BASMI")
 ```
 
-```{r}
+```{r, include=FALSE}
 # Sorted data against index for age_at_basmi
 plot(sort(basmi_sheet_data$age_at_basmi, na.last = NA), main = "Sorted Age at BASMI", xlab = "Index", ylab = "Age at BASMI")
 ```
 
-```{r}
+```{r, include=FALSE}
 # Histogram for basmi_score
 hist(basmi_sheet_data$basmi_score, main = "Histogram of BASMI Score", xlab = "BASMI Score")
 ```
 
-```{r}
+```{r, include=FALSE}
 # Kernel density plot for basmi_score
 plot(density(basmi_sheet_data$basmi_score, na.rm = TRUE), main = "Kernel Density Plot of BASMI Score", xlab = "BASMI Score")
 ```
 
-```{r}
+```{r, include=FALSE}
 # Sorted data against index for basmi_score
 plot(sort(basmi_sheet_data$basmi_score, na.last = NA), main = "Sorted BASMI Score", xlab = "Index", ylab = "BASMI Score")
 ```
 
-```{r}
+```{r, include=FALSE}
 # Plotting the BASMI score against age_at_basmi
 ggplot(basmi_sheet_data, aes(x = age_at_basmi, y = basmi_score)) +
   geom_point() +
@@ -1144,12 +1148,12 @@ ggplot(basmi_sheet_data, aes(x = age_at_basmi, y = basmi_score)) +
   labs(title = "BASMI Score against Age at BASMI", x = "Age at BASMI", y = "BASMI Score")
 ```
 
-```{r}
+```{r, include=FALSE}
 lm_basmi <- lm(basmi_score ~ age_at_basmi, data = basmi_sheet_data)
 summary(lm_basmi)
 ```
 
-```{r}
+```{r, include=FALSE}
 # Summary of prom_sheet_data
 kable(summary(prom_sheet_data)) %>% kable_styling(bootstrap_options = "striped", full_width = F)
 ```
@@ -1168,7 +1172,7 @@ kable(summary(prom_sheet_data)) %>% kable_styling(bootstrap_options = "striped",
 
 
 
-```{r}
+```{r, include=FALSE}
 # Full join the data
 combined_df <- full_join(basmi_sheet_data, prom_sheet_data, 
                          by = c("ttas_id",
@@ -1188,7 +1192,7 @@ combined_df <- full_join(combined_df, demographics_sheet_data, by = "ttas_id")
 combined_df <- combined_df %>% rename(date = basmi_datasheet_record_date)
 ```
 
-```{r}
+```{r, include=FALSE}
 combined_df <- combined_df %>% 
   group_by(ttas_id) %>%
     # Fill NA values for last_known_smoking_status and last_known_vaping_status
@@ -1202,12 +1206,12 @@ combined_df$last_known_smoking_status[is.na(combined_df$last_known_smoking_statu
 combined_df$last_known_vaping_status[is.na(combined_df$last_known_vaping_status)] <- "no information"
 ```
 
-```{r}
+```{r, include=FALSE}
 write_csv(combined_df, "test_combined_df.csv")
 write_csv(drug_sheet_data, "test_drug_sheet_data.csv")
 ```
 
-```{r}
+```{r, include=FALSE}
 drug_colours <- c(
 "Remicade" = "blue", "Remsima" = "skyblue", "Cosentyx" = "orange", 
 "Humira" = "green", "Cimzia" = "purple", "Imraldi" = "red",
@@ -1232,7 +1236,7 @@ drug_sheet_data$stop_date <- as.Date(drug_sheet_data$stop_date)
 unique_ids <- unique(timeline_data$ttas_id)
 ```
 
-```{r, warning=FALSE}
+```{r, warning=FALSE, include=FALSE}
 # output_folder <- "timeline_plots"
 # dir.create(output_folder, showWarnings = FALSE)
 # 
@@ -1306,7 +1310,7 @@ unique_ids <- unique(timeline_data$ttas_id)
 # close(log_file)
 ```
 
-```{r, warning=FALSE}
+```{r, warning=FALSE, include=FALSE}
 # # Filtered out ttas_id with drugs only
 # ids_with_drug_data <- unique(drug_sheet_data$ttas_id)
 # ids_in_timeline_data <- unique(timeline_data$ttas_id)
@@ -1380,7 +1384,7 @@ unique_ids <- unique(timeline_data$ttas_id)
 # }
 ```
 
-```{r, warning=FALSE}
+```{r, warning=FALSE, include=FALSE}
 # Filtered out ttas_id with drugs only
 ids_with_drug_data <- unique(drug_sheet_data$ttas_id)
 ids_in_timeline_data <- unique(timeline_data$ttas_id)
@@ -1421,7 +1425,7 @@ write_csv(combined_df_with_and_without_drugs, "test_combined_df_with_and_without
 
 # Checkpoint start: Uncomment to recreate the plots
 
-```{r, warning=FALSE}
+```{r, warning=FALSE, include=FALSE}
 # for (current_id in unique_ids_drugs_only){
 #   
 #   if (current_id %in% exclude_ids) {
@@ -1511,7 +1515,7 @@ write_csv(combined_df_with_and_without_drugs, "test_combined_df_with_and_without
 # }
 ```
 
-```{r, warning=FALSE}
+```{r, warning=FALSE, include=FALSE}
 # # Create plot for BASMI score only
 # 
 # timeline_data_basmi <- combined_df %>%
@@ -1591,7 +1595,7 @@ write_csv(combined_df_with_and_without_drugs, "test_combined_df_with_and_without
 # }
 ```
 
-```{r, warning=FALSE}
+```{r, warning=FALSE, include=FALSE}
 # # Create plot for BASFI score only
 # 
 # timeline_data_basfi <- combined_df %>%
@@ -1669,7 +1673,7 @@ write_csv(combined_df_with_and_without_drugs, "test_combined_df_with_and_without
 # }
 ```
 
-```{r, warning=FALSE}
+```{r, warning=FALSE, include=FALSE}
 # # Create plot for patient global score only
 # 
 # timeline_data_patient_global <- combined_df %>%
@@ -1747,7 +1751,7 @@ write_csv(combined_df_with_and_without_drugs, "test_combined_df_with_and_without
 # }
 ```
 
-```{r, warning=FALSE}
+```{r, warning=FALSE, include=FALSE}
 # # Create plot for back pain at night and back pain anytime score only
 # 
 # timeline_data_back_pain <- combined_df %>%
@@ -1825,7 +1829,7 @@ write_csv(combined_df_with_and_without_drugs, "test_combined_df_with_and_without
 # }
 ```
 
-```{r, warning=FALSE}
+```{r, warning=FALSE, include=FALSE}
 # # Create plot for ASQoL score only
 # 
 # timeline_data_as_qol <- combined_df %>%
@@ -1903,7 +1907,7 @@ write_csv(combined_df_with_and_without_drugs, "test_combined_df_with_and_without
 # }
 ```
 
-```{r, warning=FALSE}
+```{r, warning=FALSE, include=FALSE}
 # # Create plot for FACIT score only
 # 
 # timeline_data_facit <- combined_df %>%
@@ -1990,7 +1994,7 @@ write_csv(combined_df_with_and_without_drugs, "test_combined_df_with_and_without
 # }
 ```
 
-```{r, warning=FALSE}
+```{r, warning=FALSE, include=FALSE}
 # # Create plot for Margolis score only
 # 
 # timeline_data_margolis <- combined_df %>%
@@ -2069,7 +2073,7 @@ write_csv(combined_df_with_and_without_drugs, "test_combined_df_with_and_without
 # }
 ```
 
-```{r, warning=FALSE}
+```{r, warning=FALSE, include=FALSE}
 # # Create plot for WPAI only
 # 
 # timeline_data_wpai <- combined_df %>%
@@ -2148,7 +2152,7 @@ write_csv(combined_df_with_and_without_drugs, "test_combined_df_with_and_without
 # }
 ```
 
-```{r, warning=FALSE}
+```{r, warning=FALSE, include=FALSE}
 # # Create plot for Jenkins Sleep 
 # 
 # timeline_data_jenkins_sleep_scale <- combined_df %>%
@@ -2229,7 +2233,7 @@ write_csv(combined_df_with_and_without_drugs, "test_combined_df_with_and_without
 # Checkpoint end: Uncomment to recreate the plots
 
 # Start analysis
-```{r}
+```{r, include=FALSE}
 # Old code
 # # Reduce the amount of NA in combined_df_id_with_drugs_excluded
 # # Impute x3 (Treatment): For any row where x3 is NA, if there is a valid stop_date, we should impute x3 with the last known treatment. If stop_date is also NA, the treatment continues to the present, and x3 should reflect the last known treatment.
@@ -2249,7 +2253,7 @@ write_csv(combined_df_with_and_without_drugs, "test_combined_df_with_and_without
 ```
 
 
-```{r}
+```{r, include=FALSE}
 # # Data cleaning to ensure x3 is propagated until stop_date
 # data <- combined_df_id_with_drugs_excluded %>%
 #   select(ttas_id, x3, date, stop_date, basmi_score)
@@ -2281,7 +2285,7 @@ write_csv(combined_df_with_and_without_drugs, "test_combined_df_with_and_without
 # write.csv(cleaned_data, file = "final_cleaned_propagation_result.csv", row.names = FALSE)
 ```
 
-```{r}
+```{r, include=FALSE}
 # df <- combined_df_id_with_drugs_excluded
 # 
 # data_sorted <- df %>%
@@ -2319,7 +2323,7 @@ write_csv(combined_df_with_and_without_drugs, "test_combined_df_with_and_without
 ```
 
 
-```{r}
+```{r, include=FALSE}
 # # Old code
 # # Code for users with drugs only
 # df <- combined_df_id_with_drugs_excluded
@@ -2372,7 +2376,7 @@ write_csv(combined_df_with_and_without_drugs, "test_combined_df_with_and_without
 # write.csv(data_sorted, "temp_before_data_sorted.csv", row.names = FALSE)
 ```
 
-```{r}
+```{r, include=FALSE}
 # Old code: Without excluded ids
 # dataframe <- combined_df_with_and_without_drugs_excluded
 
@@ -2444,7 +2448,7 @@ dataframe_sorted <- dataframe_sorted %>%
 write.csv(dataframe_sorted, "temp_dataframe_before_data_sorted.csv", row.names = FALSE)
 ```
 
-```{r}
+```{r, include=FALSE}
 # # Manual intervention for ttas_id 13, 72, 156, 230, 792, 974, 1105, 1099, 1224
 # # For ttas_id 13, if x3 is Benepali but stop_date is NA, set stop_date to current date
 # data_sorted <- data_sorted %>%
@@ -2532,7 +2536,7 @@ write.csv(dataframe_sorted, "temp_dataframe_before_data_sorted.csv", row.names =
 # # write.csv(data_sorted, "temp_manual_intervetion_check.csv", row.names = FALSE)
 ```
 
-```{r}
+```{r, include=FALSE}
 # # Older code: Before and immediately after basmi_score
 # # Forward fill x3 to create a continuous treatment period indicator
 # data_sorted <- data_sorted %>%
@@ -2567,7 +2571,7 @@ write.csv(dataframe_sorted, "temp_dataframe_before_data_sorted.csv", row.names =
 # write.csv(final_data, "treatment_data_before_after.csv", row.names = FALSE)
 ```
 
-```{r}
+```{r, include=FALSE}
 # # Step 1: Forward-fill x3 to create a continuous treatment period indicator
 # data_sorted <- data_sorted %>%
 #   arrange(ttas_id, date) %>%
@@ -2688,7 +2692,7 @@ write.csv(dataframe_sorted, "temp_dataframe_before_data_sorted.csv", row.names =
 ```
 
 # Old code: When the we assume every patients has his/her own unique treatment period without any differentiation
-```{r}
+```{r, include=FALSE}
 # # General longitudinal analysis
 # longitudinal_analysis_data <- data_sorted %>% 
 #   filter(!is.na(treatment)) %>%
@@ -2722,7 +2726,7 @@ write.csv(dataframe_sorted, "temp_dataframe_before_data_sorted.csv", row.names =
 # write.csv(longitudinal_analysis_data_filtered, "longitudinal_analysis_data_filtered.csv", row.names = FALSE)
 ```
 
-```{r}
+```{r, include=FALSE}
 # # Ensure that longitudinal_analysis_data_filtered has the correct data types
 # longitudinal_analysis_data_filtered$ttas_id <- as.factor(longitudinal_analysis_data_filtered$ttas_id)
 # longitudinal_analysis_data_filtered$gender <- as.factor(longitudinal_analysis_data_filtered$gender)
@@ -2742,13 +2746,13 @@ write.csv(dataframe_sorted, "temp_dataframe_before_data_sorted.csv", row.names =
 # longitudinal_analysis_data_filtered$basmi_score <- as.numeric(longitudinal_analysis_data_filtered$basmi_score)
 ```
 
-```{r}
+```{r, include=FALSE}
 # Plot the data
 # test_model_1 <- lmer(basmi_score ~ treatment + treatment_window_weekly_time + age_at_onset + age_at_diag + age_at_basmi + gender + hlab27status + (1 | ttas_id), data = longitudinal_analysis_data_filtered)
 # print(summary(test_model_1), corr = TRUE)
 ```
 
-```{r}
+```{r, include=FALSE}
 # # Pivot the basmi_score to wide format
 # data_sorted <- data_sorted %>%
 #   group_by(ttas_id, treatment_period_unique_identifier) %>%
@@ -2775,7 +2779,7 @@ write.csv(dataframe_sorted, "temp_dataframe_before_data_sorted.csv", row.names =
 # write.csv(pivot_data, "temp_data_sorted_after_pivot.csv", row.names = FALSE)
 ```
 
-```{r}
+```{r, include=FALSE}
 # # Skip start_date_unix and stop_date_unix, stop_date_for_period
 # basmi_analysis_data <- pivot_data %>%
 #   filter(!is.na(x3)) %>%
@@ -2783,7 +2787,7 @@ write.csv(dataframe_sorted, "temp_dataframe_before_data_sorted.csv", row.names =
 # 
 # write_csv(basmi_analysis_data, "basmi_analysis_data.csv")
 ```
-```{r}
+```{r, include=FALSE}
 # Step 1: Forward fill x3 to create a continuous treatment period indicator
 dataframe_sorted <- dataframe_sorted %>%
   group_by(ttas_id) %>%
@@ -2955,7 +2959,7 @@ dataframe_sorted<- dataframe_sorted%>%
 write.csv(dataframe_sorted, "temp_dataframe_after_data_sorted_11.csv", row.names = FALSE)
 ```
 
-```{r}
+```{r, include=FALSE}
 # BASMI score only
 # General longitudinal analysis for those with and without drugs
 dataframe_sorted_basmi<- dataframe_sorted %>%
@@ -2973,7 +2977,7 @@ dataframe_sorted_basmi <- dataframe_sorted_basmi %>%
 write.csv(dataframe_sorted_basmi, "temp_dataframe_after_dataframe_sorted_for_analysis_filtered.csv", row.names = FALSE)
 ```
 
-```{r}
+```{r, include=FALSE}
 # Reclassify the drugs
 dataframe_sorted_and_reclassified_basmi <- dataframe_sorted_basmi %>%
   mutate(treatment_reclassified = case_when(
@@ -2988,7 +2992,7 @@ dataframe_sorted_and_reclassified_basmi <- dataframe_sorted_basmi %>%
 write.csv(dataframe_sorted_and_reclassified_basmi, "temp_dataframe_after_dataframe_sorted_for_analysis_filtered_with_treatment_category.csv", row.names = FALSE)
 ```
 
-```{r}
+```{r, include=FALSE}
 # If diagnosis is "Undifferentiated spondyloarthritis (uSpA) (17 ttas_id)" and "Axial SpA- No subgroup" (1 ttas_id), remove it as most of them are on standard treatment and is their representation is limited
 dataframe_sorted_and_reclassified_basmi <- dataframe_sorted_and_reclassified_basmi %>%
   filter(diagnosis != "Undifferentiated spondyloarthritis (uSpA)" & diagnosis != "Axial SpA- No subgroup")
@@ -3002,7 +3006,7 @@ dataframe_sorted_and_reclassified_basmi <- dataframe_sorted_and_reclassified_bas
 write.csv(dataframe_sorted_and_reclassified_basmi, "temp_dataframe_after_dataframe_sorted_for_analysis_filtered_with_treatment_category_and_diagnosis_and_treatment_reclassified.csv", row.names = FALSE)
 ```
 
-```{r, fig.height = 8}
+```{r, fig.height = 8, include=FALSE}
 data_tt1 <- dataframe_sorted_and_reclassified_basmi %>% 
   filter(ttas_id %in% c(1, 2, 3, 4))
 
@@ -3040,7 +3044,7 @@ ggplot(data_tt1, aes(x = time_in_years, y = basmi_score,
   theme(legend.position = "bottom")
 ```
 
-```{r}
+```{r, include=FALSE}
 # Ensure that dataframe_sorted_and_reclassified_basmi has the correct data types
 dataframe_sorted_and_reclassified_basmi$ttas_id <- as.factor(dataframe_sorted_and_reclassified_basmi$ttas_id)
 dataframe_sorted_and_reclassified_basmi$gender <- as.factor(dataframe_sorted_and_reclassified_basmi$gender)
@@ -3064,7 +3068,7 @@ dataframe_sorted_and_reclassified_basmi$last_known_vaping_status <- as.factor(da
 ```
 
 
-```{r}
+```{r, include=FALSE}
 # # Run an lmer model for dataframe_sorted_and_reclassified_basmi
 # model_1 <- lmer(basmi_score ~ gender + hlab27status + age_at_basmi + diagnosis + treatment_reclassified + treatment_window_weekly_time + (1 | ttas_id/treatment_order), data = dataframe_sorted_and_reclassified_basmi)
 # 
@@ -3073,7 +3077,7 @@ dataframe_sorted_and_reclassified_basmi$last_known_vaping_status <- as.factor(da
 # model_1_vif
 ```
 
-```{r}
+```{r, include=FALSE}
 # Encountered error: boundary (singular) fit: see ?isSingular
 # model_2 <- lmer(basmi_score ~ gender + hlab27status + age_at_basmi + diagnosis + treatment_reclassified + treatment_window_weekly_time + (1 + treatment_window_weekly_time | ttas_id/treatment_order), data = dataframe_sorted_and_reclassified_basmi)
 # model_3 <- lmer(basmi_score ~ gender + hlab27status + age_at_basmi + diagnosis + treatment_reclassified + treatment_window_weekly_time + (treatment_window_weekly_time | ttas_id/treatment_order), data = dataframe_sorted_and_reclassified_basmi)
@@ -3082,7 +3086,7 @@ dataframe_sorted_and_reclassified_basmi$last_known_vaping_status <- as.factor(da
 # model_4 <- lmer(basmi_score ~ gender + hlab27status + age_at_basmi + diagnosis + treatment_reclassified + treatment_window_weekly_time + (age_at_basmi | ttas_id/treatment_order), data = dataframe_sorted_and_reclassified_basmi)
 ```
 
-```{r}
+```{r, include=FALSE}
 # model_5 <- lmer(basmi_score ~ gender + hlab27status + age_at_basmi + diagnosis + treatment_reclassified*gender + treatment_window_weekly_time + (1 | ttas_id/treatment_order), data = dataframe_sorted_and_reclassified_basmi)
 # 
 # model_5_vif <- vif(model_5)
@@ -3090,20 +3094,20 @@ dataframe_sorted_and_reclassified_basmi$last_known_vaping_status <- as.factor(da
 # model_5_vif
 ```
 
-```{r}
+```{r, include=FALSE}
 # model_6 <- lmer(basmi_score ~ gender + hlab27status + age_at_basmi + diagnosis + treatment_reclassified*diagnosis + treatment_window_weekly_time + (1 | ttas_id/treatment_order), data = dataframe_sorted_and_reclassified_basmi)
 # 
 # model_6_vif <- vif(model_6)
 # print(summary(model_6, corr = TRUE))
 # model_6_vif
 ```
-```{r}
+```{r, include=FALSE}
 # model_6_lmerTest <- lmerTest::lmer(basmi_score ~ gender + hlab27status + age_at_basmi + diagnosis + treatment_reclassified*diagnosis + treatment_window_weekly_time + (1 | ttas_id/treatment_order), data = dataframe_sorted_and_reclassified_basmi)
 # 
 # summary(model_6_lmerTest)
 ```
 
-```{r}
+```{r, include=FALSE}
 # # Check the normality of residuals of model_6
 # residuals_model_6 <- residuals(model_6)
 # 
@@ -3118,7 +3122,7 @@ dataframe_sorted_and_reclassified_basmi$last_known_vaping_status <- as.factor(da
 # hist(residuals_model_6)
 ```
 
-```{r}
+```{r, include=FALSE}
 # Normality of random effects for model_6
 # ranef_model_6 <- ranef(model_6, condVar = TRUE)
 # 
@@ -3131,7 +3135,7 @@ dataframe_sorted_and_reclassified_basmi$last_known_vaping_status <- as.factor(da
 # qqline(ranef_model_6$ttas_id:treatment_order[,1])
 ```
 
-```{r}
+```{r, include=FALSE}
 # Fitted values from the model
 # fitted_values_model_6 <- fitted(model_6)
 # 
@@ -3151,7 +3155,7 @@ dataframe_sorted_and_reclassified_basmi$last_known_vaping_status <- as.factor(da
 
 ```
 
-```{r}
+```{r, include=FALSE}
 # # Plot Residuals vs Fitted values again for homoscedasticity check
 # plot(fitted_values_model_6, residuals_model_6, 
 #      main = "Residuals vs Fitted", 
@@ -3160,7 +3164,7 @@ dataframe_sorted_and_reclassified_basmi$last_known_vaping_status <- as.factor(da
 # abline(h = 0, col = "red")
 ```
 
-```{r}
+```{r, include=FALSE}
 # # If you have a time variable in your data, plot Residuals vs Time
 # plot(dataframe_sorted_and_reclassified_basmi$treatment_window_weekly_time, residuals_model_6,
 #      main = "Residuals vs Time", 
@@ -3169,7 +3173,7 @@ dataframe_sorted_and_reclassified_basmi$last_known_vaping_status <- as.factor(da
 # abline(h = 0, col = "red")
 ```
 
-```{r}
+```{r, include=FALSE}
 # Fixed-effect model matrix is rank deficient so dropping 2 column / coefficient
 # model_7 <- lmer(basmi_score ~ gender + hlab27status + age_at_basmi + diagnosis + treatment_reclassified*hlab27status + treatment_window_weekly_time + (1 | ttas_id/treatment_order), data = dataframe_sorted_and_reclassified_basmi)
 
@@ -3177,19 +3181,19 @@ dataframe_sorted_and_reclassified_basmi$last_known_vaping_status <- as.factor(da
 # model_8 <- lmer(basmi_score ~ gender + hlab27status + age_at_basmi + diagnosis + treatment_reclassified*gender*diagnosis + treatment_window_weekly_time + (1 | ttas_id/treatment_order), data = dataframe_sorted_and_reclassified_basmi)
 ```
 
-```{r}
+```{r, include=FALSE}
 # model_9 <- lmer(basmi_score ~ gender + hlab27status +  diagnosis * treatment_reclassified + age_at_basmi + treatment_window_weekly_time + (treatment_window_weekly_time | ttas_id/treatment_order), data = dataframe_sorted_and_reclassified_basmi)
 # 
 # model_9_vif <- vif(model_9)
 # print(summary(model_9, corr = TRUE))
 # model_9_vif
 ```
-```{r}
+```{r, include=FALSE}
 # model_10 <- lmer(basmi_score ~ gender + hlab27status + age_at_basmi + diagnosis + treatment_reclassified + poly(treatment_window_weekly_time, 2) + treatment_window_weekly_time * treatment_reclassified + (1 | ttas_id/treatment_order)
 # , data = dataframe_sorted_and_reclassified_basmi)
 ```
 
-```{r}
+```{r, include=FALSE}
 # model_1 <- lmer(basmi_score ~ gender + hlab27status + last_known_smoking_status + last_known_vaping_status + age_at_basmi + diagnosis + treatment_order + treatment_reclassified*diagnosis + time_in_years + (time_in_years | ttas_id), data = dataframe_sorted_and_reclassified_basmi)
 # 
 # model_1
@@ -3198,7 +3202,7 @@ dataframe_sorted_and_reclassified_basmi$last_known_vaping_status <- as.factor(da
 # model_11_vif
 ```
 
-```{r}
+```{r, include=FALSE}
 # Old code: When time_in_year is not a random variable
 # model_12 <- lmer(basmi_score ~ gender + hlab27status + age_at_basmi + diagnosis + treatment_order + treatment_reclassified*diagnosis + time_in_years + (1 | ttas_id), data = dataframe_sorted_and_reclassified_basmi)
 # 
@@ -3207,12 +3211,12 @@ dataframe_sorted_and_reclassified_basmi$last_known_vaping_status <- as.factor(da
 # model_12_vif
 ```
 
-```{r}
+```{r, include=FALSE}
 # Conduct F-test for model_11 and model_12
 # anova(model_11, model_12)
 ```
 
-```{r}
+```{r, include=FALSE}
 # Questions for the professor
 # Update: Scaling the time variable to years has resolved convergence issue as weeks can go up to 3 digits value but basmi_score is between 0 and 10.
 # TODO: Don't go into too much detail int optimisation
@@ -3263,8 +3267,7 @@ print(summary(model_1_reduced, corr = FALSE))
 anova(model_1_full, model_1_reduced)
 ```
 
-
-```{r}
+```{r, include=FALSE}
 # Sanity check multicollinearity
 model_1_full_vif <- vif(model_1_full)
 model_1_reduced_vif <- vif(model_1_reduced)
@@ -3272,8 +3275,23 @@ model_1_full_vif
 model_1_reduced_vif
 ```
 
+```{r, include=FALSE}
+# # Old code: Attempts to make the output as image
+# # Capture the full model summary output as text
+# model_1_summary_capture <- capture.output(print(summary(model_1_full, corr = FALSE)))
+# 
+# # Convert the summary text into an HTML preformatted block
+# html_summary <- paste("<pre>", paste(model_1_summary_capture, collapse = "\n"), "</pre>")
+# 
+# # Save the HTML version
+# writeLines(html_summary, "model_1_summary.html")
+# 
+# # Use webshot to convert the HTML file to an image
+# webshot("model_1_summary.html", "model_1_summary_table_image.png")
+```
 
-```{r}
+
+```{r, include=FALSE}
 # Check distribution of response, Y
 
 ```
