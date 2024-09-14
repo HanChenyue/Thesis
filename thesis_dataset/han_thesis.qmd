@@ -1419,815 +1419,819 @@ combined_df_with_and_without_drugs <- combined_df
 write_csv(combined_df_with_and_without_drugs, "test_combined_df_with_and_without_drugs.csv")
 ```
 
-# Checkpoint
+# Checkpoint start: Uncomment to recreate the plots
 
-```{r, warning=FALSE}
-for (current_id in unique_ids_drugs_only){
-  
-  if (current_id %in% exclude_ids) {
-    next # Skip the current iteration if the current_id is in the exclude_ids list
-  }
-  
-  filtered_data <- timeline_data %>% filter(ttas_id == current_id)
-  filtered_drug_data <- drug_sheet_data %>% filter(ttas_id == current_id)
-  
-  # Replace NA stop_date values with a default (e.g., today's date)
-  filtered_drug_data <- filtered_drug_data %>%
-    mutate(
-      stop_date = if_else(
-        is.na(stop_date), 
-        Sys.Date(),  # Replace NA with today's date
-        stop_date
-      )
-    )
+# ```{r, warning=FALSE}
+# for (current_id in unique_ids_drugs_only){
+#   
+#   if (current_id %in% exclude_ids) {
+#     next # Skip the current iteration if the current_id is in the exclude_ids list
+#   }
+#   
+#   filtered_data <- timeline_data %>% filter(ttas_id == current_id)
+#   filtered_drug_data <- drug_sheet_data %>% filter(ttas_id == current_id)
+#   
+#   # Replace NA stop_date values with a default (e.g., today's date)
+#   filtered_drug_data <- filtered_drug_data %>%
+#     mutate(
+#       stop_date = if_else(
+#         is.na(stop_date), 
+#         Sys.Date(),  # Replace NA with today's date
+#         stop_date
+#       )
+#     )
+# 
+#   # Check and log warnings in one step
+#   if (nrow(filtered_data) == 0) {
+#     cat(paste("No timeline data found for TTAS ID:", current_id), file = log_file, append = TRUE, sep = "\n")
+#   } 
+#   
+#   # Get patient info
+#   patient_info <- combined_df_id_with_drugs_excluded %>% filter(ttas_id == current_id) %>% 
+#     select(
+#       gender, hlab27status, diagnosis, age_at_onset, age_at_diag
+#     ) %>% 
+#     distinct() %>%
+#     unite("Gender, HLAB27 Status, Diagnosis", gender, hlab27status, diagnosis, sep = " | ", remove = FALSE, na.rm = FALSE) %>% 
+#     pull("Gender, HLAB27 Status, Diagnosis")
+#   
+#   plot <- ggplot(filtered_data, aes(x = date, y = Score, colour = Measure)) +
+#     geom_point() +
+#     geom_line() +
+#     geom_rect(
+#       data = filtered_drug_data,
+#       inherit.aes = FALSE,
+#       aes(
+#         xmin = drug_start_date,
+#         xmax = stop_date,
+#         fill = x3
+#       ),
+#       ymin = -Inf,
+#       ymax = Inf,
+#       alpha = 0.5
+#       ) +
+#     # geom_text(
+#     #   # Add drug names labels
+#     #   data = filtered_drug_data,
+#     #   inherit.aes = FALSE,
+#     #   aes(
+#     #     x = drug_start_date + (stop_date - drug_start_date) / 2,  # Calculate midpoint
+#     #     y = Inf - 5,  # Offset from max Score
+#     #     label = x3
+#     #     ),
+#     #   ) +
+#     # Use a colour pallete with enough colours for all drugs
+#     scale_fill_manual(values = drug_colours, na.value = "gray") +
+#     facet_wrap(~ ttas_id, ncol = 1, scales = "free_y") +
+#     labs(title = paste0("Timeline plot for TTAS ID:", current_id), x = "Date", y = "Score") +
+#     scale_colour_discrete(
+#       labels = c(
+#         "absenteeism" = "Absenteeism",
+#         "as_qol" = "AsQoL",
+#         "back_pain_anytime" = "Back Pain Anytime",
+#         "back_pain_at_night" = "Back Pain at Night",
+#         "basdai" = "BASDAI",
+#         "basfi" = "BASFI",
+#         "basmi_score" = "BASMI Score",
+#         "daily_activity_impairment" = "Daily Activity Impairment",
+#         "facit" = "FACIT",
+#         "jenkins_sleep_1" = "Jenkins Sleep 1",
+#         "jenkins_sleep_2" = "Jenkins Sleep 2",
+#         "jenkins_sleep_3" = "Jenkins Sleep 3",
+#         "jenkins_sleep_4" = "Jenkins Sleep 4",
+#         "margolis" = "Margolis",
+#         "patient_global" = "Patient Global",
+#         "presentism" = "Presentism",
+#         "wpl" = "WPL"
+#       )) +
+#     ggtitle(paste0("Gender, HLAB27 Status, Diagnosis: ", patient_info))
+#   
+#   file_name <- paste0(output_folder_2, "/", current_id, "_overall.png")
+#   ggsave(file_name, plot, width = 10, height = 6, dpi = 300)
+# }
+# ```
+# 
+# ```{r, warning=FALSE}
+# # Create plot for BASMI score only
+# 
+# timeline_data_basmi <- combined_df %>%
+#   select(ttas_id, date, basmi_score) %>%
+#   pivot_longer(cols = c(basmi_score),
+#                names_to = "Measure",
+#                values_to = "Score")
+# 
+# 
+# for (current_id in unique_ids_drugs_only){
+#   
+#   if (current_id %in% exclude_ids) {
+#     next # Skip the current iteration if the current_id is in the exclude_ids list
+#   }
+#   
+#   filtered_data <- timeline_data_basmi %>% filter(ttas_id == current_id)
+#   filtered_drug_data <- drug_sheet_data %>% filter(ttas_id == current_id)
+#   
+#   # Replace NA stop_date values with a default (e.g., today's date)
+#   filtered_drug_data <- filtered_drug_data %>%
+#     mutate(
+#       stop_date = if_else(
+#         is.na(stop_date), 
+#         Sys.Date(),  # Replace NA with today's date
+#         stop_date
+#       )
+#     )
+#   
+#   # Check and log warnings in one step
+#   if (nrow(filtered_data) == 0) {
+#     cat(paste("No timeline data found for TTAS ID:", current_id), file = log_file, append = TRUE, sep = "\n")
+#   }
+#   
+#   # Get patient info
+#   patient_info <- combined_df_id_with_drugs_excluded %>% filter(ttas_id == current_id) %>% 
+#     select(
+#       gender, hlab27status, diagnosis, age_at_onset, age_at_diag
+#     ) %>% 
+#     distinct() %>%
+#     unite("Gender, HLAB27 Status, Diagnosis, Age at Onset, Age at Diagnosis", gender, hlab27status, diagnosis, age_at_onset, age_at_diag, sep = " | ", remove = FALSE, na.rm = FALSE) %>% 
+#     pull("Gender, HLAB27 Status, Diagnosis, Age at Onset, Age at Diagnosis")
+#   
+#   plot <- ggplot(filtered_data, aes(x = date, y = Score)) +
+#     geom_point() +
+#     geom_line() +
+#     geom_rect(
+#       data = filtered_drug_data,
+#       inherit.aes = FALSE,
+#       aes(
+#         xmin = drug_start_date,
+#         xmax = stop_date,
+#         fill = x3
+#       ),
+#       ymin = -Inf,
+#       ymax = Inf,
+#       alpha = 0.5
+#     ) +
+#     # geom_text(
+#     #   # Add drug names labels
+#     #   data = filtered_drug_data,
+#     #   inherit.aes = FALSE,
+#     #   aes(
+#     #     x = drug_start_date + (stop_date - drug_start_date) / 2,  # Calculate midpoint
+#     #     y = Inf - 5,  # Offset from max Score
+#     #     label = x3
+#     #   ),
+#     # ) +
+#     
+#     # Use a colour pallete with enough colours for all drugs
+#     scale_fill_manual(values = drug_colours, na.value = "gray") +
+#     facet_wrap(~ ttas_id, ncol = 1, scales = "free_y") +
+#     labs(title = paste0("BASMI timeline plot for TTAS ID:", current_id)) +
+#     ggtitle(paste0("Gender, HLAB27 Status, Diagnosis, Age at Onset, Age at Diagnosis: ", patient_info))
+#   
+#   file_name <- paste0(output_folder_2, "/", current_id, "_timeline_plot_basmi.png")
+#   ggsave(file_name, plot, width = 10, height = 6, dpi = 300)
+# }
+# 
+# ```
+# 
+# ```{r, warning=FALSE}
+# # Create plot for BASFI score only
+# 
+# timeline_data_basfi <- combined_df %>%
+#   select(ttas_id, date, basfi) %>%
+#   pivot_longer(cols = c(basfi),
+#                names_to = "Measure",
+#                values_to = "Score")
+# 
+# for (current_id in unique_ids_drugs_only){
+#   
+#   if (current_id %in% exclude_ids) {
+#     next # Skip the current iteration if the current_id is in the exclude_ids list
+#   }
+#   
+#   filtered_data <- timeline_data_basfi %>% filter(ttas_id == current_id)
+#   filtered_drug_data <- drug_sheet_data %>% filter(ttas_id == current_id)
+#   
+#   # Replace NA stop_date values with a default (e.g., today's date)
+#   filtered_drug_data <- filtered_drug_data %>%
+#     mutate(
+#       stop_date = if_else(
+#         is.na(stop_date), 
+#         Sys.Date(),  # Replace NA with today's date
+#         stop_date
+#       )
+#     )
+#   
+#   # Check and log warnings in one step
+#   if (nrow(filtered_data) == 0) {
+#     cat(paste("No timeline data found for TTAS ID:", current_id), file = log_file, append = TRUE, sep = "\n")
+#   }
+#   
+#   # Get patient info
+#   patient_info <- combined_df_id_with_drugs_excluded %>% filter(ttas_id == current_id) %>% 
+#     select(
+#       gender, hlab27status, diagnosis, age_at_onset, age_at_diag
+#     ) %>% 
+#     distinct() %>%
+#     unite("Gender, HLAB27 Status, Diagnosis, Age at Onset, Age at Diagnosis", gender, hlab27status, diagnosis, age_at_onset, age_at_diag, sep = " | ", remove = FALSE, na.rm = FALSE) %>% 
+#     pull("Gender, HLAB27 Status, Diagnosis, Age at Onset, Age at Diagnosis")
+#   
+#   plot <- ggplot(filtered_data, aes(x = date, y = Score)) +
+#     geom_point() +
+#     geom_line() +
+#     geom_rect(
+#       data = filtered_drug_data,
+#       inherit.aes = FALSE,
+#       aes(
+#         xmin = drug_start_date,
+#         xmax = stop_date,
+#         fill = x3
+#       ),
+#       ymin = -Inf,
+#       ymax = Inf,
+#       alpha = 0.5
+#     ) +
+#     # geom_text(
+#     #   # Add drug names labels
+#     #   data = filtered_drug_data,
+#     #   inherit.aes = FALSE,
+#     #   aes(
+#     #     x = drug_start_date + (stop_date - drug_start_date) / 2,  # Calculate midpoint
+#     #     y = Inf - 5,  # Offset from max Score
+#     #     label = x3
+#     #   ),
+#     # ) +
+#     # Use a colour pallete with enough colours for all drugs
+#     scale_fill_manual(values = drug_colours, na.value = "gray") +
+#     facet_wrap(~ ttas_id, ncol = 1, scales = "free_y") +
+#     labs(title = paste0("BASFI timeline plot for TTAS ID:", current_id)) +
+#     ggtitle(paste0("Gender, HLAB27 Status, Diagnosis, Age at Onset, Age at Diagnosis: ", patient_info))
+#   
+#   file_name <- paste0(output_folder_2, "/", current_id, "_timeline_plot_basfi.png")
+#   ggsave(file_name, plot, width = 10, height = 6, dpi = 300)
+# }
+# ```
+# 
+# ```{r, warning=FALSE}
+# # Create plot for patient global score only
+# 
+# timeline_data_patient_global <- combined_df %>%
+#   select(ttas_id, date, patient_global) %>%
+#   pivot_longer(cols = c(patient_global),
+#                names_to = "Measure",
+#                values_to = "Score")
+# 
+# for (current_id in unique_ids_drugs_only){
+#   
+#   if (current_id %in% exclude_ids) {
+#     next # Skip the current iteration if the current_id is in the exclude_ids list
+#   }
+#   
+#   filtered_data <- timeline_data_patient_global %>% filter(ttas_id == current_id)
+#   filtered_drug_data <- drug_sheet_data %>% filter(ttas_id == current_id)
+#   
+#   # Replace NA stop_date values with a default (e.g., today's date)
+#   filtered_drug_data <- filtered_drug_data %>%
+#     mutate(
+#       stop_date = if_else(
+#         is.na(stop_date), 
+#         Sys.Date(),  # Replace NA with today's date
+#         stop_date
+#       )
+#     )
+#   
+#   # Check and log warnings in one step
+#   if (nrow(filtered_data) == 0) {
+#     cat(paste("No timeline data found for TTAS ID:", current_id), file = log_file, append = TRUE, sep = "\n")
+#   }
+#   
+#   # Get patient info
+#   patient_info <- combined_df_id_with_drugs_excluded %>% filter(ttas_id == current_id) %>% 
+#     select(
+#       gender, hlab27status, diagnosis, age_at_onset, age_at_diag
+#     ) %>% 
+#     distinct() %>%
+#     unite("Gender, HLAB27 Status, Diagnosis, Age at Onset, Age at Diagnosis", gender, hlab27status, diagnosis, age_at_onset, age_at_diag, sep = " | ", remove = FALSE, na.rm = FALSE) %>% 
+#     pull("Gender, HLAB27 Status, Diagnosis, Age at Onset, Age at Diagnosis")
+#   
+#   plot <- ggplot(filtered_data, aes(x = date, y = Score)) +
+#     geom_point() +
+#     geom_line() +
+#     geom_rect(
+#       data = filtered_drug_data,
+#       inherit.aes = FALSE,
+#       aes(
+#         xmin = drug_start_date,
+#         xmax = stop_date,
+#         fill = x3
+#       ),
+#       ymin = -Inf,
+#       ymax = Inf,
+#       alpha = 0.5
+#     ) +
+#     # geom_text(
+#     #   # Add drug names labels
+#     #   data = filtered_drug_data,
+#     #   inherit.aes = FALSE,
+#     #   aes(
+#     #     x = drug_start_date + (stop_date - drug_start_date) / 2,  # Calculate midpoint
+#     #     y = Inf - 5,  # Offset from max Score
+#     #     label = x3
+#     #   ),
+#     # ) +
+#     # Use a colour pallete with enough colours for all drugs
+#     scale_fill_manual(values = drug_colours, na.value = "gray") +
+#     facet_wrap(~ ttas_id, ncol = 1, scales = "free_y") +
+#     labs(title = paste0("Patient Global timeline plot for TTAS ID:", current_id)) +
+#     ggtitle(paste0("Gender, HLAB27 Status, Diagnosis, Age at Onset, Age at Diagnosis: ", patient_info))
+#   
+#   file_name <- paste0(output_folder_2, "/", current_id, "_timeline_plot_patient_global.png")
+#   ggsave(file_name, plot, width = 10, height = 6, dpi = 300)
+# }
+# ```
+# 
+# ```{r, warning=FALSE}
+# # Create plot for back pain at night and back pain anytime score only
+# 
+# timeline_data_back_pain <- combined_df %>%
+#   select(ttas_id, date, back_pain_at_night, back_pain_anytime) %>%
+#   pivot_longer(cols = c(back_pain_at_night, back_pain_anytime),
+#                names_to = "Measure",
+#                values_to = "Score")
+# 
+# for (current_id in unique_ids_drugs_only){
+#   
+#   if (current_id %in% exclude_ids) {
+#     next # Skip the current iteration if the current_id is in the exclude_ids list
+#   }
+#   
+#   filtered_data <- timeline_data_back_pain %>% filter(ttas_id == current_id)
+#   filtered_drug_data <- drug_sheet_data %>% filter(ttas_id == current_id)
+#   
+#   # Replace NA stop_date values with a default (e.g., today's date)
+#   filtered_drug_data <- filtered_drug_data %>%
+#     mutate(
+#       stop_date = if_else(
+#         is.na(stop_date), 
+#         Sys.Date(),  # Replace NA with today's date
+#         stop_date
+#       )
+#     )
+#   
+#   # Check and log warnings in one step
+#   if (nrow(filtered_data) == 0) {
+#     cat(paste("No timeline data found for TTAS ID:", current_id), file = log_file, append = TRUE, sep = "\n")
+#   }
+# 
+#   # Get patient info
+#   patient_info <- combined_df_id_with_drugs_excluded %>% filter(ttas_id == current_id) %>% 
+#     select(
+#       gender, hlab27status, diagnosis, age_at_onset, age_at_diag
+#     ) %>% 
+#     distinct() %>%
+#     unite("Gender, HLAB27 Status, Diagnosis, Age at Onset, Age at Diagnosis", gender, hlab27status, diagnosis, age_at_onset, age_at_diag, sep = " | ", remove = FALSE, na.rm = FALSE) %>% 
+#     pull("Gender, HLAB27 Status, Diagnosis, Age at Onset, Age at Diagnosis")
+# 
+#   plot <- ggplot(filtered_data, aes(x = date, y = Score, colour = Measure)) +
+#     geom_point() +
+#     geom_line() +
+#     geom_rect(
+#       data = filtered_drug_data,
+#       inherit.aes = FALSE,
+#       aes(
+#         xmin = drug_start_date,
+#         xmax = stop_date,
+#         fill = x3
+#       ),
+#       ymin = -Inf,
+#       ymax = Inf,
+#       alpha = 0.5
+#     ) +
+#     # geom_text(
+#     #   # Add drug names labels
+#     #   data = filtered_drug_data,
+#     #   inherit.aes = FALSE,
+#     #   aes(
+#     #     x = drug_start_date + (stop_date - drug_start_date) / 2,  # Calculate midpoint
+#     #     y = Inf - 5,  # Offset from max Score
+#     #     label = x3
+#     #   ),
+#     # ) +
+#     # Use a colour pallete with enough colours for all drugs
+#     scale_fill_manual(values = drug_colours, na.value = "gray") +
+#     facet_wrap(~ ttas_id, ncol = 1, scales = "free_y") +
+#     labs(title = paste0("Back Pain timeline plot for TTAS ID:", current_id)) +
+#     ggtitle(paste0("Gender, HLAB27 Status, Diagnosis, Age at Onset, Age at Diagnosis: ", patient_info))
+# 
+#   file_name <- paste0(output_folder_2, "/", current_id, "_timeline_plot_back_pain.png")
+#   ggsave(file_name, plot, width = 10, height = 6, dpi = 300)
+# }
+# ```
+# 
+# ```{r, warning=FALSE}
+# # Create plot for ASQoL score only
+# 
+# timeline_data_as_qol <- combined_df %>%
+#   select(ttas_id, date, as_qol) %>%
+#   pivot_longer(cols = c(as_qol),
+#                names_to = "Measure",
+#                values_to = "Score")
+# 
+# for (current_id in unique_ids_drugs_only){
+#   
+#   if (current_id %in% exclude_ids) {
+#     next # Skip the current iteration if the current_id is in the exclude_ids list
+#   }
+#   
+#   # Get patient info
+#   patient_info <- combined_df_id_with_drugs_excluded %>% filter(ttas_id == current_id) %>% 
+#     select(
+#       gender, hlab27status, diagnosis, age_at_onset, age_at_diag
+#     ) %>% 
+#     distinct() %>%
+#     unite("Gender, HLAB27 Status, Diagnosis, Age at Onset, Age at Diagnosis", gender, hlab27status, diagnosis, age_at_onset, age_at_diag, sep = " | ", remove = FALSE, na.rm = FALSE) %>% 
+#     pull("Gender, HLAB27 Status, Diagnosis, Age at Onset, Age at Diagnosis")
+#   
+#   filtered_data <- timeline_data_as_qol %>% filter(ttas_id == current_id)
+#   filtered_drug_data <- drug_sheet_data %>% filter(ttas_id == current_id)
+#   
+#   # Replace NA stop_date values with a default (e.g., today's date)
+#   filtered_drug_data <- filtered_drug_data %>%
+#     mutate(
+#       stop_date = if_else(
+#         is.na(stop_date), 
+#         Sys.Date(),  # Replace NA with today's date
+#         stop_date
+#       )
+#     )
+#   
+#   # Check and log warnings in one step
+#   if (nrow(filtered_data) == 0) {
+#     cat(paste("No timeline data found for TTAS ID:", current_id), file = log_file, append = TRUE, sep = "\n")
+#   }
+#   
+#   plot <- ggplot(filtered_data, aes(x = date, y = Score)) +
+#     geom_point() +
+#     geom_line() +
+#     geom_rect(
+#       data = filtered_drug_data,
+#       inherit.aes = FALSE,
+#       aes(
+#         xmin = drug_start_date,
+#         xmax = stop_date,
+#         fill = x3
+#       ),
+#       ymin = -Inf,
+#       ymax = Inf,
+#       alpha = 0.5
+#     ) +
+#     # geom_text(
+#     #   # Add drug names labels
+#     #   data = filtered_drug_data,
+#     #   inherit.aes = FALSE,
+#     #   aes(
+#     #     x = drug_start_date + (stop_date - drug_start_date) / 2,  # Calculate midpoint
+#     #     y = Inf - 5,  # Offset from max Score
+#     #     label = x3
+#     #   ),
+#     # ) +
+#     # Use a colour pallete with enough colours for all drugs
+#     scale_fill_manual(values = drug_colours, na.value = "gray") +
+#     facet_wrap(~ ttas_id, ncol = 1, scales = "free_y") +
+#     labs(title = paste0("ASQoL timeline plot for TTAS ID:", current_id)) +
+#     ggtitle(paste0("Gender, HLAB27 Status, Diagnosis, Age at Onset, Age at Diagnosis: ", patient_info))
+#   
+#   file_name <- paste0(output_folder_2, "/", current_id, "_timeline_plot_asqol.png")
+#   ggsave(file_name, plot, width = 10, height = 6, dpi = 300)
+# }
+# ```
+# 
+# ```{r, warning=FALSE}
+# # Create plot for FACIT score only
+# 
+# timeline_data_facit <- combined_df %>%
+#   select(ttas_id, date, facit) %>%
+#   pivot_longer(cols = c(facit),
+#                names_to = "Measure",
+#                values_to = "Score")
+# 
+# for (current_id in unique_ids_drugs_only){
+#   
+#   if (current_id %in% exclude_ids) {
+#     next # Skip the current iteration if the current_id is in the exclude_ids list
+#   }
+#   
+#   # Get patient info
+#   patient_info <- combined_df_id_with_drugs_excluded %>% filter(ttas_id == current_id) %>% 
+#     select(
+#       gender, hlab27status, diagnosis, age_at_onset, age_at_diag
+#     ) %>% 
+#     distinct() %>%
+#     unite("Gender, HLAB27 Status, Diagnosis, Age at Onset, Age at Diagnosis", gender, hlab27status, diagnosis, age_at_onset, age_at_diag, sep = " | ", remove = FALSE, na.rm = FALSE) %>% 
+#     pull("Gender, HLAB27 Status, Diagnosis, Age at Onset, Age at Diagnosis")
+#   
+#   filtered_data <- timeline_data_facit %>% filter(ttas_id == current_id)
+#   filtered_drug_data <- drug_sheet_data %>% filter(ttas_id == current_id)
+#   
+#   # Replace NA stop_date values with a default (e.g., today's date)
+#   filtered_drug_data <- filtered_drug_data %>%
+#     mutate(
+#       stop_date = if_else(
+#         is.na(stop_date), 
+#         Sys.Date(),  # Replace NA with today's date
+#         stop_date
+#       )
+#     )
+#   
+#   # Check and log warnings in one step
+#   if (nrow(filtered_data) == 0) {
+#     cat(paste("No timeline data found for TTAS ID:", current_id), file = log_file, append = TRUE, sep = "\n")
+#   }
+# 
+#   # Get patient info
+#   patient_info <- combined_df_id_with_drugs_excluded %>% filter(ttas_id == current_id) %>% 
+#     select(
+#       gender, hlab27status, diagnosis, age_at_onset, age_at_diag
+#     ) %>% 
+#     distinct() %>%
+#     unite("Gender, HLAB27 Status, Diagnosis, Age at Onset, Age at Diagnosis", gender, hlab27status, diagnosis, age_at_onset, age_at_diag, sep = " | ", remove = FALSE, na.rm = FALSE) %>% 
+#     pull("Gender, HLAB27 Status, Diagnosis, Age at Onset, Age at Diagnosis")
+# 
+#   plot <- ggplot(filtered_data, aes(x = date, y = Score)) +
+#     geom_point() +
+#     geom_line() +
+#     geom_rect(
+#       data = filtered_drug_data,
+#       inherit.aes = FALSE,
+#       aes(
+#         xmin = drug_start_date,
+#         xmax = stop_date,
+#         fill = x3
+#       ),
+#       ymin = -Inf,
+#       ymax = Inf,
+#       alpha = 0.5
+#     ) +
+#     # geom_text(
+#     #   # Add drug names labels
+#     #   data = filtered_drug_data,
+#     #   inherit.aes = FALSE,
+#     #   aes(
+#     #     x = drug_start_date + (stop_date - drug_start_date) / 2,  # Calculate midpoint
+#     #     y = Inf - 5,  # Offset from max Score
+#     #     label = x3
+#     #   ),
+#     # ) +
+#     # Use a colour pallete with enough colours for all drugs
+#     scale_fill_manual(values = drug_colours, na.value = "gray") +
+#     facet_wrap(~ ttas_id, ncol = 1, scales = "free_y") +
+#     labs(title = paste0("FACIT timeline plot for TTAS ID:", current_id)) +
+#     ggtitle(paste0("Gender, HLAB27 Status, Diagnosis, Age at Onset, Age at Diagnosis: ", patient_info))
+#   
+#   file_name <- paste0(output_folder_2, "/", current_id, "_timeline_plot_facit.png")
+#   ggsave(file_name, plot, width = 10, height = 6, dpi = 300)
+# }
+# ```
+# 
+# ```{r, warning=FALSE}
+# # Create plot for Margolis score only
+# 
+# timeline_data_margolis <- combined_df %>%
+#   select(ttas_id, date, margolis) %>%
+#   pivot_longer(cols = c(margolis),
+#                names_to = "Measure",
+#                values_to = "Score")
+# 
+# for (current_id in unique_ids_drugs_only){
+#   
+#   if (current_id %in% exclude_ids) {
+#     next # Skip the current iteration if the current_id is in the exclude_ids list
+#   }
+#   
+#   filtered_data <- timeline_data_margolis %>% filter(ttas_id == current_id)
+#   filtered_drug_data <- drug_sheet_data %>% filter(ttas_id == current_id)
+#   
+#   # Replace NA stop_date values with a default (e.g., today's date)
+#   filtered_drug_data <- filtered_drug_data %>%
+#     mutate(
+#       stop_date = if_else(
+#         is.na(stop_date), 
+#         Sys.Date(),  # Replace NA with today's date
+#         stop_date
+#       )
+#     )
+#   
+#   # Check and log warnings in one step
+#   if (nrow(filtered_data) == 0) {
+#     cat(paste("No timeline data found for TTAS ID:", current_id), file = log_file, append = TRUE, sep = "\n")
+#   }
+# 
+#   # Get patient info
+#   patient_info <- combined_df_id_with_drugs_excluded %>% filter(ttas_id == current_id) %>% 
+#     select(
+#       gender, hlab27status, diagnosis, age_at_onset, age_at_diag
+#     ) %>% 
+#     distinct() %>%
+#     unite("Gender, HLAB27 Status, Diagnosis, Age at Onset, Age at Diagnosis", gender, hlab27status, diagnosis, age_at_onset, age_at_diag, sep = " | ", remove = FALSE, na.rm = FALSE) %>% 
+#     pull("Gender, HLAB27 Status, Diagnosis, Age at Onset, Age at Diagnosis")
+#   
+#   plot <- ggplot(filtered_data, aes(x = date, y = Score)) +
+#     geom_point() +
+#     geom_line() +
+#     geom_rect(
+#       data = filtered_drug_data,
+#       inherit.aes = FALSE,
+#       aes(
+#         xmin = drug_start_date,
+#         xmax = stop_date,
+#         fill = x3
+#       ),
+#       ymin = -Inf,
+#       ymax = Inf,
+#       alpha = 0.5
+#     ) +
+#     # geom_text(
+#     #   # Add drug names labels
+#     #   data = filtered_drug_data,
+#     #   inherit.aes = FALSE,
+#     #   aes(
+#     #     x = drug_start_date + (stop_date - drug_start_date) / 2,  # Calculate midpoint
+#     #     y = Inf - 5,  # Offset from max Score
+#     #     label = x3
+#     #   ),
+#     # ) +
+#     # Use a colour pallete with enough colours for all drugs
+#     scale_fill_manual(values = drug_colours, na.value = "gray") +
+#     facet_wrap(~ ttas_id, ncol = 1, scales = "free_y") +
+#     labs(title = paste0("Margolis timeline plot for TTAS ID:", current_id)) +
+#     ggtitle(paste0("Gender, HLAB27 Status, Diagnosis, Age at Onset, Age at Diagnosis: ", patient_info))
+# 
+#   
+#   file_name <- paste0(output_folder_2, "/", current_id, "_timeline_plot_margolis.png")
+#   ggsave(file_name, plot, width = 10, height = 6, dpi = 300)
+# }
+# ```
+# 
+# ```{r, warning=FALSE}
+# # Create plot for WPAI only
+# 
+# timeline_data_wpai <- combined_df %>%
+#   select(ttas_id, date, presentism, absenteeism, wpl, daily_activity_impairment) %>%
+#   pivot_longer(cols = c(presentism, absenteeism, wpl, daily_activity_impairment),
+#                names_to = "Measure",
+#                values_to = "Score")
+# 
+# for (current_id in unique_ids_drugs_only){
+#   
+#   if (current_id %in% exclude_ids) {
+#     next # Skip the current iteration if the current_id is in the exclude_ids list
+#   }
+#   
+#   filtered_data <- timeline_data_wpai %>% filter(ttas_id == current_id)
+#   filtered_drug_data <- drug_sheet_data %>% filter(ttas_id == current_id)
+#   
+#   # Replace NA stop_date values with a default (e.g., today's date)
+#   filtered_drug_data <- filtered_drug_data %>%
+#     mutate(
+#       stop_date = if_else(
+#         is.na(stop_date), 
+#         Sys.Date(),  # Replace NA with today's date
+#         stop_date
+#       )
+#     )
+#   
+#   # Check and log warnings in one step
+#   if (nrow(filtered_data) == 0) {
+#     cat(paste("No timeline data found for TTAS ID:", current_id), file = log_file, append = TRUE, sep = "\n")
+#   }
+#   
+#   # Get patient info
+#   patient_info <- combined_df_id_with_drugs_excluded %>% filter(ttas_id == current_id) %>% 
+#     select(
+#       gender, hlab27status, diagnosis, age_at_onset, age_at_diag
+#     ) %>% 
+#     distinct() %>%
+#     unite("Gender, HLAB27 Status, Diagnosis, Age at Onset, Age at Diagnosis", gender, hlab27status, diagnosis, age_at_onset, age_at_diag, sep = " | ", remove = FALSE, na.rm = FALSE) %>% 
+#     pull("Gender, HLAB27 Status, Diagnosis, Age at Onset, Age at Diagnosis")
+# 
+#   plot <- ggplot(filtered_data, aes(x = date, y = Score, colour = Measure)) +
+#     geom_point() +
+#     geom_line() +
+#     geom_rect(
+#       data = filtered_drug_data,
+#       inherit.aes = FALSE,
+#       aes(
+#         xmin = drug_start_date,
+#         xmax = stop_date,
+#         fill = x3
+#       ),
+#       ymin = -Inf,
+#       ymax = Inf,
+#       alpha = 0.5
+#     ) +
+#     # geom_text(
+#     #   # Add drug names labels
+#     #   data = filtered_drug_data,
+#     #   inherit.aes = FALSE,
+#     #   aes(
+#     #     x = drug_start_date + (stop_date - drug_start_date) / 2,  # Calculate midpoint
+#     #     y = Inf - 5,  # Offset from max Score
+#     #     label = x3
+#     #   ),
+#     # ) +
+#     # Use a colour pallete with enough colours for all drugs
+#     scale_fill_manual(values = drug_colours, na.value = "gray") +
+#     facet_wrap(~ ttas_id, ncol = 1, scales = "free_y") +
+#     labs(title = paste0("WPAI timeline plot for TTAS ID:", current_id)) +
+#     ggtitle(paste0("Gender, HLAB27 Status, Diagnosis, Age at Onset, Age at Diagnosis: ", patient_info))
+# 
+#   
+#   file_name <- paste0(output_folder_2, "/", current_id, "_timeline_plot_wpai.png")
+#   ggsave(file_name, plot, width = 10, height = 6, dpi = 300)
+# }
+# ```
+# 
+# ```{r, warning=FALSE}
+# # Create plot for Jenkins Sleep 
+# 
+# timeline_data_jenkins_sleep_scale <- combined_df %>%
+#   select(ttas_id, date, jenkins_sleep_1, jenkins_sleep_2, jenkins_sleep_3, jenkins_sleep_4) %>%
+#   pivot_longer(cols = c(jenkins_sleep_1, jenkins_sleep_2, jenkins_sleep_3, jenkins_sleep_4),
+#                names_to = "Measure",
+#                values_to = "Score")
+# 
+# for (current_id in unique_ids_drugs_only){
+#   
+#   if (current_id %in% exclude_ids) {
+#     next # Skip the current iteration if the current_id is in the exclude_ids list
+#   }
+#   
+#   filtered_data <- timeline_data_jenkins_sleep_scale %>% filter(ttas_id == current_id)
+#   filtered_drug_data <- drug_sheet_data %>% filter(ttas_id == current_id)
+#   
+#   # Replace NA stop_date values with a default (e.g., today's date)
+#   filtered_drug_data <- filtered_drug_data %>%
+#     mutate(
+#       stop_date = if_else(
+#         is.na(stop_date), 
+#         Sys.Date(),  # Replace NA with today's date
+#         stop_date
+#       )
+#     )
+#   
+#   # Check and log warnings in one step
+#   if (nrow(filtered_data) == 0) {
+#     cat(paste("No timeline data found for TTAS ID:", current_id), file = log_file, append = TRUE, sep = "\n")
+#   }
+# 
+#   # Get patient info
+#   patient_info <- combined_df_id_with_drugs_excluded %>% filter(ttas_id == current_id) %>% 
+#     select(
+#       gender, hlab27status, diagnosis, age_at_onset, age_at_diag
+#     ) %>% 
+#     distinct() %>%
+#     unite("Gender, HLAB27 Status, Diagnosis, Age at Onset, Age at Diagnosis", gender, hlab27status, diagnosis, age_at_onset, age_at_diag, sep = " | ", remove = FALSE, na.rm = FALSE) %>% 
+#     pull("Gender, HLAB27 Status, Diagnosis, Age at Onset, Age at Diagnosis")
+# 
+#   plot <- ggplot(filtered_data, aes(x = date, y = Score)) +
+#     geom_point() +
+#     geom_line() +
+#     geom_rect(
+#       data = filtered_drug_data,
+#       inherit.aes = FALSE,
+#       aes(
+#         xmin = drug_start_date,
+#         xmax = stop_date,
+#         fill = x3
+#       ),
+#       ymin = -Inf,
+#       ymax = Inf,
+#       alpha = 0.5
+#     ) +
+#     # geom_text(
+#     #   # Add drug names labels
+#     #   data = filtered_drug_data,
+#     #   inherit.aes = FALSE,
+#     #   aes(
+#     #     x = drug_start_date + (stop_date - drug_start_date) / 2,  # Calculate midpoint
+#     #     y = Inf - 5,  # Offset from max Score
+#     #     label = x3
+#     #   ),
+#     # ) +
+#     # Use a colour pallete with enough colours for all drugs
+#     scale_fill_manual(values = drug_colours, na.value = "gray") +
+#     facet_wrap(~ ttas_id, ncol = 1, scales = "free_y") +
+#     labs(title = paste0("Jenkins Sleep Scale timeline plot for TTAS ID:", current_id)) +
+#     ggtitle(paste0("Gender, HLAB27 Status, Diagnosis, Age at Onset, Age at Diagnosis: ", patient_info))
+#   
+#   file_name <- paste0(output_folder_2, "/", current_id, "_timeline_plot_jenkins.png")
+#   ggsave(file_name, plot, width = 10, height = 6, dpi = 300)
+# }
+# ```
 
-  # Check and log warnings in one step
-  if (nrow(filtered_data) == 0) {
-    cat(paste("No timeline data found for TTAS ID:", current_id), file = log_file, append = TRUE, sep = "\n")
-  } 
-  
-  # Get patient info
-  patient_info <- combined_df_id_with_drugs_excluded %>% filter(ttas_id == current_id) %>% 
-    select(
-      gender, hlab27status, diagnosis, age_at_onset, age_at_diag
-    ) %>% 
-    distinct() %>%
-    unite("Gender, HLAB27 Status, Diagnosis", gender, hlab27status, diagnosis, sep = " | ", remove = FALSE, na.rm = FALSE) %>% 
-    pull("Gender, HLAB27 Status, Diagnosis")
-  
-  plot <- ggplot(filtered_data, aes(x = date, y = Score, colour = Measure)) +
-    geom_point() +
-    geom_line() +
-    geom_rect(
-      data = filtered_drug_data,
-      inherit.aes = FALSE,
-      aes(
-        xmin = drug_start_date,
-        xmax = stop_date,
-        fill = x3
-      ),
-      ymin = -Inf,
-      ymax = Inf,
-      alpha = 0.5
-      ) +
-    # geom_text(
-    #   # Add drug names labels
-    #   data = filtered_drug_data,
-    #   inherit.aes = FALSE,
-    #   aes(
-    #     x = drug_start_date + (stop_date - drug_start_date) / 2,  # Calculate midpoint
-    #     y = Inf - 5,  # Offset from max Score
-    #     label = x3
-    #     ),
-    #   ) +
-    # Use a colour pallete with enough colours for all drugs
-    scale_fill_manual(values = drug_colours, na.value = "gray") +
-    facet_wrap(~ ttas_id, ncol = 1, scales = "free_y") +
-    labs(title = paste0("Timeline plot for TTAS ID:", current_id), x = "Date", y = "Score") +
-    scale_colour_discrete(
-      labels = c(
-        "absenteeism" = "Absenteeism",
-        "as_qol" = "AsQoL",
-        "back_pain_anytime" = "Back Pain Anytime",
-        "back_pain_at_night" = "Back Pain at Night",
-        "basdai" = "BASDAI",
-        "basfi" = "BASFI",
-        "basmi_score" = "BASMI Score",
-        "daily_activity_impairment" = "Daily Activity Impairment",
-        "facit" = "FACIT",
-        "jenkins_sleep_1" = "Jenkins Sleep 1",
-        "jenkins_sleep_2" = "Jenkins Sleep 2",
-        "jenkins_sleep_3" = "Jenkins Sleep 3",
-        "jenkins_sleep_4" = "Jenkins Sleep 4",
-        "margolis" = "Margolis",
-        "patient_global" = "Patient Global",
-        "presentism" = "Presentism",
-        "wpl" = "WPL"
-      )) +
-    ggtitle(paste0("Gender, HLAB27 Status, Diagnosis: ", patient_info))
-  
-  file_name <- paste0(output_folder_2, "/", current_id, "_overall.png")
-  ggsave(file_name, plot, width = 10, height = 6, dpi = 300)
-}
-```
+# Checkpoint end: Uncomment to recreate the plots
 
-```{r, warning=FALSE}
-# Create plot for BASMI score only
-
-timeline_data_basmi <- combined_df %>%
-  select(ttas_id, date, basmi_score) %>%
-  pivot_longer(cols = c(basmi_score),
-               names_to = "Measure",
-               values_to = "Score")
-
-
-for (current_id in unique_ids_drugs_only){
-  
-  if (current_id %in% exclude_ids) {
-    next # Skip the current iteration if the current_id is in the exclude_ids list
-  }
-  
-  filtered_data <- timeline_data_basmi %>% filter(ttas_id == current_id)
-  filtered_drug_data <- drug_sheet_data %>% filter(ttas_id == current_id)
-  
-  # Replace NA stop_date values with a default (e.g., today's date)
-  filtered_drug_data <- filtered_drug_data %>%
-    mutate(
-      stop_date = if_else(
-        is.na(stop_date), 
-        Sys.Date(),  # Replace NA with today's date
-        stop_date
-      )
-    )
-  
-  # Check and log warnings in one step
-  if (nrow(filtered_data) == 0) {
-    cat(paste("No timeline data found for TTAS ID:", current_id), file = log_file, append = TRUE, sep = "\n")
-  }
-  
-  # Get patient info
-  patient_info <- combined_df_id_with_drugs_excluded %>% filter(ttas_id == current_id) %>% 
-    select(
-      gender, hlab27status, diagnosis, age_at_onset, age_at_diag
-    ) %>% 
-    distinct() %>%
-    unite("Gender, HLAB27 Status, Diagnosis, Age at Onset, Age at Diagnosis", gender, hlab27status, diagnosis, age_at_onset, age_at_diag, sep = " | ", remove = FALSE, na.rm = FALSE) %>% 
-    pull("Gender, HLAB27 Status, Diagnosis, Age at Onset, Age at Diagnosis")
-  
-  plot <- ggplot(filtered_data, aes(x = date, y = Score)) +
-    geom_point() +
-    geom_line() +
-    geom_rect(
-      data = filtered_drug_data,
-      inherit.aes = FALSE,
-      aes(
-        xmin = drug_start_date,
-        xmax = stop_date,
-        fill = x3
-      ),
-      ymin = -Inf,
-      ymax = Inf,
-      alpha = 0.5
-    ) +
-    # geom_text(
-    #   # Add drug names labels
-    #   data = filtered_drug_data,
-    #   inherit.aes = FALSE,
-    #   aes(
-    #     x = drug_start_date + (stop_date - drug_start_date) / 2,  # Calculate midpoint
-    #     y = Inf - 5,  # Offset from max Score
-    #     label = x3
-    #   ),
-    # ) +
-    
-    # Use a colour pallete with enough colours for all drugs
-    scale_fill_manual(values = drug_colours, na.value = "gray") +
-    facet_wrap(~ ttas_id, ncol = 1, scales = "free_y") +
-    labs(title = paste0("BASMI timeline plot for TTAS ID:", current_id)) +
-    ggtitle(paste0("Gender, HLAB27 Status, Diagnosis, Age at Onset, Age at Diagnosis: ", patient_info))
-  
-  file_name <- paste0(output_folder_2, "/", current_id, "_timeline_plot_basmi.png")
-  ggsave(file_name, plot, width = 10, height = 6, dpi = 300)
-}
-
-```
-
-```{r, warning=FALSE}
-# Create plot for BASFI score only
-
-timeline_data_basfi <- combined_df %>%
-  select(ttas_id, date, basfi) %>%
-  pivot_longer(cols = c(basfi),
-               names_to = "Measure",
-               values_to = "Score")
-
-for (current_id in unique_ids_drugs_only){
-  
-  if (current_id %in% exclude_ids) {
-    next # Skip the current iteration if the current_id is in the exclude_ids list
-  }
-  
-  filtered_data <- timeline_data_basfi %>% filter(ttas_id == current_id)
-  filtered_drug_data <- drug_sheet_data %>% filter(ttas_id == current_id)
-  
-  # Replace NA stop_date values with a default (e.g., today's date)
-  filtered_drug_data <- filtered_drug_data %>%
-    mutate(
-      stop_date = if_else(
-        is.na(stop_date), 
-        Sys.Date(),  # Replace NA with today's date
-        stop_date
-      )
-    )
-  
-  # Check and log warnings in one step
-  if (nrow(filtered_data) == 0) {
-    cat(paste("No timeline data found for TTAS ID:", current_id), file = log_file, append = TRUE, sep = "\n")
-  }
-  
-  # Get patient info
-  patient_info <- combined_df_id_with_drugs_excluded %>% filter(ttas_id == current_id) %>% 
-    select(
-      gender, hlab27status, diagnosis, age_at_onset, age_at_diag
-    ) %>% 
-    distinct() %>%
-    unite("Gender, HLAB27 Status, Diagnosis, Age at Onset, Age at Diagnosis", gender, hlab27status, diagnosis, age_at_onset, age_at_diag, sep = " | ", remove = FALSE, na.rm = FALSE) %>% 
-    pull("Gender, HLAB27 Status, Diagnosis, Age at Onset, Age at Diagnosis")
-  
-  plot <- ggplot(filtered_data, aes(x = date, y = Score)) +
-    geom_point() +
-    geom_line() +
-    geom_rect(
-      data = filtered_drug_data,
-      inherit.aes = FALSE,
-      aes(
-        xmin = drug_start_date,
-        xmax = stop_date,
-        fill = x3
-      ),
-      ymin = -Inf,
-      ymax = Inf,
-      alpha = 0.5
-    ) +
-    # geom_text(
-    #   # Add drug names labels
-    #   data = filtered_drug_data,
-    #   inherit.aes = FALSE,
-    #   aes(
-    #     x = drug_start_date + (stop_date - drug_start_date) / 2,  # Calculate midpoint
-    #     y = Inf - 5,  # Offset from max Score
-    #     label = x3
-    #   ),
-    # ) +
-    # Use a colour pallete with enough colours for all drugs
-    scale_fill_manual(values = drug_colours, na.value = "gray") +
-    facet_wrap(~ ttas_id, ncol = 1, scales = "free_y") +
-    labs(title = paste0("BASFI timeline plot for TTAS ID:", current_id)) +
-    ggtitle(paste0("Gender, HLAB27 Status, Diagnosis, Age at Onset, Age at Diagnosis: ", patient_info))
-  
-  file_name <- paste0(output_folder_2, "/", current_id, "_timeline_plot_basfi.png")
-  ggsave(file_name, plot, width = 10, height = 6, dpi = 300)
-}
-```
-
-```{r, warning=FALSE}
-# Create plot for patient global score only
-
-timeline_data_patient_global <- combined_df %>%
-  select(ttas_id, date, patient_global) %>%
-  pivot_longer(cols = c(patient_global),
-               names_to = "Measure",
-               values_to = "Score")
-
-for (current_id in unique_ids_drugs_only){
-  
-  if (current_id %in% exclude_ids) {
-    next # Skip the current iteration if the current_id is in the exclude_ids list
-  }
-  
-  filtered_data <- timeline_data_patient_global %>% filter(ttas_id == current_id)
-  filtered_drug_data <- drug_sheet_data %>% filter(ttas_id == current_id)
-  
-  # Replace NA stop_date values with a default (e.g., today's date)
-  filtered_drug_data <- filtered_drug_data %>%
-    mutate(
-      stop_date = if_else(
-        is.na(stop_date), 
-        Sys.Date(),  # Replace NA with today's date
-        stop_date
-      )
-    )
-  
-  # Check and log warnings in one step
-  if (nrow(filtered_data) == 0) {
-    cat(paste("No timeline data found for TTAS ID:", current_id), file = log_file, append = TRUE, sep = "\n")
-  }
-  
-  # Get patient info
-  patient_info <- combined_df_id_with_drugs_excluded %>% filter(ttas_id == current_id) %>% 
-    select(
-      gender, hlab27status, diagnosis, age_at_onset, age_at_diag
-    ) %>% 
-    distinct() %>%
-    unite("Gender, HLAB27 Status, Diagnosis, Age at Onset, Age at Diagnosis", gender, hlab27status, diagnosis, age_at_onset, age_at_diag, sep = " | ", remove = FALSE, na.rm = FALSE) %>% 
-    pull("Gender, HLAB27 Status, Diagnosis, Age at Onset, Age at Diagnosis")
-  
-  plot <- ggplot(filtered_data, aes(x = date, y = Score)) +
-    geom_point() +
-    geom_line() +
-    geom_rect(
-      data = filtered_drug_data,
-      inherit.aes = FALSE,
-      aes(
-        xmin = drug_start_date,
-        xmax = stop_date,
-        fill = x3
-      ),
-      ymin = -Inf,
-      ymax = Inf,
-      alpha = 0.5
-    ) +
-    # geom_text(
-    #   # Add drug names labels
-    #   data = filtered_drug_data,
-    #   inherit.aes = FALSE,
-    #   aes(
-    #     x = drug_start_date + (stop_date - drug_start_date) / 2,  # Calculate midpoint
-    #     y = Inf - 5,  # Offset from max Score
-    #     label = x3
-    #   ),
-    # ) +
-    # Use a colour pallete with enough colours for all drugs
-    scale_fill_manual(values = drug_colours, na.value = "gray") +
-    facet_wrap(~ ttas_id, ncol = 1, scales = "free_y") +
-    labs(title = paste0("Patient Global timeline plot for TTAS ID:", current_id)) +
-    ggtitle(paste0("Gender, HLAB27 Status, Diagnosis, Age at Onset, Age at Diagnosis: ", patient_info))
-  
-  file_name <- paste0(output_folder_2, "/", current_id, "_timeline_plot_patient_global.png")
-  ggsave(file_name, plot, width = 10, height = 6, dpi = 300)
-}
-```
-
-```{r, warning=FALSE}
-# Create plot for back pain at night and back pain anytime score only
-
-timeline_data_back_pain <- combined_df %>%
-  select(ttas_id, date, back_pain_at_night, back_pain_anytime) %>%
-  pivot_longer(cols = c(back_pain_at_night, back_pain_anytime),
-               names_to = "Measure",
-               values_to = "Score")
-
-for (current_id in unique_ids_drugs_only){
-  
-  if (current_id %in% exclude_ids) {
-    next # Skip the current iteration if the current_id is in the exclude_ids list
-  }
-  
-  filtered_data <- timeline_data_back_pain %>% filter(ttas_id == current_id)
-  filtered_drug_data <- drug_sheet_data %>% filter(ttas_id == current_id)
-  
-  # Replace NA stop_date values with a default (e.g., today's date)
-  filtered_drug_data <- filtered_drug_data %>%
-    mutate(
-      stop_date = if_else(
-        is.na(stop_date), 
-        Sys.Date(),  # Replace NA with today's date
-        stop_date
-      )
-    )
-  
-  # Check and log warnings in one step
-  if (nrow(filtered_data) == 0) {
-    cat(paste("No timeline data found for TTAS ID:", current_id), file = log_file, append = TRUE, sep = "\n")
-  }
-
-  # Get patient info
-  patient_info <- combined_df_id_with_drugs_excluded %>% filter(ttas_id == current_id) %>% 
-    select(
-      gender, hlab27status, diagnosis, age_at_onset, age_at_diag
-    ) %>% 
-    distinct() %>%
-    unite("Gender, HLAB27 Status, Diagnosis, Age at Onset, Age at Diagnosis", gender, hlab27status, diagnosis, age_at_onset, age_at_diag, sep = " | ", remove = FALSE, na.rm = FALSE) %>% 
-    pull("Gender, HLAB27 Status, Diagnosis, Age at Onset, Age at Diagnosis")
-
-  plot <- ggplot(filtered_data, aes(x = date, y = Score, colour = Measure)) +
-    geom_point() +
-    geom_line() +
-    geom_rect(
-      data = filtered_drug_data,
-      inherit.aes = FALSE,
-      aes(
-        xmin = drug_start_date,
-        xmax = stop_date,
-        fill = x3
-      ),
-      ymin = -Inf,
-      ymax = Inf,
-      alpha = 0.5
-    ) +
-    # geom_text(
-    #   # Add drug names labels
-    #   data = filtered_drug_data,
-    #   inherit.aes = FALSE,
-    #   aes(
-    #     x = drug_start_date + (stop_date - drug_start_date) / 2,  # Calculate midpoint
-    #     y = Inf - 5,  # Offset from max Score
-    #     label = x3
-    #   ),
-    # ) +
-    # Use a colour pallete with enough colours for all drugs
-    scale_fill_manual(values = drug_colours, na.value = "gray") +
-    facet_wrap(~ ttas_id, ncol = 1, scales = "free_y") +
-    labs(title = paste0("Back Pain timeline plot for TTAS ID:", current_id)) +
-    ggtitle(paste0("Gender, HLAB27 Status, Diagnosis, Age at Onset, Age at Diagnosis: ", patient_info))
-
-  file_name <- paste0(output_folder_2, "/", current_id, "_timeline_plot_back_pain.png")
-  ggsave(file_name, plot, width = 10, height = 6, dpi = 300)
-}
-```
-
-```{r, warning=FALSE}
-# Create plot for ASQoL score only
-
-timeline_data_as_qol <- combined_df %>%
-  select(ttas_id, date, as_qol) %>%
-  pivot_longer(cols = c(as_qol),
-               names_to = "Measure",
-               values_to = "Score")
-
-for (current_id in unique_ids_drugs_only){
-  
-  if (current_id %in% exclude_ids) {
-    next # Skip the current iteration if the current_id is in the exclude_ids list
-  }
-  
-  # Get patient info
-  patient_info <- combined_df_id_with_drugs_excluded %>% filter(ttas_id == current_id) %>% 
-    select(
-      gender, hlab27status, diagnosis, age_at_onset, age_at_diag
-    ) %>% 
-    distinct() %>%
-    unite("Gender, HLAB27 Status, Diagnosis, Age at Onset, Age at Diagnosis", gender, hlab27status, diagnosis, age_at_onset, age_at_diag, sep = " | ", remove = FALSE, na.rm = FALSE) %>% 
-    pull("Gender, HLAB27 Status, Diagnosis, Age at Onset, Age at Diagnosis")
-  
-  filtered_data <- timeline_data_as_qol %>% filter(ttas_id == current_id)
-  filtered_drug_data <- drug_sheet_data %>% filter(ttas_id == current_id)
-  
-  # Replace NA stop_date values with a default (e.g., today's date)
-  filtered_drug_data <- filtered_drug_data %>%
-    mutate(
-      stop_date = if_else(
-        is.na(stop_date), 
-        Sys.Date(),  # Replace NA with today's date
-        stop_date
-      )
-    )
-  
-  # Check and log warnings in one step
-  if (nrow(filtered_data) == 0) {
-    cat(paste("No timeline data found for TTAS ID:", current_id), file = log_file, append = TRUE, sep = "\n")
-  }
-  
-  plot <- ggplot(filtered_data, aes(x = date, y = Score)) +
-    geom_point() +
-    geom_line() +
-    geom_rect(
-      data = filtered_drug_data,
-      inherit.aes = FALSE,
-      aes(
-        xmin = drug_start_date,
-        xmax = stop_date,
-        fill = x3
-      ),
-      ymin = -Inf,
-      ymax = Inf,
-      alpha = 0.5
-    ) +
-    # geom_text(
-    #   # Add drug names labels
-    #   data = filtered_drug_data,
-    #   inherit.aes = FALSE,
-    #   aes(
-    #     x = drug_start_date + (stop_date - drug_start_date) / 2,  # Calculate midpoint
-    #     y = Inf - 5,  # Offset from max Score
-    #     label = x3
-    #   ),
-    # ) +
-    # Use a colour pallete with enough colours for all drugs
-    scale_fill_manual(values = drug_colours, na.value = "gray") +
-    facet_wrap(~ ttas_id, ncol = 1, scales = "free_y") +
-    labs(title = paste0("ASQoL timeline plot for TTAS ID:", current_id)) +
-    ggtitle(paste0("Gender, HLAB27 Status, Diagnosis, Age at Onset, Age at Diagnosis: ", patient_info))
-  
-  file_name <- paste0(output_folder_2, "/", current_id, "_timeline_plot_asqol.png")
-  ggsave(file_name, plot, width = 10, height = 6, dpi = 300)
-}
-```
-
-```{r, warning=FALSE}
-# Create plot for FACIT score only
-
-timeline_data_facit <- combined_df %>%
-  select(ttas_id, date, facit) %>%
-  pivot_longer(cols = c(facit),
-               names_to = "Measure",
-               values_to = "Score")
-
-for (current_id in unique_ids_drugs_only){
-  
-  if (current_id %in% exclude_ids) {
-    next # Skip the current iteration if the current_id is in the exclude_ids list
-  }
-  
-  # Get patient info
-  patient_info <- combined_df_id_with_drugs_excluded %>% filter(ttas_id == current_id) %>% 
-    select(
-      gender, hlab27status, diagnosis, age_at_onset, age_at_diag
-    ) %>% 
-    distinct() %>%
-    unite("Gender, HLAB27 Status, Diagnosis, Age at Onset, Age at Diagnosis", gender, hlab27status, diagnosis, age_at_onset, age_at_diag, sep = " | ", remove = FALSE, na.rm = FALSE) %>% 
-    pull("Gender, HLAB27 Status, Diagnosis, Age at Onset, Age at Diagnosis")
-  
-  filtered_data <- timeline_data_facit %>% filter(ttas_id == current_id)
-  filtered_drug_data <- drug_sheet_data %>% filter(ttas_id == current_id)
-  
-  # Replace NA stop_date values with a default (e.g., today's date)
-  filtered_drug_data <- filtered_drug_data %>%
-    mutate(
-      stop_date = if_else(
-        is.na(stop_date), 
-        Sys.Date(),  # Replace NA with today's date
-        stop_date
-      )
-    )
-  
-  # Check and log warnings in one step
-  if (nrow(filtered_data) == 0) {
-    cat(paste("No timeline data found for TTAS ID:", current_id), file = log_file, append = TRUE, sep = "\n")
-  }
-
-  # Get patient info
-  patient_info <- combined_df_id_with_drugs_excluded %>% filter(ttas_id == current_id) %>% 
-    select(
-      gender, hlab27status, diagnosis, age_at_onset, age_at_diag
-    ) %>% 
-    distinct() %>%
-    unite("Gender, HLAB27 Status, Diagnosis, Age at Onset, Age at Diagnosis", gender, hlab27status, diagnosis, age_at_onset, age_at_diag, sep = " | ", remove = FALSE, na.rm = FALSE) %>% 
-    pull("Gender, HLAB27 Status, Diagnosis, Age at Onset, Age at Diagnosis")
-
-  plot <- ggplot(filtered_data, aes(x = date, y = Score)) +
-    geom_point() +
-    geom_line() +
-    geom_rect(
-      data = filtered_drug_data,
-      inherit.aes = FALSE,
-      aes(
-        xmin = drug_start_date,
-        xmax = stop_date,
-        fill = x3
-      ),
-      ymin = -Inf,
-      ymax = Inf,
-      alpha = 0.5
-    ) +
-    # geom_text(
-    #   # Add drug names labels
-    #   data = filtered_drug_data,
-    #   inherit.aes = FALSE,
-    #   aes(
-    #     x = drug_start_date + (stop_date - drug_start_date) / 2,  # Calculate midpoint
-    #     y = Inf - 5,  # Offset from max Score
-    #     label = x3
-    #   ),
-    # ) +
-    # Use a colour pallete with enough colours for all drugs
-    scale_fill_manual(values = drug_colours, na.value = "gray") +
-    facet_wrap(~ ttas_id, ncol = 1, scales = "free_y") +
-    labs(title = paste0("FACIT timeline plot for TTAS ID:", current_id)) +
-    ggtitle(paste0("Gender, HLAB27 Status, Diagnosis, Age at Onset, Age at Diagnosis: ", patient_info))
-  
-  file_name <- paste0(output_folder_2, "/", current_id, "_timeline_plot_facit.png")
-  ggsave(file_name, plot, width = 10, height = 6, dpi = 300)
-}
-```
-
-```{r, warning=FALSE}
-# Create plot for Margolis score only
-
-timeline_data_margolis <- combined_df %>%
-  select(ttas_id, date, margolis) %>%
-  pivot_longer(cols = c(margolis),
-               names_to = "Measure",
-               values_to = "Score")
-
-for (current_id in unique_ids_drugs_only){
-  
-  if (current_id %in% exclude_ids) {
-    next # Skip the current iteration if the current_id is in the exclude_ids list
-  }
-  
-  filtered_data <- timeline_data_margolis %>% filter(ttas_id == current_id)
-  filtered_drug_data <- drug_sheet_data %>% filter(ttas_id == current_id)
-  
-  # Replace NA stop_date values with a default (e.g., today's date)
-  filtered_drug_data <- filtered_drug_data %>%
-    mutate(
-      stop_date = if_else(
-        is.na(stop_date), 
-        Sys.Date(),  # Replace NA with today's date
-        stop_date
-      )
-    )
-  
-  # Check and log warnings in one step
-  if (nrow(filtered_data) == 0) {
-    cat(paste("No timeline data found for TTAS ID:", current_id), file = log_file, append = TRUE, sep = "\n")
-  }
-
-  # Get patient info
-  patient_info <- combined_df_id_with_drugs_excluded %>% filter(ttas_id == current_id) %>% 
-    select(
-      gender, hlab27status, diagnosis, age_at_onset, age_at_diag
-    ) %>% 
-    distinct() %>%
-    unite("Gender, HLAB27 Status, Diagnosis, Age at Onset, Age at Diagnosis", gender, hlab27status, diagnosis, age_at_onset, age_at_diag, sep = " | ", remove = FALSE, na.rm = FALSE) %>% 
-    pull("Gender, HLAB27 Status, Diagnosis, Age at Onset, Age at Diagnosis")
-  
-  plot <- ggplot(filtered_data, aes(x = date, y = Score)) +
-    geom_point() +
-    geom_line() +
-    geom_rect(
-      data = filtered_drug_data,
-      inherit.aes = FALSE,
-      aes(
-        xmin = drug_start_date,
-        xmax = stop_date,
-        fill = x3
-      ),
-      ymin = -Inf,
-      ymax = Inf,
-      alpha = 0.5
-    ) +
-    # geom_text(
-    #   # Add drug names labels
-    #   data = filtered_drug_data,
-    #   inherit.aes = FALSE,
-    #   aes(
-    #     x = drug_start_date + (stop_date - drug_start_date) / 2,  # Calculate midpoint
-    #     y = Inf - 5,  # Offset from max Score
-    #     label = x3
-    #   ),
-    # ) +
-    # Use a colour pallete with enough colours for all drugs
-    scale_fill_manual(values = drug_colours, na.value = "gray") +
-    facet_wrap(~ ttas_id, ncol = 1, scales = "free_y") +
-    labs(title = paste0("Margolis timeline plot for TTAS ID:", current_id)) +
-    ggtitle(paste0("Gender, HLAB27 Status, Diagnosis, Age at Onset, Age at Diagnosis: ", patient_info))
-
-  
-  file_name <- paste0(output_folder_2, "/", current_id, "_timeline_plot_margolis.png")
-  ggsave(file_name, plot, width = 10, height = 6, dpi = 300)
-}
-```
-
-```{r, warning=FALSE}
-# Create plot for WPAI only
-
-timeline_data_wpai <- combined_df %>%
-  select(ttas_id, date, presentism, absenteeism, wpl, daily_activity_impairment) %>%
-  pivot_longer(cols = c(presentism, absenteeism, wpl, daily_activity_impairment),
-               names_to = "Measure",
-               values_to = "Score")
-
-for (current_id in unique_ids_drugs_only){
-  
-  if (current_id %in% exclude_ids) {
-    next # Skip the current iteration if the current_id is in the exclude_ids list
-  }
-  
-  filtered_data <- timeline_data_wpai %>% filter(ttas_id == current_id)
-  filtered_drug_data <- drug_sheet_data %>% filter(ttas_id == current_id)
-  
-  # Replace NA stop_date values with a default (e.g., today's date)
-  filtered_drug_data <- filtered_drug_data %>%
-    mutate(
-      stop_date = if_else(
-        is.na(stop_date), 
-        Sys.Date(),  # Replace NA with today's date
-        stop_date
-      )
-    )
-  
-  # Check and log warnings in one step
-  if (nrow(filtered_data) == 0) {
-    cat(paste("No timeline data found for TTAS ID:", current_id), file = log_file, append = TRUE, sep = "\n")
-  }
-  
-  # Get patient info
-  patient_info <- combined_df_id_with_drugs_excluded %>% filter(ttas_id == current_id) %>% 
-    select(
-      gender, hlab27status, diagnosis, age_at_onset, age_at_diag
-    ) %>% 
-    distinct() %>%
-    unite("Gender, HLAB27 Status, Diagnosis, Age at Onset, Age at Diagnosis", gender, hlab27status, diagnosis, age_at_onset, age_at_diag, sep = " | ", remove = FALSE, na.rm = FALSE) %>% 
-    pull("Gender, HLAB27 Status, Diagnosis, Age at Onset, Age at Diagnosis")
-
-  plot <- ggplot(filtered_data, aes(x = date, y = Score, colour = Measure)) +
-    geom_point() +
-    geom_line() +
-    geom_rect(
-      data = filtered_drug_data,
-      inherit.aes = FALSE,
-      aes(
-        xmin = drug_start_date,
-        xmax = stop_date,
-        fill = x3
-      ),
-      ymin = -Inf,
-      ymax = Inf,
-      alpha = 0.5
-    ) +
-    # geom_text(
-    #   # Add drug names labels
-    #   data = filtered_drug_data,
-    #   inherit.aes = FALSE,
-    #   aes(
-    #     x = drug_start_date + (stop_date - drug_start_date) / 2,  # Calculate midpoint
-    #     y = Inf - 5,  # Offset from max Score
-    #     label = x3
-    #   ),
-    # ) +
-    # Use a colour pallete with enough colours for all drugs
-    scale_fill_manual(values = drug_colours, na.value = "gray") +
-    facet_wrap(~ ttas_id, ncol = 1, scales = "free_y") +
-    labs(title = paste0("WPAI timeline plot for TTAS ID:", current_id)) +
-    ggtitle(paste0("Gender, HLAB27 Status, Diagnosis, Age at Onset, Age at Diagnosis: ", patient_info))
-
-  
-  file_name <- paste0(output_folder_2, "/", current_id, "_timeline_plot_wpai.png")
-  ggsave(file_name, plot, width = 10, height = 6, dpi = 300)
-}
-```
-
-```{r, warning=FALSE}
-# Create plot for Jenkins Sleep 
-
-timeline_data_jenkins_sleep_scale <- combined_df %>%
-  select(ttas_id, date, jenkins_sleep_1, jenkins_sleep_2, jenkins_sleep_3, jenkins_sleep_4) %>%
-  pivot_longer(cols = c(jenkins_sleep_1, jenkins_sleep_2, jenkins_sleep_3, jenkins_sleep_4),
-               names_to = "Measure",
-               values_to = "Score")
-
-for (current_id in unique_ids_drugs_only){
-  
-  if (current_id %in% exclude_ids) {
-    next # Skip the current iteration if the current_id is in the exclude_ids list
-  }
-  
-  filtered_data <- timeline_data_jenkins_sleep_scale %>% filter(ttas_id == current_id)
-  filtered_drug_data <- drug_sheet_data %>% filter(ttas_id == current_id)
-  
-  # Replace NA stop_date values with a default (e.g., today's date)
-  filtered_drug_data <- filtered_drug_data %>%
-    mutate(
-      stop_date = if_else(
-        is.na(stop_date), 
-        Sys.Date(),  # Replace NA with today's date
-        stop_date
-      )
-    )
-  
-  # Check and log warnings in one step
-  if (nrow(filtered_data) == 0) {
-    cat(paste("No timeline data found for TTAS ID:", current_id), file = log_file, append = TRUE, sep = "\n")
-  }
-
-  # Get patient info
-  patient_info <- combined_df_id_with_drugs_excluded %>% filter(ttas_id == current_id) %>% 
-    select(
-      gender, hlab27status, diagnosis, age_at_onset, age_at_diag
-    ) %>% 
-    distinct() %>%
-    unite("Gender, HLAB27 Status, Diagnosis, Age at Onset, Age at Diagnosis", gender, hlab27status, diagnosis, age_at_onset, age_at_diag, sep = " | ", remove = FALSE, na.rm = FALSE) %>% 
-    pull("Gender, HLAB27 Status, Diagnosis, Age at Onset, Age at Diagnosis")
-
-  plot <- ggplot(filtered_data, aes(x = date, y = Score)) +
-    geom_point() +
-    geom_line() +
-    geom_rect(
-      data = filtered_drug_data,
-      inherit.aes = FALSE,
-      aes(
-        xmin = drug_start_date,
-        xmax = stop_date,
-        fill = x3
-      ),
-      ymin = -Inf,
-      ymax = Inf,
-      alpha = 0.5
-    ) +
-    # geom_text(
-    #   # Add drug names labels
-    #   data = filtered_drug_data,
-    #   inherit.aes = FALSE,
-    #   aes(
-    #     x = drug_start_date + (stop_date - drug_start_date) / 2,  # Calculate midpoint
-    #     y = Inf - 5,  # Offset from max Score
-    #     label = x3
-    #   ),
-    # ) +
-    # Use a colour pallete with enough colours for all drugs
-    scale_fill_manual(values = drug_colours, na.value = "gray") +
-    facet_wrap(~ ttas_id, ncol = 1, scales = "free_y") +
-    labs(title = paste0("Jenkins Sleep Scale timeline plot for TTAS ID:", current_id)) +
-    ggtitle(paste0("Gender, HLAB27 Status, Diagnosis, Age at Onset, Age at Diagnosis: ", patient_info))
-  
-  file_name <- paste0(output_folder_2, "/", current_id, "_timeline_plot_jenkins.png")
-  ggsave(file_name, plot, width = 10, height = 6, dpi = 300)
-}
-```
-
+# Start analysis
 ```{r}
+# Old code
 # # Reduce the amount of NA in combined_df_id_with_drugs_excluded
 # # Impute x3 (Treatment): For any row where x3 is NA, if there is a valid stop_date, we should impute x3 with the last known treatment. If stop_date is also NA, the treatment continues to the present, and x3 should reflect the last known treatment.
 # 
@@ -2245,7 +2249,6 @@ for (current_id in unique_ids_drugs_only){
 # write.csv(combined_df_id_with_drugs_excluded, file = "cleaned_dates.csv", row.names = FALSE)
 ```
 
-# Start analysis
 
 ```{r}
 # # Data cleaning to ensure x3 is propagated until stop_date
@@ -3217,7 +3220,11 @@ dataframe_sorted_and_reclassified_basmi$last_known_vaping_status <- as.factor(da
 # Question to ask: Is the F-test to compare full and reduced to check whether interaction terms are significant correct? Or was it for something else?
 # Reduced model encountered a convergence error, hence I tweaked the optimizer and maxfun, model_11_full is slightly different from model_11 but I believe it is the correct one. Should I include this in the report?
 # Should I include a brief overview of the bobqa optimizer and maxfun in the report?
+```
 
+# lme4 code for treatment and diagnosis interaction: BASMI
+
+```{r}
 # Make sure that the reference level for treatment_reclassified is "Standard Non-High Cost Drug Treatment"
 dataframe_sorted_and_reclassified_basmi$treatment_reclassified <- relevel(dataframe_sorted_and_reclassified_basmi$treatment_reclassified, ref = "Standard Non-High Cost Drug Treatment")
 
@@ -3247,21 +3254,26 @@ model_1_reduced <- lmer(basmi_score ~ gender + hlab27status + age_at_basmi + tre
 
 ```{r}
 model_1_full
-model_1_full_vif <- vif(model_1_full)
-print(summary(model_1_full, corr = TRUE))
-model_1_full_vif
+print(summary(model_1_full, corr = FALSE))
 ```
 
 ```{r}
 model_1_reduced
-model_1_reduced_vif <- vif(model_1_reduced)
-print(summary(model_1_reduced, corr = TRUE))
-model_1_reduced_vif
+print(summary(model_1_reduced, corr = FALSE))
 ```
 
 ```{r}
 anova(model_1_full, model_1_reduced)
 ```
+
+```{r}
+# Sanity check multicollinearity
+model_1_full_vif <- vif(model_1_full)
+model_1_reduced_vif <- vif(model_1_reduced)
+model_1_full_vif
+model_1_reduced_vif
+```
+
 
 ```{r}
 # Check distribution of response, Y
