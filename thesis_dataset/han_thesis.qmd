@@ -1421,7 +1421,7 @@ write_csv(combined_df_with_and_without_drugs, "test_combined_df_with_and_without
 
 # Checkpoint start: Uncomment to recreate the plots
 
-# ```{r, warning=FALSE}
+```{r, warning=FALSE}
 # for (current_id in unique_ids_drugs_only){
 #   
 #   if (current_id %in% exclude_ids) {
@@ -1509,9 +1509,9 @@ write_csv(combined_df_with_and_without_drugs, "test_combined_df_with_and_without
 #   file_name <- paste0(output_folder_2, "/", current_id, "_overall.png")
 #   ggsave(file_name, plot, width = 10, height = 6, dpi = 300)
 # }
-# ```
-# 
-# ```{r, warning=FALSE}
+```
+
+```{r, warning=FALSE}
 # # Create plot for BASMI score only
 # 
 # timeline_data_basmi <- combined_df %>%
@@ -1589,10 +1589,9 @@ write_csv(combined_df_with_and_without_drugs, "test_combined_df_with_and_without
 #   file_name <- paste0(output_folder_2, "/", current_id, "_timeline_plot_basmi.png")
 #   ggsave(file_name, plot, width = 10, height = 6, dpi = 300)
 # }
-# 
-# ```
-# 
-# ```{r, warning=FALSE}
+```
+
+```{r, warning=FALSE}
 # # Create plot for BASFI score only
 # 
 # timeline_data_basfi <- combined_df %>%
@@ -1668,9 +1667,9 @@ write_csv(combined_df_with_and_without_drugs, "test_combined_df_with_and_without
 #   file_name <- paste0(output_folder_2, "/", current_id, "_timeline_plot_basfi.png")
 #   ggsave(file_name, plot, width = 10, height = 6, dpi = 300)
 # }
-# ```
-# 
-# ```{r, warning=FALSE}
+```
+
+```{r, warning=FALSE}
 # # Create plot for patient global score only
 # 
 # timeline_data_patient_global <- combined_df %>%
@@ -1746,9 +1745,9 @@ write_csv(combined_df_with_and_without_drugs, "test_combined_df_with_and_without
 #   file_name <- paste0(output_folder_2, "/", current_id, "_timeline_plot_patient_global.png")
 #   ggsave(file_name, plot, width = 10, height = 6, dpi = 300)
 # }
-# ```
-# 
-# ```{r, warning=FALSE}
+```
+
+```{r, warning=FALSE}
 # # Create plot for back pain at night and back pain anytime score only
 # 
 # timeline_data_back_pain <- combined_df %>%
@@ -1824,9 +1823,9 @@ write_csv(combined_df_with_and_without_drugs, "test_combined_df_with_and_without
 #   file_name <- paste0(output_folder_2, "/", current_id, "_timeline_plot_back_pain.png")
 #   ggsave(file_name, plot, width = 10, height = 6, dpi = 300)
 # }
-# ```
-# 
-# ```{r, warning=FALSE}
+```
+
+```{r, warning=FALSE}
 # # Create plot for ASQoL score only
 # 
 # timeline_data_as_qol <- combined_df %>%
@@ -1902,9 +1901,9 @@ write_csv(combined_df_with_and_without_drugs, "test_combined_df_with_and_without
 #   file_name <- paste0(output_folder_2, "/", current_id, "_timeline_plot_asqol.png")
 #   ggsave(file_name, plot, width = 10, height = 6, dpi = 300)
 # }
-# ```
-# 
-# ```{r, warning=FALSE}
+```
+
+```{r, warning=FALSE}
 # # Create plot for FACIT score only
 # 
 # timeline_data_facit <- combined_df %>%
@@ -1989,9 +1988,9 @@ write_csv(combined_df_with_and_without_drugs, "test_combined_df_with_and_without
 #   file_name <- paste0(output_folder_2, "/", current_id, "_timeline_plot_facit.png")
 #   ggsave(file_name, plot, width = 10, height = 6, dpi = 300)
 # }
-# ```
-# 
-# ```{r, warning=FALSE}
+```
+
+```{r, warning=FALSE}
 # # Create plot for Margolis score only
 # 
 # timeline_data_margolis <- combined_df %>%
@@ -2068,9 +2067,9 @@ write_csv(combined_df_with_and_without_drugs, "test_combined_df_with_and_without
 #   file_name <- paste0(output_folder_2, "/", current_id, "_timeline_plot_margolis.png")
 #   ggsave(file_name, plot, width = 10, height = 6, dpi = 300)
 # }
-# ```
-# 
-# ```{r, warning=FALSE}
+```
+
+```{r, warning=FALSE}
 # # Create plot for WPAI only
 # 
 # timeline_data_wpai <- combined_df %>%
@@ -2147,9 +2146,9 @@ write_csv(combined_df_with_and_without_drugs, "test_combined_df_with_and_without
 #   file_name <- paste0(output_folder_2, "/", current_id, "_timeline_plot_wpai.png")
 #   ggsave(file_name, plot, width = 10, height = 6, dpi = 300)
 # }
-# ```
-# 
-# ```{r, warning=FALSE}
+```
+
+```{r, warning=FALSE}
 # # Create plot for Jenkins Sleep 
 # 
 # timeline_data_jenkins_sleep_scale <- combined_df %>%
@@ -2225,7 +2224,7 @@ write_csv(combined_df_with_and_without_drugs, "test_combined_df_with_and_without
 #   file_name <- paste0(output_folder_2, "/", current_id, "_timeline_plot_jenkins.png")
 #   ggsave(file_name, plot, width = 10, height = 6, dpi = 300)
 # }
-# ```
+```
 
 # Checkpoint end: Uncomment to recreate the plots
 
@@ -3243,7 +3242,7 @@ dataframe_sorted_and_reclassified_basmi$last_known_smoking_status <- relevel(dat
 # Make sure that the reference level for last_known_vaping_status is "no information"
 dataframe_sorted_and_reclassified_basmi$last_known_vaping_status <- relevel(dataframe_sorted_and_reclassified_basmi$last_known_vaping_status, ref = "no information")
 
-# Conduct an F-test for a full-model and reduced model for model_11
+# Define the full and reduced models
 model_1_full <- lmer(basmi_score ~ gender + hlab27status + age_at_basmi + diagnosis + treatment_order + last_known_smoking_status + last_known_vaping_status + treatment_reclassified*diagnosis + time_in_years + (time_in_years | ttas_id), data = dataframe_sorted_and_reclassified_basmi,
                          control = lmerControl(optimizer = "bobyqa", optCtrl = list(maxfun = 2e5))
                       )
@@ -3253,18 +3252,17 @@ model_1_reduced <- lmer(basmi_score ~ gender + hlab27status + age_at_basmi + tre
 ```
 
 ```{r}
-model_1_full
 print(summary(model_1_full, corr = FALSE))
 ```
 
 ```{r}
-model_1_reduced
 print(summary(model_1_reduced, corr = FALSE))
 ```
 
 ```{r}
 anova(model_1_full, model_1_reduced)
 ```
+
 
 ```{r}
 # Sanity check multicollinearity

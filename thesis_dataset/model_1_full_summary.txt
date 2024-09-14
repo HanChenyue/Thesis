@@ -1,0 +1,51 @@
+Linear mixed model fit by REML. t-tests use Satterthwaite's method ['lmerModLmerTest']
+Formula: basmi_score ~ gender + hlab27status + age_at_basmi + diagnosis +      treatment_order + last_known_smoking_status + last_known_vaping_status +  
+    treatment_reclassified * diagnosis + time_in_years + (time_in_years |      ttas_id)
+   Data: dataframe_sorted_and_reclassified_basmi
+Control: lmerControl(optimizer = "bobyqa", optCtrl = list(maxfun = 2e+05))
+
+REML criterion at convergence: 42649.8
+
+Scaled residuals: 
+    Min      1Q  Median      3Q     Max 
+-5.9712 -0.5719 -0.0037  0.5632  6.0621 
+
+Random effects:
+ Groups   Name          Variance Std.Dev. Corr 
+ ttas_id  (Intercept)   2.688242 1.63959       
+          time_in_years 0.003774 0.06144  -0.16
+ Residual               0.485653 0.69689       
+Number of obs: 17483, groups:  ttas_id, 1043
+
+Fixed effects:
+                                                                   Estimate Std. Error         df t value Pr(>|t|)    
+(Intercept)                                                       1.036e+00  2.228e-01  1.108e+03   4.647 3.77e-06 ***
+genderMale                                                        4.986e-01  1.146e-01  1.024e+03   4.350 1.50e-05 ***
+hlab27statusNegative                                             -3.084e-02  1.872e-01  1.037e+03  -0.165 0.869156    
+hlab27statusPositive                                             -8.758e-02  1.295e-01  1.024e+03  -0.676 0.499073    
+age_at_basmi                                                      4.851e-02  4.047e-03  1.165e+03  11.986  < 2e-16 ***
+diagnosisAxial SpA- nr-axSpA                                     -8.901e-01  1.594e-01  1.063e+03  -5.585 2.97e-08 ***
+treatment_order2                                                 -1.577e-01  7.513e-02  1.464e+04  -2.099 0.035796 *  
+treatment_order3                                                 -8.230e-02  6.199e-02  1.392e+04  -1.328 0.184333    
+treatment_order4                                                 -2.951e-01  9.066e-02  1.456e+04  -3.255 0.001136 ** 
+treatment_order5                                                 -2.202e-01  1.010e-01  1.257e+04  -2.179 0.029325 *  
+treatment_order6                                                 -3.334e-01  1.346e-01  1.354e+04  -2.477 0.013263 *  
+treatment_order7                                                 -4.816e-01  1.968e-01  8.835e+03  -2.447 0.014429 *  
+treatment_order8                                                 -9.411e-01  2.839e-01  1.601e+04  -3.315 0.000920 ***
+treatment_order9                                                 -6.343e-02  3.354e-01  1.594e+04  -0.189 0.849998    
+treatment_order11                                                 1.429e+00  5.077e-01  1.384e+04   2.814 0.004897 ** 
+last_known_smoking_statusex-smoker                                5.167e-01  2.615e-01  1.022e+03   1.976 0.048397 *  
+last_known_smoking_statusnever                                    3.532e-01  2.619e-01  1.023e+03   1.349 0.177759    
+last_known_smoking_statussmoker                                   6.993e-01  3.278e-01  1.028e+03   2.134 0.033114 *  
+last_known_vaping_statusex-vaper                                 -1.997e+00  5.955e-01  1.044e+03  -3.353 0.000829 ***
+last_known_vaping_statusnever                                    -8.279e-01  2.520e-01  1.021e+03  -3.286 0.001052 ** 
+last_known_vaping_statusvaper                                    -6.080e-01  3.686e-01  1.022e+03  -1.649 0.099406 .  
+treatment_reclassifiedAnti-IL17                                   2.737e-02  1.173e-01  1.319e+04   0.233 0.815559    
+treatment_reclassifiedAnti-TNF                                   -8.745e-02  7.201e-02  1.478e+04  -1.214 0.224596    
+treatment_reclassifiedJAK Inhibitor                               1.320e-01  3.882e-01  4.443e+03   0.340 0.733896    
+time_in_years                                                     4.150e-03  4.786e-03  1.698e+03   0.867 0.385991    
+diagnosisAxial SpA- nr-axSpA:treatment_reclassifiedAnti-IL17     -5.263e-01  3.316e-01  1.292e+04  -1.587 0.112479    
+diagnosisAxial SpA- nr-axSpA:treatment_reclassifiedAnti-TNF      -1.944e-01  1.330e-01  1.026e+04  -1.462 0.143804    
+diagnosisAxial SpA- nr-axSpA:treatment_reclassifiedJAK Inhibitor -6.290e-02  6.862e-01  1.276e+04  -0.092 0.926968    
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
