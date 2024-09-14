@@ -3230,7 +3230,7 @@ dataframe_sorted_and_reclassified_basmi$last_known_vaping_status <- as.factor(da
 
 # lme4 code for treatment and diagnosis: BASMI score
 
-```{r}
+```{r, include=TRUE}
 # Make sure that the reference level for treatment_reclassified is
 # "Standard Non-High Cost Drug Treatment"
 dataframe_sorted_and_reclassified_basmi$treatment_reclassified <-
@@ -3263,63 +3263,80 @@ dataframe_sorted_and_reclassified_basmi$last_known_smoking_status <-
 dataframe_sorted_and_reclassified_basmi$last_known_vaping_status <-
   relevel(dataframe_sorted_and_reclassified_basmi$last_known_vaping_status,
           ref = "no information")
+```
 
+```{r, include=TRUE}
 # Define the full and reduced models
-model_1_full <- lmer(basmi_score ~ gender + hlab27status + age_at_basmi +
-                       diagnosis + treatment_order + last_known_smoking_status +
-                       last_known_vaping_status + treatment_reclassified *
-                       diagnosis + time_in_years + (time_in_years | ttas_id),
+model_treatment_diagnosis_basmi_full <- lmer(
+  basmi_score ~ gender + hlab27status + age_at_basmi +
+    diagnosis + treatment_order + last_known_smoking_status +
+    last_known_vaping_status + treatment_reclassified *
+    diagnosis + time_in_years + (time_in_years | ttas_id),
                      data = dataframe_sorted_and_reclassified_basmi,
                      control = lmerControl(optimizer = "bobyqa",
                                            optCtrl = list(maxfun = 2e5)))
 
-model_1_reduced <- lmer(basmi_score ~ gender + hlab27status + age_at_basmi +
-                          treatment_order + last_known_smoking_status +
-                          last_known_vaping_status + treatment_reclassified + 
-                          diagnosis + time_in_years + (time_in_years | ttas_id),
+model_treatment_diagnosis_basmi_reduced <- lmer(
+  basmi_score ~ gender + hlab27status + age_at_basmi +
+    treatment_order + last_known_smoking_status +
+    last_known_vaping_status + treatment_reclassified +
+    diagnosis + time_in_years + (time_in_years | ttas_id),
                         data = dataframe_sorted_and_reclassified_basmi,
                         control = lmerControl(optimizer = "bobyqa",
                                               optCtrl = list(maxfun = 2e5)))
 ```
 
-```{r}
-print(summary(model_1_full, corr = FALSE))
+```{r, include=TRUE}
+print(summary(model_treatment_diagnosis_basmi_full, corr = FALSE))
 ```
 
-```{r}
-print(summary(model_1_reduced, corr = FALSE))
+```{r, include = TRUE}
+print(summary(model_treatment_diagnosis_basmi_reduced, corr = FALSE))
 ```
 
-```{r}
-anova(model_1_full, model_1_reduced)
+```{r, include=TRUE}
+anova(model_treatment_diagnosis_basmi_full, model_treatment_diagnosis_basmi_reduced)
 ```
 
 ```{r, include=FALSE}
 # Sanity check multicollinearity
-model_1_full_vif <- vif(model_1_full)
-model_1_reduced_vif <- vif(model_1_reduced)
-model_1_full_vif
-model_1_reduced_vif
+model_treatment_diagnosis_basmi_full_vif <- vif(model_treatment_diagnosis_basmi_full)
+model_treatment_diagnosis_basmi_reduced_vif <- vif(model_treatment_diagnosis_basmi_reduced)
+model_treatment_diagnosis_basmi_full_vif
+model_treatment_diagnosis_basmi_reduced_vif
 ```
-
-```{r, include=FALSE}
-# # Old code: Attempts to make the output as image
-# # Capture the full model summary output as text
-# model_1_summary_capture <- capture.output(print(summary(model_1_full, corr = FALSE)))
-# 
-# # Convert the summary text into an HTML preformatted block
-# html_summary <- paste("<pre>", paste(model_1_summary_capture, collapse = "\n"), "</pre>")
-# 
-# # Save the HTML version
-# writeLines(html_summary, "model_1_summary.html")
-# 
-# # Use webshot to convert the HTML file to an image
-# webshot("model_1_summary.html", "model_1_summary_table_image.png")
-```
-
 
 ```{r, include=FALSE}
 # Check distribution of response, Y
 
 ```
 
+# lme4 code for treatment and gender: BASMI score
+```{r, include=TRUE}
+# Define the full and reduced models
+model_treatment_gender_basmi_full <- lmer(
+  basmi_score ~ gender + hlab27status + age_at_basmi + diagnosis +
+    treatment_order + last_known_smoking_status +
+    last_known_vaping_status + treatment_reclassified *
+    gender + time_in_years + (time_in_years | ttas_id),
+                     data = dataframe_sorted_and_reclassified_basmi,
+                     control = lmerControl(optimizer = "bobyqa",
+                                           optCtrl = list(maxfun = 2e5)))
+
+model_treatment_gender_basmi_reduced <- lmer(
+  basmi_score ~ gender + hlab27status + age_at_basmi + diagnosis +
+    treatment_order + last_known_smoking_status +
+    last_known_vaping_status + treatment_reclassified +
+    time_in_years + (time_in_years | ttas_id),
+                        data = dataframe_sorted_and_reclassified_basmi,
+                        control = lmerControl(optimizer = "bobyqa",
+                                              optCtrl = list(maxfun = 2e5)))
+```
+
+```{r}
+print(summary(model_treatment_gender_basmi_full, corr = FALSE))
+```
+
+```{r}
+print(summary(model_treatment_gender_basmi_reduced, corr = FALSE))
+```
