@@ -1,5 +1,5 @@
 ---
-title: "Thesis"
+title: "R Code Outputs - Appendix"
 author: "Han Chenyue"
 format:
   pdf:
@@ -27,6 +27,7 @@ library(gt)
 library(webshot2)
 library(rmarkdown)
 library(knitr)
+library(broom.mixed)
 ```
 
 ```{r, include=FALSE}
@@ -1423,9 +1424,9 @@ combined_df_with_and_without_drugs <- combined_df
 write_csv(combined_df_with_and_without_drugs, "test_combined_df_with_and_without_drugs.csv")
 ```
 
-# Checkpoint start: Uncomment to recreate the plots
 
 ```{r, warning=FALSE, include=FALSE}
+# Checkpoint start: Uncomment to recreate the plots
 # for (current_id in unique_ids_drugs_only){
 #   
 #   if (current_id %in% exclude_ids) {
@@ -2230,10 +2231,12 @@ write_csv(combined_df_with_and_without_drugs, "test_combined_df_with_and_without
 # }
 ```
 
-# Checkpoint end: Uncomment to recreate the plots
-
-# Start analysis
 ```{r, include=FALSE}
+# Checkpoint end: Uncomment to recreate the plots
+```
+
+```{r, include=FALSE}
+# Start analysis
 # Old code
 # # Reduce the amount of NA in combined_df_id_with_drugs_excluded
 # # Impute x3 (Treatment): For any row where x3 is NA, if there is a valid stop_date, we should impute x3 with the last known treatment. If stop_date is also NA, the treatment continues to the present, and x3 should reflect the last known treatment.
@@ -2691,8 +2694,8 @@ write.csv(dataframe_sorted, "temp_dataframe_before_data_sorted.csv", row.names =
 # write.csv(data_sorted, "temp_data_sorted_for_analysis_prior_to_pivot.csv", row.names = FALSE)
 ```
 
-# Old code: When the we assume every patients has his/her own unique treatment period without any differentiation
 ```{r, include=FALSE}
+# Old code: When the we assume every patients has his/her own unique treatment period without any differentiation
 # # General longitudinal analysis
 # longitudinal_analysis_data <- data_sorted %>% 
 #   filter(!is.na(treatment)) %>%
@@ -3225,34 +3228,58 @@ dataframe_sorted_and_reclassified_basmi$last_known_vaping_status <- as.factor(da
 # Should I include a brief overview of the bobqa optimizer and maxfun in the report?
 ```
 
-# lme4 code for treatment and diagnosis interaction: BASMI
+# lme4 code for treatment and diagnosis: BASMI score
 
 ```{r}
-# Make sure that the reference level for treatment_reclassified is "Standard Non-High Cost Drug Treatment"
-dataframe_sorted_and_reclassified_basmi$treatment_reclassified <- relevel(dataframe_sorted_and_reclassified_basmi$treatment_reclassified, ref = "Standard Non-High Cost Drug Treatment")
+# Make sure that the reference level for treatment_reclassified is
+# "Standard Non-High Cost Drug Treatment"
+dataframe_sorted_and_reclassified_basmi$treatment_reclassified <-
+  relevel(dataframe_sorted_and_reclassified_basmi$treatment_reclassified,
+          ref = "Standard Non-High Cost Drug Treatment")
 
 # Make sure that the reference level for hlba27status is "undiagnosed"
-dataframe_sorted_and_reclassified_basmi$hlab27status <- relevel(dataframe_sorted_and_reclassified_basmi$hlab27status, ref = "undiagnosed")
+dataframe_sorted_and_reclassified_basmi$hlab27status <-
+  relevel(dataframe_sorted_and_reclassified_basmi$hlab27status,
+          ref = "undiagnosed")
 
 # Make sure that the reference level for diagnosis is "Axial SpA- nr-axSpA"
-dataframe_sorted_and_reclassified_basmi$diagnosis <- relevel(dataframe_sorted_and_reclassified_basmi$diagnosis, ref = "Axial SpA- AS")
+dataframe_sorted_and_reclassified_basmi$diagnosis <-
+  relevel(dataframe_sorted_and_reclassified_basmi$diagnosis,
+          ref = "Axial SpA- AS")
 
-# Make sure that the reference level for treatment_order is 0
-dataframe_sorted_and_reclassified_basmi$treatment_order <- relevel(dataframe_sorted_and_reclassified_basmi$treatment_order, ref = 1)
+# Make sure that the reference level for treatment_order is 1
+dataframe_sorted_and_reclassified_basmi$treatment_order <-
+  relevel(dataframe_sorted_and_reclassified_basmi$treatment_order,
+          ref = 1)
 
-# Make sure that the reference level for last_known_smoking_status is "no information"
-dataframe_sorted_and_reclassified_basmi$last_known_smoking_status <- relevel(dataframe_sorted_and_reclassified_basmi$last_known_smoking_status, ref = "no information")
+# Make sure that the reference level for last_known_smoking_status is
+# "no information"
+dataframe_sorted_and_reclassified_basmi$last_known_smoking_status <-
+  relevel(dataframe_sorted_and_reclassified_basmi$last_known_smoking_status,
+          ref = "no information")
 
-# Make sure that the reference level for last_known_vaping_status is "no information"
-dataframe_sorted_and_reclassified_basmi$last_known_vaping_status <- relevel(dataframe_sorted_and_reclassified_basmi$last_known_vaping_status, ref = "no information")
+# Make sure that the reference level for last_known_vaping_status is
+# "no information"
+dataframe_sorted_and_reclassified_basmi$last_known_vaping_status <-
+  relevel(dataframe_sorted_and_reclassified_basmi$last_known_vaping_status,
+          ref = "no information")
 
 # Define the full and reduced models
-model_1_full <- lmer(basmi_score ~ gender + hlab27status + age_at_basmi + diagnosis + treatment_order + last_known_smoking_status + last_known_vaping_status + treatment_reclassified*diagnosis + time_in_years + (time_in_years | ttas_id), data = dataframe_sorted_and_reclassified_basmi,
-                         control = lmerControl(optimizer = "bobyqa", optCtrl = list(maxfun = 2e5))
-                      )
-model_1_reduced <- lmer(basmi_score ~ gender + hlab27status + age_at_basmi + treatment_order + last_known_smoking_status + last_known_vaping_status + treatment_reclassified + diagnosis + time_in_years + (time_in_years | ttas_id), data = dataframe_sorted_and_reclassified_basmi,
-                         control = lmerControl(optimizer = "bobyqa", optCtrl = list(maxfun = 2e5))
-                         )
+model_1_full <- lmer(basmi_score ~ gender + hlab27status + age_at_basmi +
+                       diagnosis + treatment_order + last_known_smoking_status +
+                       last_known_vaping_status + treatment_reclassified *
+                       diagnosis + time_in_years + (time_in_years | ttas_id),
+                     data = dataframe_sorted_and_reclassified_basmi,
+                     control = lmerControl(optimizer = "bobyqa",
+                                           optCtrl = list(maxfun = 2e5)))
+
+model_1_reduced <- lmer(basmi_score ~ gender + hlab27status + age_at_basmi +
+                          treatment_order + last_known_smoking_status +
+                          last_known_vaping_status + treatment_reclassified + 
+                          diagnosis + time_in_years + (time_in_years | ttas_id),
+                        data = dataframe_sorted_and_reclassified_basmi,
+                        control = lmerControl(optimizer = "bobyqa",
+                                              optCtrl = list(maxfun = 2e5)))
 ```
 
 ```{r}
