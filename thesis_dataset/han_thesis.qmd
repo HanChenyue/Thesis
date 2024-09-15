@@ -3292,6 +3292,20 @@ model_treatment_diagnosis_basmi_reduced <- lmer(
                                               optCtrl = list(maxfun = 2e5)))
 ```
 
+```{r, include=FALSE}
+# # Test model
+# test_model <- lmer(
+#   basmi_score ~ gender + hlab27status + age_at_basmi +
+#     treatment_order + last_known_smoking_status +
+#     last_known_vaping_status +
+#     treatment_reclassified * diagnosis +
+#     time_in_years + (time_in_years | ttas_id),
+#                      data = dataframe_sorted_and_reclassified_basmi,
+#                      control = lmerControl(optimizer = "bobyqa",
+#                                            optCtrl = list(maxfun = 2e5)))
+# print(summary(test_model, corr = FALSE))
+```
+
 ```{r, include=TRUE}
 print(summary(model_treatment_diagnosis_basmi_full, corr = FALSE))
 ```
