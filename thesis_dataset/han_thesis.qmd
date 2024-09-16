@@ -4946,7 +4946,7 @@ dataframe_sorted_and_reclassified_jenkins_sleep_4$last_known_vaping_status <-
 
 ```{r, include=TRUE}
 model_treatment_diagnosis_jenkins_sleep_1_full <- lmer(
-  jenkins_sleep_1 <- gender + hlab27status + age_at_prom +
+  jenkins_sleep_1 ~ gender + hlab27status + age_at_prom +
     diagnosis + treatment_order + last_known_smoking_status +
     last_known_vaping_status +  
     treatment_reclassified * diagnosis +
@@ -4956,7 +4956,7 @@ model_treatment_diagnosis_jenkins_sleep_1_full <- lmer(
                                            optCtrl = list(maxfun = 2e5)))
 
 model_treatment_diagnosis_jenkins_sleep_2_full <- lmer(
-  jenkins_sleep_2 <- gender + hlab27status + age_at_prom +
+  jenkins_sleep_2 ~ gender + hlab27status + age_at_prom +
     diagnosis + treatment_order + last_known_smoking_status +
     last_known_vaping_status +  
     treatment_reclassified * diagnosis +
@@ -4966,7 +4966,7 @@ model_treatment_diagnosis_jenkins_sleep_2_full <- lmer(
                                            optCtrl = list(maxfun = 2e5)))
 
 model_treatment_diagnosis_jenkins_sleep_3_full <- lmer(
-  jenkins_sleep_3 <- gender + hlab27status + age_at_prom +
+  jenkins_sleep_3 ~ gender + hlab27status + age_at_prom +
     diagnosis + treatment_order + last_known_smoking_status +
     last_known_vaping_status +  
     treatment_reclassified * diagnosis +
@@ -4976,7 +4976,7 @@ model_treatment_diagnosis_jenkins_sleep_3_full <- lmer(
                                            optCtrl = list(maxfun = 2e5)))
 
 model_treatment_diagnosis_jenkins_sleep_4_full <- lmer(
-  jenkins_sleep_4 <- gender + hlab27status + age_at_prom +
+  jenkins_sleep_4 ~ gender + hlab27status + age_at_prom +
     diagnosis + treatment_order + last_known_smoking_status +
     last_known_vaping_status +  
     treatment_reclassified * diagnosis +
@@ -4988,7 +4988,7 @@ model_treatment_diagnosis_jenkins_sleep_4_full <- lmer(
 
 ```{r, include=TRUE}
 model_treatment_diagnosis_jenkins_sleep_1_reduced <- lmer(
-  jenkins_sleep_1 <- gender + hlab27status + age_at_prom +
+  jenkins_sleep_1 ~ gender + hlab27status + age_at_prom +
     diagnosis + treatment_order + last_known_smoking_status +
     last_known_vaping_status +  
     treatment_reclassified +
@@ -4998,7 +4998,7 @@ model_treatment_diagnosis_jenkins_sleep_1_reduced <- lmer(
                                             optCtrl = list(maxfun = 2e5)))
 
 model_treatment_diagnosis_jenkins_sleep_2_reduced <- lmer(
-  jenkins_sleep_2 <- gender + hlab27status + age_at_prom +
+  jenkins_sleep_2 ~ gender + hlab27status + age_at_prom +
     diagnosis + treatment_order + last_known_smoking_status +
     last_known_vaping_status +  
     treatment_reclassified +
@@ -5008,7 +5008,7 @@ model_treatment_diagnosis_jenkins_sleep_2_reduced <- lmer(
                                             optCtrl = list(maxfun = 2e5)))
 
 model_treatment_diagnosis_jenkins_sleep_3_reduced <- lmer(
-  jenkins_sleep_3 <- gender + hlab27status + age_at_prom +
+  jenkins_sleep_3 ~ gender + hlab27status + age_at_prom +
     diagnosis + treatment_order + last_known_smoking_status +
     last_known_vaping_status +  
     treatment_reclassified +
@@ -5018,7 +5018,7 @@ model_treatment_diagnosis_jenkins_sleep_3_reduced <- lmer(
                                             optCtrl = list(maxfun = 2e5)))
 
 model_treatment_diagnosis_jenkins_sleep_4_reduced <- lmer(
-  jenkins_sleep_4 <- gender + hlab27status + age_at_prom +
+  jenkins_sleep_4 ~ gender + hlab27status + age_at_prom +
     diagnosis + treatment_order + last_known_smoking_status +
     last_known_vaping_status +  
     treatment_reclassified +
@@ -5084,7 +5084,7 @@ anova(model_treatment_diagnosis_jenkins_sleep_4_full,
 
 ```{r, include=TRUE}
 model_treatment_gender_jenkins_sleep_1_full <- lmer(
-  jenkins_sleep_1 <- gender + hlab27status + age_at_prom +
+  jenkins_sleep_1 ~ gender + hlab27status + age_at_prom +
     diagnosis + treatment_order + last_known_smoking_status +
     last_known_vaping_status +  
     treatment_reclassified * gender +
@@ -5094,7 +5094,7 @@ model_treatment_gender_jenkins_sleep_1_full <- lmer(
                                            optCtrl = list(maxfun = 2e5)))
 
 model_treatment_gender_jenkins_sleep_2_full <- lmer(
-  jenkins_sleep_2 <- gender + hlab27status + age_at_prom +
+  jenkins_sleep_2 ~ gender + hlab27status + age_at_prom +
     diagnosis + treatment_order + last_known_smoking_status +
     last_known_vaping_status +  
     treatment_reclassified * gender +
@@ -5104,7 +5104,7 @@ model_treatment_gender_jenkins_sleep_2_full <- lmer(
                                            optCtrl = list(maxfun = 2e5)))
 
 model_treatment_gender_jenkins_sleep_3_full <- lmer(
-  jenkins_sleep_3 <- gender + hlab27status + age_at_prom +
+  jenkins_sleep_3 ~ gender + hlab27status + age_at_prom +
     diagnosis + treatment_order + last_known_smoking_status +
     last_known_vaping_status +  
     treatment_reclassified * gender +
@@ -5114,7 +5114,7 @@ model_treatment_gender_jenkins_sleep_3_full <- lmer(
                                            optCtrl = list(maxfun = 2e5)))
 
 model_treatment_gender_jenkins_sleep_4_full <- lmer(
-  jenkins_sleep_4 <- gender + hlab27status + age_at_prom +
+  jenkins_sleep_4 ~ gender + hlab27status + age_at_prom +
     diagnosis + treatment_order + last_known_smoking_status +
     last_known_vaping_status +  
     treatment_reclassified * gender +
@@ -5126,7 +5126,7 @@ model_treatment_gender_jenkins_sleep_4_full <- lmer(
 
 ```{r, include=TRUE}
 model_treatment_gender_jenkins_sleep_1_reduced <- lmer(
-  jenkins_sleep_1 <- gender + hlab27status + age_at_prom +
+  jenkins_sleep_1 ~ gender + hlab27status + age_at_prom +
     diagnosis + treatment_order + last_known_smoking_status +
     last_known_vaping_status +  
     treatment_reclassified +
@@ -5136,7 +5136,7 @@ model_treatment_gender_jenkins_sleep_1_reduced <- lmer(
                                             optCtrl = list(maxfun = 2e5)))
 
 model_treatment_gender_jenkins_sleep_2_reduced <- lmer(
-  jenkins_sleep_2 <- gender + hlab27status + age_at_prom +
+  jenkins_sleep_2 ~ gender + hlab27status + age_at_prom +
     diagnosis + treatment_order + last_known_smoking_status +
     last_known_vaping_status +  
     treatment_reclassified +
@@ -5146,7 +5146,7 @@ model_treatment_gender_jenkins_sleep_2_reduced <- lmer(
                                             optCtrl = list(maxfun = 2e5)))
 
 model_treatment_gender_jenkins_sleep_3_reduced <- lmer(
-  jenkins_sleep_3 <- gender + hlab27status + age_at_prom +
+  jenkins_sleep_3 ~ gender + hlab27status + age_at_prom +
     diagnosis + treatment_order + last_known_smoking_status +
     last_known_vaping_status +  
     treatment_reclassified +
@@ -5157,7 +5157,7 @@ model_treatment_gender_jenkins_sleep_3_reduced <- lmer(
 
 
 model_treatment_gender_jenkins_sleep_4_reduced <- lmer(
-  jenkins_sleep_4 <- gender + hlab27status + age_at_prom +
+  jenkins_sleep_4 ~ gender + hlab27status + age_at_prom +
     diagnosis + treatment_order + last_known_smoking_status +
     last_known_vaping_status +  
     treatment_reclassified +
