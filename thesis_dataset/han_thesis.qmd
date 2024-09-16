@@ -996,9 +996,9 @@ prom_sheet_data$wpai_4 <- as.numeric(prom_sheet_data$wpai_4)
 prom_sheet_data$wpai_5 <- as.numeric(prom_sheet_data$wpai_5)
 prom_sheet_data$wpai_6 <- as.numeric(prom_sheet_data$wpai_6)
 
-# Presentism: wpai_5/10 x 100%
+# Presenteeism: wpai_5/10 x 100%
 # Condition: wpai_1 needs to be 1 and wpai_4 needs to be non-zero
-calc_presentism <- function(q1, q4, q5){
+calc_presenteeism <- function(q1, q4, q5){
   if (!is.na(q1) & !is.na(q4) & !is.na(q5) & q1 == 1 & q4 != 0) {
     return((q5 / 10) * 100)
   }
@@ -1041,7 +1041,7 @@ calc_daily_activity_impairment <- function(q6) {
 prom_sheet_data <- prom_sheet_data %>% 
   rowwise() %>%
   mutate(
-    presentism = calc_presentism(wpai_1, wpai_4, wpai_5),
+    presenteeism = calc_presenteeism(wpai_1, wpai_4, wpai_5),
     absenteeism = calc_absenteeism(wpai_1, wpai_2, wpai_3, wpai_4),
     wpl = calc_wpl(wpai_1, wpai_2, wpai_4, wpai_5),
     daily_activity_impairment = calc_daily_activity_impairment(wpai_6)
@@ -1224,10 +1224,10 @@ drug_colours <- c(
 )
 
 timeline_data <- combined_df %>%
-  select(ttas_id, date, basmi_score, basdai, basfi, patient_global, back_pain_at_night, back_pain_anytime, as_qol, facit, jenkins_sleep_1, jenkins_sleep_2, jenkins_sleep_3, jenkins_sleep_4, presentism, absenteeism, wpl, daily_activity_impairment, margolis) %>%
+  select(ttas_id, date, basmi_score, basdai, basfi, patient_global, back_pain_at_night, back_pain_anytime, as_qol, facit, jenkins_sleep_1, jenkins_sleep_2, jenkins_sleep_3, jenkins_sleep_4, presenteeism, absenteeism, wpl, daily_activity_impairment, margolis) %>%
   # select(ttas_id, date, basmi_score, basdai, basfi, as_qol) %>%
   # pivot_longer(cols = c(basmi_score, basdai, basfi, as_qol),
-  pivot_longer(cols = c(basmi_score, basdai, basfi, patient_global, back_pain_at_night, back_pain_anytime, as_qol, facit, jenkins_sleep_1, jenkins_sleep_2, jenkins_sleep_3, jenkins_sleep_4, presentism, absenteeism, wpl, daily_activity_impairment, margolis),
+  pivot_longer(cols = c(basmi_score, basdai, basfi, patient_global, back_pain_at_night, back_pain_anytime, as_qol, facit, jenkins_sleep_1, jenkins_sleep_2, jenkins_sleep_3, jenkins_sleep_4, presenteeism, absenteeism, wpl, daily_activity_impairment, margolis),
                names_to = "Measure",
                values_to = "Score")
 
@@ -1411,7 +1411,7 @@ combined_df_id_with_drugs_excluded <- combined_df_id_with_drugs %>% filter(!ttas
 
 # Select the columns to write to the csv
 combined_df_id_with_drugs_excluded <- combined_df_id_with_drugs_excluded %>%
-  select(ttas_id, gender, hlab27status, diagnosis, age_at_onset, age_at_diag, date, do_you_smoke, smoke_in_a_day, years_smoked, year_quit_smoking, ecigarettes, vape_in_a_day, years_vaped, year_quit_vaping, age_at_basmi, basmi_score, age_at_prom, basdai, basfi, patient_global, back_pain_at_night, back_pain_anytime, as_qol, jenkins_sleep_1, jenkins_sleep_2, jenkins_sleep_3, jenkins_sleep_4, presentism, absenteeism, wpl, daily_activity_impairment, facit, margolis, x3, stop_date, high_cost_drug_stop_reason, high_cost_drug_stop_reason_text, age_at_start_date, comment)
+  select(ttas_id, gender, hlab27status, diagnosis, age_at_onset, age_at_diag, date, do_you_smoke, smoke_in_a_day, years_smoked, year_quit_smoking, ecigarettes, vape_in_a_day, years_vaped, year_quit_vaping, age_at_basmi, basmi_score, age_at_prom, basdai, basfi, patient_global, back_pain_at_night, back_pain_anytime, as_qol, jenkins_sleep_1, jenkins_sleep_2, jenkins_sleep_3, jenkins_sleep_4, presenteeism, absenteeism, wpl, daily_activity_impairment, facit, margolis, x3, stop_date, high_cost_drug_stop_reason, high_cost_drug_stop_reason_text, age_at_start_date, comment)
 write_csv(combined_df_id_with_drugs_excluded, "combined_df_id_with_drugs_excluded.csv")
 
 
@@ -1506,7 +1506,7 @@ write_csv(combined_df_with_and_without_drugs, "test_combined_df_with_and_without
 #         "jenkins_sleep_4" = "Jenkins Sleep 4",
 #         "margolis" = "Margolis",
 #         "patient_global" = "Patient Global",
-#         "presentism" = "Presentism",
+#         "presenteeism" = "Presenteeism",
 #         "wpl" = "WPL"
 #       )) +
 #     ggtitle(paste0("Gender, HLAB27 Status, Diagnosis: ", patient_info))
@@ -2078,8 +2078,8 @@ write_csv(combined_df_with_and_without_drugs, "test_combined_df_with_and_without
 # # Create plot for WPAI only
 # 
 # timeline_data_wpai <- combined_df %>%
-#   select(ttas_id, date, presentism, absenteeism, wpl, daily_activity_impairment) %>%
-#   pivot_longer(cols = c(presentism, absenteeism, wpl, daily_activity_impairment),
+#   select(ttas_id, date, presenteeism, absenteeism, wpl, daily_activity_impairment) %>%
+#   pivot_longer(cols = c(presenteeism, absenteeism, wpl, daily_activity_impairment),
 #                names_to = "Measure",
 #                values_to = "Score")
 # 
@@ -2387,7 +2387,7 @@ write_csv(combined_df_with_and_without_drugs, "test_combined_df_with_and_without
 dataframe <- combined_df_with_and_without_drugs
 
 dataframe_sorted <- dataframe %>%
-  select(ttas_id, x3, gender, hlab27status, age_at_basmi, age_at_prom, diagnosis, date, stop_date, last_known_smoking_status, last_known_vaping_status, basmi_score, basdai, basfi, patient_global, back_pain_at_night, back_pain_anytime, as_qol, jenkins_sleep_1, jenkins_sleep_2, jenkins_sleep_3, jenkins_sleep_4, wpl, daily_activity_impairment, presentism, absenteeism, facit, margolis)
+  select(ttas_id, x3, gender, hlab27status, age_at_basmi, age_at_prom, diagnosis, date, stop_date, last_known_smoking_status, last_known_vaping_status, basmi_score, basdai, basfi, patient_global, back_pain_at_night, back_pain_anytime, as_qol, jenkins_sleep_1, jenkins_sleep_2, jenkins_sleep_3, jenkins_sleep_4, wpl, daily_activity_impairment, presenteeism, absenteeism, facit, margolis)
 
 dataframe_sorted$ttas_id <- as.factor(dataframe_sorted$ttas_id)
 dataframe_sorted$x3 <- as.factor(dataframe_sorted$x3)
@@ -2413,7 +2413,7 @@ dataframe_sorted$jenkins_sleep_3 <- as.numeric(dataframe_sorted$jenkins_sleep_3)
 dataframe_sorted$jenkins_sleep_4 <- as.numeric(dataframe_sorted$jenkins_sleep_4)
 dataframe_sorted$wpl <- as.numeric(dataframe_sorted$wpl)
 dataframe_sorted$daily_activity_impairment <- as.numeric(dataframe_sorted$daily_activity_impairment)
-dataframe_sorted$presentism <- as.numeric(dataframe_sorted$presentism)
+dataframe_sorted$presenteeism <- as.numeric(dataframe_sorted$presenteeism)
 dataframe_sorted$absenteeism <- as.numeric(dataframe_sorted$absenteeism)
 dataframe_sorted$facit <- as.numeric(dataframe_sorted$facit)
 dataframe_sorted$margolis <- as.numeric(dataframe_sorted$margolis)
@@ -4439,3 +4439,551 @@ anova(model_treatment_gender_back_pain_anytime_full,
       model_treatment_gender_back_pain_anytime_reduced)
 ```
 
+# AsQoL
+
+```{r, include=FALSE}
+# AsQoL only
+# General longitudinal analysis for those with and without drugs
+dataframe_sorted_asqol <- dataframe_sorted %>%
+  filter(!is.na(as_qol)) %>%
+    select(ttas_id, gender, hlab27status, age_at_prom, diagnosis, treatment, last_known_smoking_status, last_known_vaping_status, treatment_order, date, stop_date_for_period_date_format, overall_treatment_duration_in_days, treatment_window_weekly_time, time_in_days, time_in_weeks, time_in_months, time_in_years, as_qol)
+
+write.csv(dataframe_sorted_asqol, "temp_dataframe_after_dataframe_sorted_for_analysis_asqol.csv", row.names = FALSE)
+```
+
+```{r, include=FALSE}
+# Ignore if there is only one instance of row per treatment_period_unique_identifier in each ttas_id
+dataframe_sorted_asqol <- dataframe_sorted_asqol %>%
+  group_by(ttas_id, treatment_order) %>%
+  filter(n() > 1) %>% # Keep only groups with more than one row after filtering out NAs
+  ungroup()
+
+write.csv(dataframe_sorted_asqol, "temp_dataframe_after_dataframe_sorted_for_analysis_filtered.csv", row.names = FALSE)
+```
+
+```{r, include=FALSE}
+# Reclassify the drugs
+dataframe_sorted_and_reclassified_asqol <- dataframe_sorted_asqol %>%
+  mutate(treatment_reclassified = case_when(
+    treatment %in% c("Amgevita", "Humira", "Imraldi", "Yuflyma", "Benepali", "Enbrel", "Simponi", "Remicade", "Remsima", "Cimzia") ~ "Anti-TNF",
+    treatment %in% c("Cosentyx", "Taltz", "Bimzelx") ~ "Anti-IL17",
+    treatment %in% c("Rinvoq", "Xeljanz") ~ "JAK Inhibitor",
+    treatment %in% c("Mabthera", "RoActemra", "Stelara", "Otezla") ~ "drop",
+    treatment == "standard_non-high_cost_drug_treatment" ~ "Standard Non-High Cost Drug Treatment",
+    TRUE ~ treatment  # Keep original treatment value if no match
+  ))
+
+write.csv(dataframe_sorted_and_reclassified_asqol, "temp_dataframe_after_dataframe_sorted_for_analysis_filtered_with_treatment_category_asqol.csv", row.names = FALSE)
+
+# If diagnosis is "Undifferentiated spondyloarthritis (uSpA) (17 ttas_id)" and "Axial SpA- No subgroup" (1 ttas_id), remove it as most of them are on standard treatment and is their representation is limited
+dataframe_sorted_and_reclassified_asqol <- dataframe_sorted_and_reclassified_asqol %>%
+  filter(diagnosis != "Undifferentiated spondyloarthritis (uSpA)" & diagnosis != "Axial SpA- No subgroup")
+
+write.csv(dataframe_sorted_and_reclassified_asqol, "temp_dataframe_after_dataframe_sorted_for_analysis_filtered_with_treatment_category_and_diagnosis_asqol.csv", row.names = FALSE)
+
+# If treatment_reclassified is "drop", remove the row
+dataframe_sorted_and_reclassified_asqol <- dataframe_sorted_and_reclassified_asqol %>%
+  filter(treatment_reclassified != "drop")
+```
+
+```{r, include=FALSE}
+# Ensure that dataframe_sorted_and_reclassified_asqol has the correct data types
+dataframe_sorted_and_reclassified_asqol$ttas_id <- as.factor(dataframe_sorted_and_reclassified_asqol$ttas_id)
+dataframe_sorted_and_reclassified_asqol$gender <- as.factor(dataframe_sorted_and_reclassified_asqol$gender)
+dataframe_sorted_and_reclassified_asqol$hlab27status <- as.factor(dataframe_sorted_and_reclassified_asqol$hlab27status)
+dataframe_sorted_and_reclassified_asqol$age_at_prom <- as.numeric(dataframe_sorted_and_reclassified_asqol$age_at_prom)
+dataframe_sorted_and_reclassified_asqol$diagnosis <- as.factor(dataframe_sorted_and_reclassified_asqol$diagnosis)
+dataframe_sorted_and_reclassified_asqol$treatment <- as.factor(dataframe_sorted_and_reclassified_asqol$treatment)
+dataframe_sorted_and_reclassified_asqol$treatment_order <- as.factor(dataframe_sorted_and_reclassified_asqol$treatment_order)
+dataframe_sorted_and_reclassified_asqol$treatment_reclassified <- as.factor(dataframe_sorted_and_reclassified_asqol$treatment_reclassified)
+dataframe_sorted_and_reclassified_asqol$date <- as.Date(dataframe_sorted_and_reclassified_asqol$date)
+dataframe_sorted_and_reclassified_asqol$stop_date_for_period_date_format <- as.Date(dataframe_sorted_and_reclassified_asqol$stop_date_for_period_date_format)
+dataframe_sorted_and_reclassified_asqol$overall_treatment_duration_in_days <- as.numeric(dataframe_sorted_and_reclassified_asqol$overall_treatment_duration_in_days)
+dataframe_sorted_and_reclassified_asqol$treatment_window_weekly_time <- as.numeric(dataframe_sorted_and_reclassified_asqol$treatment_window_weekly_time)
+dataframe_sorted_and_reclassified_asqol$as_qol <- as.numeric(dataframe_sorted_and_reclassified_asqol$as_qol)
+dataframe_sorted_and_reclassified_asqol$time_in_days <- as.numeric(dataframe_sorted_and_reclassified_asqol$time_in_days)
+dataframe_sorted_and_reclassified_asqol$time_in_weeks <- as.numeric(dataframe_sorted_and_reclassified_asqol$time_in_weeks)
+dataframe_sorted_and_reclassified_asqol$time_in_months <- as.numeric(dataframe_sorted_and_reclassified_asqol$time_in_months)
+dataframe_sorted_and_reclassified_asqol$time_in_years <- as.numeric(dataframe_sorted_and_reclassified_asqol$time_in_years)
+dataframe_sorted_and_reclassified_asqol$last_known_smoking_status <- as.factor(dataframe_sorted_and_reclassified_asqol$last_known_smoking_status)
+dataframe_sorted_and_reclassified_asqol$last_known_vaping_status <- as.factor(dataframe_sorted_and_reclassified_asqol$last_known_vaping_status)
+```
+
+```{r, include=FALSE}
+# Make sure that the reference level for treatment_reclassified is
+# "Standard Non-High Cost Drug Treatment"
+dataframe_sorted_and_reclassified_asqol$treatment_reclassified <-
+  relevel(dataframe_sorted_and_reclassified_asqol$treatment_reclassified,
+          ref = "Standard Non-High Cost Drug Treatment")
+
+# Make sure that the reference level for hlba27status is "undiagnosed"
+dataframe_sorted_and_reclassified_asqol$hlab27status <-
+  relevel(dataframe_sorted_and_reclassified_asqol$hlab27status,
+          ref = "undiagnosed")
+
+# Make sure that the reference level for diagnosis is "Axial SpA- nr-axSpA"
+dataframe_sorted_and_reclassified_asqol$diagnosis <-
+  relevel(dataframe_sorted_and_reclassified_asqol$diagnosis,
+          ref = "Axial SpA- AS")
+
+# Make sure that the reference level for treatment_order is 1
+dataframe_sorted_and_reclassified_asqol$treatment_order <-
+  relevel(dataframe_sorted_and_reclassified_asqol$treatment_order,
+          ref = 1)
+
+# Make sure that the reference level for last_known_smoking_status is
+# "no information"
+dataframe_sorted_and_reclassified_asqol$last_known_smoking_status <-
+  relevel(dataframe_sorted_and_reclassified_asqol$last_known_smoking_status,
+          ref = "no information")
+
+# Make sure that the reference level for last_known_vaping_status is
+# "no information"
+dataframe_sorted_and_reclassified_asqol$last_known_vaping_status <-
+  relevel(dataframe_sorted_and_reclassified_asqol$last_known_vaping_status,
+          ref = "no information")
+```
+
+# lme4 code for treatment and diagnosis: AsQoL
+
+```{r, include=TRUE}
+model_treatment_diagnosis_asqol_full <- lmer(
+  as_qol ~ gender + hlab27status + age_at_prom +
+    diagnosis + treatment_order + last_known_smoking_status +
+    last_known_vaping_status +  
+    treatment_reclassified * diagnosis +
+    time_in_years + (time_in_years | ttas_id),
+                     data = dataframe_sorted_and_reclassified_asqol,
+                     control = lmerControl(optimizer = "bobyqa",
+                                           optCtrl = list(maxfun = 2e5)))
+```
+
+```{r, include=TRUE}
+model_treatment_diagnosis_asqol_reduced <- lmer(
+  as_qol ~ gender + hlab27status + age_at_prom +
+    diagnosis + treatment_order + last_known_smoking_status +
+    last_known_vaping_status +  
+    treatment_reclassified +
+    time_in_years + (time_in_years | ttas_id),
+                      data = dataframe_sorted_and_reclassified_asqol,
+                      control = lmerControl(optimizer = "bobyqa",
+                                            optCtrl = list(maxfun = 2e5)))
+```
+
+```{r, include=TRUE}
+print(summary(model_treatment_diagnosis_asqol_full, corr = FALSE))
+```
+
+```{r, include=TRUE}
+print(summary(model_treatment_diagnosis_asqol_reduced, corr = FALSE))
+```
+
+```{r, include=TRUE}
+anova(model_treatment_diagnosis_asqol_full,
+      model_treatment_diagnosis_asqol_reduced)
+```
+
+# lme4 code for treatment and gender: AsQoL
+
+```{r, include=TRUE}
+model_treatment_gender_asqol_full <- lmer(
+  as_qol ~ gender + hlab27status + age_at_prom +
+    diagnosis + treatment_order + last_known_smoking_status +
+    last_known_vaping_status +  
+    treatment_reclassified * diagnosis +
+    time_in_years + (time_in_years | ttas_id),
+                     data = dataframe_sorted_and_reclassified_asqol,
+                     control = lmerControl(optimizer = "bobyqa",
+                                           optCtrl = list(maxfun = 2e5)))
+```
+
+```{r, include=TRUE}
+model_treatment_gender_asqol_reduced <- lmer(
+  as_qol ~ gender + hlab27status + age_at_prom +
+    diagnosis + treatment_order + last_known_smoking_status +
+    last_known_vaping_status +  
+    treatment_reclassified +
+    time_in_years + (time_in_years | ttas_id),
+                      data = dataframe_sorted_and_reclassified_asqol,
+                      control = lmerControl(optimizer = "bobyqa",
+                                            optCtrl = list(maxfun = 2e5)))
+```
+
+```{r, include=TRUE}
+print(summary(model_treatment_gender_asqol_full, corr = FALSE))
+```
+
+```{r, include=TRUE}
+print(summary(model_treatment_gender_asqol_reduced, corr = FALSE))
+```
+
+```{r, include=TRUE}
+anova(model_treatment_gender_asqol_full,
+      model_treatment_gender_asqol_reduced)
+```
+
+# Jenkins Sleep
+
+# WPL
+
+```{r, include=FALSE}
+# WPL only
+# General longitudinal analysis for those with and without drugs
+dataframe_sorted_wpl <- dataframe_sorted %>%
+  filter(!is.na(wpl)) %>%
+      select(ttas_id, gender, hlab27status, age_at_prom, diagnosis, treatment, last_known_smoking_status, last_known_vaping_status, treatment_order, date, stop_date_for_period_date_format, overall_treatment_duration_in_days, treatment_window_weekly_time, time_in_days, time_in_weeks, time_in_months, time_in_years, wpl)
+
+write.csv(dataframe_sorted_wpl, "temp_dataframe_after_dataframe_sorted_for_analysis_wpl.csv", row.names = FALSE)
+```
+
+```{r, include=FALSE}
+# Ignore if there is only one instance of row per treatment_period_unique_identifier in each ttas_id
+dataframe_sorted_wpl <- dataframe_sorted_wpl %>%
+  group_by(ttas_id, treatment_order) %>%
+  filter(n() > 1) %>% # Keep only groups with more than one row after filtering out NAs
+  ungroup()
+
+write.csv(dataframe_sorted_wpl, "temp_dataframe_after_dataframe_sorted_for_analysis_filtered.csv", row.names = FALSE)
+
+# Reclassify the drugs
+dataframe_sorted_and_reclassified_wpl <- dataframe_sorted_wpl %>%
+  mutate(treatment_reclassified = case_when(
+    treatment %in% c("Amgevita", "Humira", "Imraldi", "Yuflyma", "Benepali", "Enbrel", "Simponi", "Remicade", "Remsima", "Cimzia") ~ "Anti-TNF",
+    treatment %in% c("Cosentyx", "Taltz", "Bimzelx") ~ "Anti-IL17",
+    treatment %in% c("Rinvoq", "Xeljanz") ~ "JAK Inhibitor",
+    treatment %in% c("Mabthera", "RoActemra", "Stelara", "Otezla") ~ "drop",
+    treatment == "standard_non-high_cost_drug_treatment" ~ "Standard Non-High Cost Drug Treatment",
+    TRUE ~ treatment  # Keep original treatment value if no match
+  ))
+
+write.csv(dataframe_sorted_and_reclassified_wpl, "temp_dataframe_after_dataframe_sorted_for_analysis_filtered_with_treatment_category_wpl.csv", row.names = FALSE)
+
+# If diagnosis is "Undifferentiated spondyloarthritis (uSpA) (17 ttas_id)" and "Axial SpA- No subgroup" (1 ttas_id), remove it as most of them are on standard treatment and is their representation is limited
+dataframe_sorted_and_reclassified_wpl <- dataframe_sorted_and_reclassified_wpl %>%
+  filter(diagnosis != "Undifferentiated spondyloarthritis (uSpA)" & diagnosis != "Axial SpA- No subgroup")
+
+write.csv(dataframe_sorted_and_reclassified_wpl, "temp_dataframe_after_dataframe_sorted_for_analysis_filtered_with_treatment_category_and_diagnosis_wpl.csv", row.names = FALSE)
+
+# If treatment_reclassified is "drop", remove the row
+dataframe_sorted_and_reclassified_wpl <- dataframe_sorted_and_reclassified_wpl %>%
+  filter(treatment_reclassified != "drop")
+```
+
+```{r, include=FALSE}
+# Ensure that dataframe_sorted_and_reclassified_wpl has the correct data types
+dataframe_sorted_and_reclassified_wpl$ttas_id <- as.factor(dataframe_sorted_and_reclassified_wpl$ttas_id)
+dataframe_sorted_and_reclassified_wpl$gender <- as.factor(dataframe_sorted_and_reclassified_wpl$gender)
+dataframe_sorted_and_reclassified_wpl$hlab27status <- as.factor(dataframe_sorted_and_reclassified_wpl$hlab27status)
+dataframe_sorted_and_reclassified_wpl$age_at_prom <- as.numeric(dataframe_sorted_and_reclassified_wpl$age_at_prom)
+dataframe_sorted_and_reclassified_wpl$diagnosis <- as.factor(dataframe_sorted_and_reclassified_wpl$diagnosis)
+dataframe_sorted_and_reclassified_wpl$treatment <- as.factor(dataframe_sorted_and_reclassified_wpl$treatment)
+dataframe_sorted_and_reclassified_wpl$treatment_order <- as.factor(dataframe_sorted_and_reclassified_wpl$treatment_order)
+dataframe_sorted_and_reclassified_wpl$treatment_reclassified <- as.factor(dataframe_sorted_and_reclassified_wpl$treatment_reclassified)
+dataframe_sorted_and_reclassified_wpl$date <- as.Date(dataframe_sorted_and_reclassified_wpl$date)
+dataframe_sorted_and_reclassified_wpl$stop_date_for_period_date_format <- as.Date(dataframe_sorted_and_reclassified_wpl$stop_date_for_period_date_format)
+dataframe_sorted_and_reclassified_wpl$overall_treatment_duration_in_days <- as.numeric(dataframe_sorted_and_reclassified_wpl$overall_treatment_duration_in_days)
+dataframe_sorted_and_reclassified_wpl$treatment_window_weekly_time <- as.numeric(dataframe_sorted_and_reclassified_wpl$treatment_window_weekly_time)
+dataframe_sorted_and_reclassified_wpl$wpl <- as.numeric(dataframe_sorted_and_reclassified_wpl$wpl)
+dataframe_sorted_and_reclassified_wpl$time_in_days <- as.numeric(dataframe_sorted_and_reclassified_wpl$time_in_days)
+dataframe_sorted_and_reclassified_wpl$time_in_weeks <- as.numeric(dataframe_sorted_and_reclassified_wpl$time_in_weeks)
+dataframe_sorted_and_reclassified_wpl$time_in_months <- as.numeric(dataframe_sorted_and_reclassified_wpl$time_in_months)
+dataframe_sorted_and_reclassified_wpl$time_in_years <- as.numeric(dataframe_sorted_and_reclassified_wpl$time_in_years)
+dataframe_sorted_and_reclassified_wpl$last_known_smoking_status <- as.factor(dataframe_sorted_and_reclassified_wpl$last_known_smoking_status)
+dataframe_sorted_and_reclassified_wpl$last_known_vaping_status <- as.factor(dataframe_sorted_and_reclassified_wpl$last_known_vaping_status)
+```
+
+```{r, include=FALSE}
+# Make sure that the reference level for treatment_reclassified is
+# "Standard Non-High Cost Drug Treatment"
+dataframe_sorted_and_reclassified_wpl$treatment_reclassified <-
+  relevel(dataframe_sorted_and_reclassified_wpl$treatment_reclassified,
+          ref = "Standard Non-High Cost Drug Treatment")
+
+# Make sure that the reference level for hlba27status is "undiagnosed"
+dataframe_sorted_and_reclassified_wpl$hlab27status <-
+  relevel(dataframe_sorted_and_reclassified_wpl$hlab27status,
+          ref = "undiagnosed")
+
+# Make sure that the reference level for diagnosis is "Axial SpA- nr-axSpA"
+dataframe_sorted_and_reclassified_wpl$diagnosis <-
+  relevel(dataframe_sorted_and_reclassified_wpl$diagnosis,
+          ref = "Axial SpA- AS")
+
+# Make sure that the reference level for treatment_order is 1
+dataframe_sorted_and_reclassified_wpl$treatment_order <-
+  relevel(dataframe_sorted_and_reclassified_wpl$treatment_order,
+          ref = 1)
+
+# Make sure that the reference level for last_known_smoking_status is
+# "no information"
+dataframe_sorted_and_reclassified_wpl$last_known_smoking_status <-
+  relevel(dataframe_sorted_and_reclassified_wpl$last_known_smoking_status,
+          ref = "no information")
+
+# Make sure that the reference level for last_known_vaping_status is
+# "no information"
+dataframe_sorted_and_reclassified_wpl$last_known_vaping_status <-
+  relevel(dataframe_sorted_and_reclassified_wpl$last_known_vaping_status,
+          ref = "no information")
+```
+
+# lme4 code for treatment and diagnosis: WPL
+
+```{r, include=TRUE}
+model_treatment_diagnosis_wpl_full <- lmer(
+  wpl ~ gender + hlab27status + age_at_prom +
+    diagnosis + treatment_order + last_known_smoking_status +
+    last_known_vaping_status +  
+    treatment_reclassified * diagnosis +
+    time_in_years + (time_in_years | ttas_id),
+                     data = dataframe_sorted_and_reclassified_wpl,
+                     control = lmerControl(optimizer = "bobyqa",
+                                           optCtrl = list(maxfun = 2e5)))
+```
+
+```{r, include=TRUE}
+model_treatment_diagnosis_wpl_reduced <- lmer(
+  wpl ~ gender + hlab27status + age_at_prom +
+    diagnosis + treatment_order + last_known_smoking_status +
+    last_known_vaping_status +  
+    treatment_reclassified +
+    time_in_years + (time_in_years | ttas_id),
+                      data = dataframe_sorted_and_reclassified_wpl,
+                      control = lmerControl(optimizer = "bobyqa",
+                                            optCtrl = list(maxfun = 2e5)))
+```
+
+```{r, include=TRUE}
+print(summary(model_treatment_diagnosis_wpl_full, corr = FALSE))
+```
+
+```{r, include=TRUE}
+print(summary(model_treatment_diagnosis_wpl_reduced, corr = FALSE))
+```
+
+```{r, include=TRUE}
+anova(model_treatment_diagnosis_wpl_full,
+      model_treatment_diagnosis_wpl_reduced)
+```
+
+# lme4 code for treatment and gender: WPL
+
+```{r, include=TRUE}
+model_treatment_gender_wpl_full <- lmer(
+  wpl ~ gender + hlab27status + age_at_prom +
+    diagnosis + treatment_order + last_known_smoking_status +
+    last_known_vaping_status +  
+    treatment_reclassified * gender +
+    time_in_years + (time_in_years | ttas_id),
+                     data = dataframe_sorted_and_reclassified_wpl,
+                     control = lmerControl(optimizer = "bobyqa",
+                                           optCtrl = list(maxfun = 2e5)))
+```
+
+```{r, include=TRUE}
+model_treatment_gender_wpl_reduced <- lmer(
+  wpl ~ gender + hlab27status + age_at_prom +
+    diagnosis + treatment_order + last_known_smoking_status +
+    last_known_vaping_status +  
+    treatment_reclassified +
+    time_in_years + (time_in_years | ttas_id),
+                      data = dataframe_sorted_and_reclassified_wpl,
+                      control = lmerControl(optimizer = "bobyqa",
+                                            optCtrl = list(maxfun = 2e5)))
+```
+
+```{r, include=TRUE}
+print(summary(model_treatment_gender_wpl_full, corr = FALSE)))
+```
+
+```{r, include=TRUE}
+print(summary(model_treatment_gender_wpl_reduced, corr = FALSE))
+```
+
+```{r, include=TRUE}
+anova(model_treatment_gender_wpl_full,
+      model_treatment_gender_wpl_reduced)
+```
+
+# Daily Activity Impairment
+
+```{r, include=FALSE}
+# Daily Activity only
+# General longitudinal analysis for those with and without drugs
+dataframe_sorted_daily_activity <- dataframe_sorted %>%
+  filter(!is.na(daily_activity)) %>%
+        select(ttas_id, gender, hlab27status, age_at_prom, diagnosis, treatment, last_known_smoking_status, last_known_vaping_status, treatment_order, date, stop_date_for_period_date_format, overall_treatment_duration_in_days, treatment_window_weekly_time, time_in_days, time_in_weeks, time_in_months, time_in_years, daily_activity_impairment)
+
+write.csv(dataframe_sorted_daily_activity, "temp_dataframe_after_dataframe_sorted_for_analysis_daily_activity.csv", row.names = FALSE)
+```
+
+```{r, include=FALSE}
+# Ignore if there is only one instance of row per treatment_period_unique_identifier in each ttas_id
+dataframe_sorted_daily_activity <- dataframe_sorted_daily_activity %>%
+  group_by(ttas_id, treatment_order) %>%
+  filter(n() > 1) %>% # Keep only groups with more than one row after filtering out NAs
+  ungroup()
+
+write.csv(dataframe_sorted_daily_activity, "temp_dataframe_after_dataframe_sorted_for_analysis_filtered.csv", row.names = FALSE)
+
+# Reclassify the drugs
+dataframe_sorted_and_reclassified_daily_activity <- dataframe_sorted_daily_activity %>%
+  mutate(treatment_reclassified = case_when(
+    treatment %in% c("Amgevita", "Humira", "Imraldi", "Yuflyma", "Benepali", "Enbrel", "Simponi", "Remicade", "Remsima", "Cimzia") ~ "Anti-TNF",
+    treatment %in% c("Cosentyx", "Taltz", "Bimzelx") ~ "Anti-IL17",
+    treatment %in% c("Rinvoq", "Xeljanz") ~ "JAK Inhibitor",
+    treatment %in% c("Mabthera", "RoActemra", "Stelara", "Otezla") ~ "drop",
+    treatment == "standard_non-high_cost_drug_treatment" ~ "Standard Non-High Cost Drug Treatment",
+    TRUE ~ treatment  # Keep original treatment value if no match
+  ))
+
+write.csv(dataframe_sorted_and_reclassified_daily_activity, "temp_dataframe_after_dataframe_sorted_for_analysis_filtered_with_treatment_category_daily_activity.csv", row.names = FALSE)
+
+# If diagnosis is "Undifferentiated spondyloarthritis (uSpA) (17 ttas_id)" and "Axial SpA- No subgroup" (1 ttas_id), remove it as most of them are on standard treatment and is their representation is limited
+dataframe_sorted_and_reclassified_daily_activity <- dataframe_sorted_and_reclassified_daily_activity %>%
+  filter(diagnosis != "Undifferentiated spondyloarthritis (uSpA)" & diagnosis != "Axial SpA- No subgroup")
+
+write.csv(dataframe_sorted_and_reclassified_daily_activity, "temp_dataframe_after_dataframe_sorted_for_analysis_filtered_with_treatment_category_and_diagnosis_daily_activity.csv", row.names = FALSE)
+
+# If treatment_reclassified is "drop", remove the row
+dataframe_sorted_and_reclassified_daily_activity <- dataframe_sorted_and_reclassified_daily_activity %>%
+  filter(treatment_reclassified != "drop")
+```
+
+```{r, include=FALSE}
+# Ensure that dataframe_sorted_and_reclassified_daily_activity has the correct data types
+dataframe_sorted_and_reclassified_daily_activity$ttas_id <- as.factor(dataframe_sorted_and_reclassified_daily_activity$ttas_id)
+dataframe_sorted_and_reclassified_daily_activity$gender <- as.factor(dataframe_sorted_and_reclassified_daily_activity$gender)
+dataframe_sorted_and_reclassified_daily_activity$hlab27status <- as.factor(dataframe_sorted_and_reclassified_daily_activity$hlab27status)
+dataframe_sorted_and_reclassified_daily_activity$age_at_prom <- as.numeric(dataframe_sorted_and_reclassified_daily_activity$age_at_prom)
+dataframe_sorted_and_reclassified_daily_activity$diagnosis <- as.factor(dataframe_sorted_and_reclassified_daily_activity$diagnosis)
+dataframe_sorted_and_reclassified_daily_activity$treatment <- as.factor(dataframe_sorted_and_reclassified_daily_activity$treatment)
+dataframe_sorted_and_reclassified_daily_activity$treatment_order <- as.factor(dataframe_sorted_and_reclassified_daily_activity$treatment_order)
+dataframe_sorted_and_reclassified_daily_activity$treatment_reclassified <- as.factor(dataframe_sorted_and_reclassified_daily_activity$treatment_reclassified)
+dataframe_sorted_and_reclassified_daily_activity$date <- as.Date(dataframe_sorted_and_reclassified_daily_activity$date)
+dataframe_sorted_and_reclassified_daily_activity$stop_date_for_period_date_format <- as.Date(dataframe_sorted_and_reclassified_daily_activity$stop_date_for_period_date_format)
+dataframe_sorted_and_reclassified_daily_activity$overall_treatment_duration_in_days <- as.numeric(dataframe_sorted_and_reclassified_daily_activity$overall_treatment_duration_in_days)
+dataframe_sorted_and_reclassified_daily_activity$treatment_window_weekly_time <- as.numeric(dataframe_sorted_and_reclassified_daily_activity$treatment_window_weekly_time)
+dataframe_sorted_and_reclassified_daily_activity$daily_activity_impairment <- as.numeric(dataframe_sorted_and_reclassified_daily_activity$daily_activity_impairment)
+dataframe_sorted_and_reclassified_daily_activity$time_in_days <- as.numeric(dataframe_sorted_and_reclassified_daily_activity$time_in_days)
+dataframe_sorted_and_reclassified_daily_activity$time_in_weeks <- as.numeric(dataframe_sorted_and_reclassified_daily_activity$time_in_weeks)
+dataframe_sorted_and_reclassified_daily_activity$time_in_months <- as.numeric(dataframe_sorted_and_reclassified_daily_activity$time_in_months)
+dataframe_sorted_and_reclassified_daily_activity$time_in_years <- as.numeric(dataframe_sorted_and_reclassified_daily_activity$time_in_years)
+dataframe_sorted_and_reclassified_daily_activity$last_known_smoking_status <- as.factor(dataframe_sorted_and_reclassified_daily_activity$last_known_smoking_status)
+dataframe_sorted_and_reclassified_daily_activity$last_known_vaping_status <- as.factor(dataframe_sorted_and_reclassified_daily_activity$last_known_vaping_status)
+```
+
+```{r, include=FALSE}
+# Make sure that the reference level for treatment_reclassified is
+# "Standard Non-High Cost Drug Treatment"
+dataframe_sorted_and_reclassified_daily_activity$treatment_reclassified <-
+  relevel(dataframe_sorted_and_reclassified_daily_activity$treatment_reclassified,
+          ref = "Standard Non-High Cost Drug Treatment")
+
+# Make sure that the reference level for hlba27status is "undiagnosed"
+dataframe_sorted_and_reclassified_daily_activity$hlab27status <-
+  relevel(dataframe_sorted_and_reclassified_daily_activity$hlab27status,
+          ref = "undiagnosed")
+
+# Make sure that the reference level for diagnosis is "Axial SpA- nr-axSpA"
+dataframe_sorted_and_reclassified_daily_activity$diagnosis <-
+  relevel(dataframe_sorted_and_reclassified_daily_activity$diagnosis,
+          ref = "Axial SpA- AS")
+
+# Make sure that the reference level for treatment_order is 1
+dataframe_sorted_and_reclassified_daily_activity$treatment_order <-
+  relevel(dataframe_sorted_and_reclassified_daily_activity$treatment_order,
+          ref = 1)
+
+# Make sure that the reference level for last_known_smoking_status is
+# "no information"
+dataframe_sorted_and_reclassified_daily_activity$last_known_smoking_status <-
+  relevel(dataframe_sorted_and_reclassified_daily_activity$last_known_smoking_status,
+          ref = "no information")
+
+# Make sure that the reference level for last_known_vaping_status is
+# "no information"
+dataframe_sorted_and_reclassified_daily_activity$last_known_vaping_status <-
+  relevel(dataframe_sorted_and_reclassified_daily_activity$last_known_vaping_status,
+          ref = "no information")
+```
+
+# lme4 code for treatment and diagnosis: Daily Activity Impairment
+
+```{r, include=TRUE}
+model_treatment_diagnosis_daily_activity_impairment_full <- lmer(
+  daily_activity_impairment ~ gender + hlab27status + age_at_prom +
+    diagnosis + treatment_order + last_known_smoking_status +
+    last_known_vaping_status +  
+    treatment_reclassified * diagnosis +
+    time_in_years + (time_in_years | ttas_id),
+                     data = dataframe_sorted_and_reclassified_daily_activity,
+                     control = lmerControl(optimizer = "bobyqa",
+                                           optCtrl = list(maxfun = 2e5)))
+```
+
+```{r, include=TRUE}
+model_treatment_diagnosis_daily_activity_impairment_reduced <- lmer(
+  daily_activity_impairment ~ gender + hlab27status + age_at_prom +
+    diagnosis + treatment_order + last_known_smoking_status +
+    last_known_vaping_status +  
+    treatment_reclassified +
+    time_in_years + (time_in_years | ttas_id),
+                      data = dataframe_sorted_and_reclassified_daily_activity,
+                      control = lmerControl(optimizer = "bobyqa",
+                                            optCtrl = list(maxfun = 2e5)))
+```
+
+```{r, include=TRUE}
+print(summary(model_treatment_diagnosis_daily_activity_impairment_full, corr = FALSE))
+```
+
+```{r, include=TRUE}
+print(summary(model_treatment_diagnosis_daily_activity_impairment_reduced, corr = FALSE))
+```
+
+```{r, include=TRUE}
+anova(model_treatment_diagnosis_daily_activity_impairment_full,
+      model_treatment_diagnosis_daily_activity_impairment_reduced)
+```
+
+# lme4 code for treatment and gender: Daily Activity Impairment
+
+```{r, include=TRUE}
+model_treatment_gender_daily_activity_impairment_full <- lmer(
+  daily_activity_impairment ~ gender + hlab27status + age_at_prom +
+    diagnosis + treatment_order + last_known_smoking_status +
+    last_known_vaping_status +  
+    treatment_reclassified * gender +
+    time_in_years + (time_in_years | ttas_id),
+                     data = dataframe_sorted_and_reclassified_daily_activity,
+                     control = lmerControl(optimizer = "bobyqa",
+                                           optCtrl = list(maxfun = 2e5)))
+```
+
+```{r, include=TRUE}
+model_treatment_gender_daily_activity_impairment_reduced <- lmer(
+  daily_activity_impairment ~ gender + hlab27status + age_at_prom +
+    diagnosis + treatment_order + last_known_smoking_status +
+    last_known_vaping_status +  
+    treatment_reclassified +
+    time_in_years + (time_in_years | ttas_id),
+                      data = dataframe_sorted_and_reclassified_daily_activity,
+                      control = lmerControl(optimizer = "bobyqa",
+                                            optCtrl = list(maxfun = 2e5)))
+```
+
+```{r, include=TRUE}
+print(summary(model_treatment_daily_activity_impairment_full, corr = FALSE))
+```
+
+```{r, include=TRUE}
+print(summary(model_treatment_daily_activity_impairment_reduced, corr = FALSE))
+```
+
+```{r, include=TRUE}
+anova(model_treatment_daily_activity_impairment_full,
+      model_treatment_daily_activity_impairment_reduced)
+```
+
+# Presenteeism
