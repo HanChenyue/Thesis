@@ -3125,6 +3125,31 @@ print(filtered_ttas_id_more_than_7)
 print(filtered_ttas_id_more_than_8)
 ```
 
+```{r}
+# Print the all rows with ttas_id shown in filter_ttas_id_more_than_8
+filtered_ttas_id_more_than_8_characteristics <- demographics_sheet_data %>%
+  filter(ttas_id %in% filtered_ttas_id_more_than_8$ttas_id)
+
+print(filtered_ttas_id_more_than_8_characteristics)
+```
+
+```{r}
+# Print the all rows with ttas_id shown in filter_ttas_id_more_than_7
+filtered_ttas_id_more_than_7_characteristics <- demographics_sheet_data %>%
+  filter(ttas_id %in% filtered_ttas_id_more_than_7$ttas_id)
+
+print(filtered_ttas_id_more_than_7_characteristics)
+```
+
+```{r}
+# Print the all rows with ttas_id shown in filter_ttas_id_more_than_6
+filtered_ttas_id_more_than_6_characteristics <- demographics_sheet_data %>%
+  filter(ttas_id %in% filtered_ttas_id_more_than_6$ttas_id)
+
+print(filtered_ttas_id_more_than_6_characteristics)
+```
+  
+
 ```{r, include=FALSE}
 # # Run an lmer model for dataframe_sorted_and_reclassified_basmi
 # model_1 <- lmer(basmi_score ~ gender + hlab27status + age_at_basmi + diagnosis + treatment_reclassified + treatment_window_weekly_time + (1 | ttas_id/treatment_order), data = dataframe_sorted_and_reclassified_basmi)
