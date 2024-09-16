@@ -3012,7 +3012,7 @@ dataframe_sorted_and_reclassified_basmi <- dataframe_sorted_and_reclassified_bas
 write.csv(dataframe_sorted_and_reclassified_basmi, "temp_dataframe_after_dataframe_sorted_for_analysis_filtered_with_treatment_category_and_diagnosis_and_treatment_reclassified.csv", row.names = FALSE)
 ```
 
-```{r, fig.height = 8, include=FALSE}
+```{r, include=TRUE, fig.width= 15, fig.height = 15}
 data_tt1 <- dataframe_sorted_and_reclassified_basmi %>% 
   filter(ttas_id %in% c(1, 2, 3, 4))
 
@@ -3036,18 +3036,30 @@ ggplot(data_tt1, aes(x = time_in_years, y = basmi_score,
                      colour = interaction(factor(ttas_id),
                                           factor(treatment_order)
                                           ))) +
-  geom_point(alpha = 0.5) +
+  geom_point(alpha = 0.75) +
   geom_line(alpha = 0.75) +
   labs(title = "BASMI Score Over Time by Treatment Periods for Patient 1 to Patient 4", 
        # x = "Time (Weeks)",
        # x = "Time (Days)",
        # x = "Time (Months)",
-       # x = "Time (Years)"
+       x = "Time (Years)",
        y = "BASMI Score", 
        colour = "Patient and Treatment Period") +
-  facet_wrap(~ttas_id) +
+  facet_wrap(~ttas_id, ncol = 1) +
   scale_colour_manual(labels = custom_labels, values = scales::hue_pal()(length(custom_labels))) +
-  theme(legend.position = "bottom")
+  theme(legend.position = "bottom",
+        text = element_text(size = 20),          # Overall text size
+        plot.title = element_text(size = 22),    # Title size
+        axis.title = element_text(size = 18),    # Axis title size
+        axis.text = element_text(size = 16),     # Axis text size
+        legend.box = "horizontal",               # Legend box orientation
+        legend.text = element_text(size = 10),   # Legend text size
+        legend.title = element_text(size = 12)   # Legend title size
+        )
+        
+
+# Save image with size 15 x 15
+ggplot2::ggsave("basmi_score_over_time_by_treatment_periods_for_patient_1_to_patient_4.png", width = 15, height = 15)
 ```
 
 ```{r, include=FALSE}
@@ -3072,7 +3084,46 @@ dataframe_sorted_and_reclassified_basmi$time_in_years <- as.numeric(dataframe_so
 dataframe_sorted_and_reclassified_basmi$last_known_smoking_status <- as.factor(dataframe_sorted_and_reclassified_basmi$last_known_smoking_status)
 dataframe_sorted_and_reclassified_basmi$last_known_vaping_status <- as.factor(dataframe_sorted_and_reclassified_basmi$last_known_vaping_status)
 ```
+# Filter out those with treatment_order 
+```{r, include=TRUE}
+# Filter rows where treatment_order > 3 and select unique ttas_id
+filtered_ttas_id_more_than_3 <- dataframe_sorted_and_reclassified_basmi %>%
+  filter(treatment_order %in% as.character(3:15)) %>%
+  distinct(ttas_id)                  # Select unique ttas_id
 
+# Filter out those with treatment_order > 4 and select unique ttas_id
+filtered_ttas_id_more_than_4 <- dataframe_sorted_and_reclassified_basmi %>%
+  filter(treatment_order %in% as.character(4:15)) %>%
+  distinct(ttas_id)                  # Select unique ttas_id
+
+# Filter out those with treatment_order > 5 and select unique ttas_id
+filtered_ttas_id_more_than_5 <- dataframe_sorted_and_reclassified_basmi %>%
+  filter(treatment_order %in% as.character(5:15)) %>%
+  distinct(ttas_id)                  # Select unique ttas_id
+
+# Filter out those with treatment_order > 6 and select unique ttas_id
+filtered_ttas_id_more_than_6 <- dataframe_sorted_and_reclassified_basmi %>%
+  filter(treatment_order %in% as.character(6:15)) %>%
+  distinct(ttas_id)                  # Select unique ttas_id
+
+# Filter out those with treatment_order > 7 and select unique ttas_id
+filtered_ttas_id_more_than_7 <- dataframe_sorted_and_reclassified_basmi %>%
+  filter(treatment_order %in% as.character(7:15)) %>%
+  distinct(ttas_id)                  # Select unique ttas_id
+
+# Filter out those with treatment_order > 8 and select unique ttas_id
+filtered_ttas_id_more_than_8 <- dataframe_sorted_and_reclassified_basmi %>%
+  filter(treatment_order %in% as.character(8:15)) %>%
+  distinct(ttas_id)                  # Select unique ttas_id
+
+# View the result
+print(filtered_ttas_id_more_than_3)
+print(filtered_ttas_id_more_than_4)
+print(filtered_ttas_id_more_than_5)
+print(filtered_ttas_id_more_than_6)
+print(filtered_ttas_id_more_than_7)
+print(filtered_ttas_id_more_than_8)
+```
 
 ```{r, include=FALSE}
 # # Run an lmer model for dataframe_sorted_and_reclassified_basmi
@@ -3330,6 +3381,81 @@ model_treatment_diagnosis_basmi_reduced_vif
 # Check distribution of response, Y
 
 ```
+
+## For BASMI only: Plot predicted lmer() geom_line
+```{r, include=TRUE, fig.height=15, fig.width=15}
+model_treatment_diagnosis_basmi_full_plot_lines <- lmer(
+  basmi_score ~ gender + hlab27status + age_at_basmi +
+    diagnosis + treatment_order + last_known_smoking_status +
+    last_known_vaping_status +
+    treatment_reclassified * diagnosis +
+    time_in_years + (time_in_years | ttas_id),
+                     data = dataframe_sorted_and_reclassified_basmi,
+                     control = lmerControl(optimizer = "bobyqa",
+                                           optCtrl = list(maxfun = 2e5)))
+
+model_treatment_diagnosis_basmi_reduced_plot_lines <- lmer(
+  basmi_score ~ gender + hlab27status + age_at_basmi +
+    diagnosis + treatment_order + last_known_smoking_status +
+    last_known_vaping_status +
+    treatment_reclassified +
+    time_in_years + (time_in_years | ttas_id),
+                        data = dataframe_sorted_and_reclassified_basmi,
+                        control = lmerControl(optimizer = "bobyqa",
+                                              optCtrl = list(maxfun = 2e5)))
+
+# Ensure that the categorical variables in `data_tt1` are factors
+data_tt1$gender <- factor(data_tt1$gender)
+data_tt1$hlab27status <- factor(data_tt1$hlab27status)
+data_tt1$diagnosis <- factor(data_tt1$diagnosis)
+data_tt1$treatment_order <- factor(data_tt1$treatment_order)
+data_tt1$last_known_smoking_status <- factor(data_tt1$last_known_smoking_status)
+data_tt1$last_known_vaping_status <- factor(data_tt1$last_known_vaping_status)
+data_tt1$treatment_reclassified <- factor(data_tt1$treatment_reclassified)
+
+# Predict fitted values for the data
+data_tt1$predicted_basmi_score_full <- predict(model_treatment_diagnosis_basmi_full_plot_lines, newdata = data_tt1)
+data_tt1$predicted_basmi_score_reduced <- predict(model_treatment_diagnosis_basmi_reduced_plot_lines, newdata = data_tt1)
+
+# Plot with fitted lines from the lmer model
+ggplot(data_tt1, aes(x = time_in_years, y = basmi_score,
+                     colour = interaction(factor(ttas_id),
+                                          factor(treatment_order)))) +
+  # Plot the original data points
+  geom_point(alpha = 0.75) +
+  geom_line(alpha = 0.75) +
+  
+  # Add the predicted values from the full model as dashed lines
+  geom_line(aes(y = predicted_basmi_score_full), linetype = "dashed", size = 1, color = "red", alpha = 0.5) +
+  
+  # Add the predicted values from the reduced model as dotted lines
+  geom_line(aes(y = predicted_basmi_score_reduced), linetype = "dotted", size = 1, color = "blue", alpha = 0.5) +
+  
+  labs(title = "BASMI Score Over Time by Treatment Periods for Patient 1 to Patient 4", 
+       x = "Time (Years)",
+       y = "BASMI Score", 
+       colour = "Patient and Treatment Period",
+       linetype = "Model Type (Full or Reduced)"
+       ) +
+  
+  facet_wrap(~ttas_id, ncol = 1) +
+  
+  scale_colour_manual(labels = custom_labels, values = scales::hue_pal()(length(custom_labels))) +
+  theme(legend.position = "bottom",
+        text = element_text(size = 20),          # Overall text size
+        plot.title = element_text(size = 22),    # Title size
+        axis.title = element_text(size = 18),    # Axis title size
+        axis.text = element_text(size = 16),     # Axis text size
+        legend.box = "horizontal",               # Legend box orientation
+        legend.text = element_text(size = 10),   # Legend text size
+        legend.title = element_text(size = 12)   # Legend title size
+        )
+
+# Save the plot as an image
+ggsave("basmi_score_with_lmer_lines_full_and_reduced.png", width = 15, height = 15)
+
+```
+
 
 ## lme4 code for treatment and gender: BASMI score
 ```{r, include=TRUE}
