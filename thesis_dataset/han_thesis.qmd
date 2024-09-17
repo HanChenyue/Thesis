@@ -1140,13 +1140,16 @@ plot(density(basmi_sheet_data$basmi_score, na.rm = TRUE), main = "Kernel Density
 plot(sort(basmi_sheet_data$basmi_score, na.last = NA), main = "Sorted BASMI Score", xlab = "Index", ylab = "BASMI Score")
 ```
 
-```{r, include=FALSE}
+```{r, include=TRUE}
 # Plotting the BASMI score against age_at_basmi
 ggplot(basmi_sheet_data, aes(x = age_at_basmi, y = basmi_score)) +
   geom_point() +
   geom_smooth(method = "loess", se = FALSE, colour = "red") +
-  geom_smooth(method = "lm", se = FALSE, colour = "blue") +
+  # geom_smooth(method = "lm", se = FALSE, colour = "blue") +
   labs(title = "BASMI Score against Age at BASMI", x = "Age at BASMI", y = "BASMI Score")
+
+# Save the plot
+ggsave("basmi_score_vs_age_at_basmi.png")
 ```
 
 ```{r, include=FALSE}
@@ -3012,7 +3015,7 @@ dataframe_sorted_and_reclassified_basmi <- dataframe_sorted_and_reclassified_bas
 write.csv(dataframe_sorted_and_reclassified_basmi, "temp_dataframe_after_dataframe_sorted_for_analysis_filtered_with_treatment_category_and_diagnosis_and_treatment_reclassified.csv", row.names = FALSE)
 ```
 
-```{r, include=TRUE, fig.width= 15, fig.height = 15}
+```{r, include=FALSE, fig.width= 15, fig.height = 15}
 data_tt1 <- dataframe_sorted_and_reclassified_basmi %>% 
   filter(ttas_id %in% c(1, 2, 3, 4))
 
@@ -3403,7 +3406,7 @@ model_treatment_diagnosis_basmi_reduced_vif
 ```
 
 ## For BASMI only: Plot predicted lmer() geom_line
-```{r, include=TRUE, fig.height=15, fig.width=15}
+```{r, include=FALSE, fig.height=15, fig.width=15}
 model_treatment_diagnosis_basmi_full_plot_lines <- lmer(
   basmi_score ~ gender + hlab27status + age_at_basmi +
     diagnosis + treatment_order + last_known_smoking_status +
@@ -3508,6 +3511,11 @@ print(summary(model_treatment_gender_basmi_full, corr = FALSE))
 
 ```{r}
 print(summary(model_treatment_gender_basmi_reduced, corr = FALSE))
+```
+
+```{r, include=TRUE}
+anova(model_treatment_gender_basmi_full,
+      model_treatment_gender_basmi_reduced)
 ```
 
 # BASDAI Score analysis
@@ -4585,7 +4593,7 @@ model_treatment_gender_asqol_full <- lmer(
   as_qol ~ gender + hlab27status + age_at_prom +
     diagnosis + treatment_order + last_known_smoking_status +
     last_known_vaping_status +  
-    treatment_reclassified * diagnosis +
+    treatment_reclassified * gender +
     time_in_years + (time_in_years | ttas_id),
                      data = dataframe_sorted_and_reclassified_asqol,
                      control = lmerControl(optimizer = "bobyqa",
