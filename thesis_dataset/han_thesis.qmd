@@ -3704,7 +3704,7 @@ anova(model_treatment_gender_basdai_full,
       model_treatment_gender_basdai_reduced)
 ```
 
-# lme4 code for treatment and diagnosis:  BASFI score
+# BASFI score
 
 ```{r, include=FALSE}
 # BASFI score only
