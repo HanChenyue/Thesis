@@ -6,7 +6,6 @@ format:
     editor: visual
 ---
 
-
 ```{r, include=FALSE}
 library(knitr)
 library(tidyverse)
@@ -21,12 +20,11 @@ library(zoo)
 library(lme4)
 library(plotly)
 library(MuMIn)
-library(car)
-library(lmerTest)
+# library(car)
+# library(lmerTest)
 library(gt)
 library(webshot2)
 library(rmarkdown)
-library(knitr)
 library(broom.mixed)
 ```
 
@@ -985,7 +983,6 @@ prom_sheet_data$facit <- ifelse(prom_sheet_data$facit < 0, NA, prom_sheet_data$f
 # prom_sheet_data$corrected_jenkins_sleep_scale <- apply(prom_sheet_data, 1, recalculate_jenkins_sleep_scale)
 ```
 
-
 ```{r, include=FALSE}
 # Calculating the WPAI scoring
 # Ensure wpai_1 to wpai_6 are numeric
@@ -1143,10 +1140,12 @@ plot(sort(basmi_sheet_data$basmi_score, na.last = NA), main = "Sorted BASMI Scor
 ```{r, include=TRUE}
 # Plotting the BASMI score against age_at_basmi
 ggplot(basmi_sheet_data, aes(x = age_at_basmi, y = basmi_score)) +
-  geom_point() +
+  # geom_point(alpha = 0.5) +
+  geom_jitter(alpha = 0.3) +
   geom_smooth(method = "loess", se = FALSE, colour = "red") +
   # geom_smooth(method = "lm", se = FALSE, colour = "blue") +
-  labs(title = "BASMI Score against Age at BASMI", x = "Age at BASMI", y = "BASMI Score")
+  labs(title = "BASMI Score against Age at BASMI", x = "Age at BASMI", y = "BASMI Score") +
+  theme_bw()
 
 # Save the plot
 ggsave("basmi_score_vs_age_at_basmi.png")
@@ -1161,20 +1160,6 @@ summary(lm_basmi)
 # Summary of prom_sheet_data
 kable(summary(prom_sheet_data)) %>% kable_styling(bootstrap_options = "striped", full_width = F)
 ```
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 ```{r, include=FALSE}
 # Full join the data
@@ -1426,7 +1411,6 @@ write_csv(combined_df_with_and_without_drugs_excluded, "test_combined_df_with_an
 combined_df_with_and_without_drugs <- combined_df
 write_csv(combined_df_with_and_without_drugs, "test_combined_df_with_and_without_drugs.csv")
 ```
-
 
 ```{r, warning=FALSE, include=FALSE}
 # Checkpoint start: Uncomment to recreate the plots
@@ -2258,7 +2242,6 @@ write_csv(combined_df_with_and_without_drugs, "test_combined_df_with_and_without
 # write.csv(combined_df_id_with_drugs_excluded, file = "cleaned_dates.csv", row.names = FALSE)
 ```
 
-
 ```{r, include=FALSE}
 # # Data cleaning to ensure x3 is propagated until stop_date
 # data <- combined_df_id_with_drugs_excluded %>%
@@ -2327,7 +2310,6 @@ write_csv(combined_df_with_and_without_drugs, "test_combined_df_with_and_without
 # # Write to CSV or view the data
 # write.csv(final_data, "final_treatment_data.csv", row.names = FALSE)
 ```
-
 
 ```{r, include=FALSE}
 # # Old code
@@ -2794,6 +2776,7 @@ write.csv(dataframe_sorted, "temp_dataframe_before_data_sorted.csv", row.names =
 # 
 # write_csv(basmi_analysis_data, "basmi_analysis_data.csv")
 ```
+
 ```{r, include=FALSE}
 # Step 1: Forward fill x3 to create a continuous treatment period indicator
 dataframe_sorted <- dataframe_sorted %>%
@@ -3015,7 +2998,7 @@ dataframe_sorted_and_reclassified_basmi <- dataframe_sorted_and_reclassified_bas
 write.csv(dataframe_sorted_and_reclassified_basmi, "temp_dataframe_after_dataframe_sorted_for_analysis_filtered_with_treatment_category_and_diagnosis_and_treatment_reclassified.csv", row.names = FALSE)
 ```
 
-```{r, include=FALSE, fig.width= 15, fig.height = 15}
+```{r, include=TRUE, fig.width= 15, fig.height = 15}
 data_tt1 <- dataframe_sorted_and_reclassified_basmi %>% 
   filter(ttas_id %in% c(1, 2, 3, 4))
 
@@ -3058,7 +3041,8 @@ ggplot(data_tt1, aes(x = time_in_years, y = basmi_score,
         legend.box = "horizontal",               # Legend box orientation
         legend.text = element_text(size = 10),   # Legend text size
         legend.title = element_text(size = 12)   # Legend title size
-        )
+        ) +
+  theme_bw()
         
 
 # Save image with size 15 x 15
@@ -3087,7 +3071,9 @@ dataframe_sorted_and_reclassified_basmi$time_in_years <- as.numeric(dataframe_so
 dataframe_sorted_and_reclassified_basmi$last_known_smoking_status <- as.factor(dataframe_sorted_and_reclassified_basmi$last_known_smoking_status)
 dataframe_sorted_and_reclassified_basmi$last_known_vaping_status <- as.factor(dataframe_sorted_and_reclassified_basmi$last_known_vaping_status)
 ```
-# Filter out those with treatment_order 
+
+# Filter out those with treatment_order
+
 ```{r, include=TRUE}
 # Filter rows where treatment_order > 3 and select unique ttas_id
 filtered_ttas_id_more_than_3 <- dataframe_sorted_and_reclassified_basmi %>%
@@ -3151,7 +3137,6 @@ filtered_ttas_id_more_than_6_characteristics <- demographics_sheet_data %>%
 
 print(filtered_ttas_id_more_than_6_characteristics)
 ```
-  
 
 ```{r, include=FALSE}
 # # Run an lmer model for dataframe_sorted_and_reclassified_basmi
@@ -3186,6 +3171,7 @@ print(filtered_ttas_id_more_than_6_characteristics)
 # print(summary(model_6, corr = TRUE))
 # model_6_vif
 ```
+
 ```{r, include=FALSE}
 # model_6_lmerTest <- lmerTest::lmer(basmi_score ~ gender + hlab27status + age_at_basmi + diagnosis + treatment_reclassified*diagnosis + treatment_window_weekly_time + (1 | ttas_id/treatment_order), data = dataframe_sorted_and_reclassified_basmi)
 # 
@@ -3273,6 +3259,7 @@ print(filtered_ttas_id_more_than_6_characteristics)
 # print(summary(model_9, corr = TRUE))
 # model_9_vif
 ```
+
 ```{r, include=FALSE}
 # model_10 <- lmer(basmi_score ~ gender + hlab27status + age_at_basmi + diagnosis + treatment_reclassified + poly(treatment_window_weekly_time, 2) + treatment_window_weekly_time * treatment_reclassified + (1 | ttas_id/treatment_order)
 # , data = dataframe_sorted_and_reclassified_basmi)
@@ -3349,7 +3336,7 @@ dataframe_sorted_and_reclassified_basmi$last_known_vaping_status <-
 
 ```{r, include=TRUE}
 model_treatment_diagnosis_basmi_full <- lmer(
-  basmi_score ~ gender + hlab27status + age_at_basmi +
+  basmi_score ~ gender + hlab27status + age_at_onset +
     diagnosis + treatment_order + last_known_smoking_status +
     last_known_vaping_status +
     treatment_reclassified * diagnosis +
@@ -3389,8 +3376,16 @@ model_treatment_diagnosis_basmi_reduced <- lmer(
 print(summary(model_treatment_diagnosis_basmi_full, corr = FALSE))
 ```
 
+```{r}
+anova(model_treatment_diagnosis_basmi_full)
+```
+
 ```{r, include = TRUE}
 print(summary(model_treatment_diagnosis_basmi_reduced, corr = FALSE))
+```
+
+```{r}
+anova(model_treatment_diagnosis_basmi_reduced)
 ```
 
 ```{r, include=TRUE}
@@ -3399,13 +3394,14 @@ anova(model_treatment_diagnosis_basmi_full, model_treatment_diagnosis_basmi_redu
 
 ```{r, include=FALSE}
 # Sanity check multicollinearity
-model_treatment_diagnosis_basmi_full_vif <- vif(model_treatment_diagnosis_basmi_full)
-model_treatment_diagnosis_basmi_reduced_vif <- vif(model_treatment_diagnosis_basmi_reduced)
-model_treatment_diagnosis_basmi_full_vif
-model_treatment_diagnosis_basmi_reduced_vif
+# model_treatment_diagnosis_basmi_full_vif <- vif(model_treatment_diagnosis_basmi_full)
+# model_treatment_diagnosis_basmi_reduced_vif <- vif(model_treatment_diagnosis_basmi_reduced)
+# model_treatment_diagnosis_basmi_full_vif
+# model_treatment_diagnosis_basmi_reduced_vif
 ```
 
 ## For BASMI only: Plot predicted lmer() geom_line
+
 ```{r, include=FALSE, fig.height=15, fig.width=15}
 model_treatment_diagnosis_basmi_full_plot_lines <- lmer(
   basmi_score ~ gender + hlab27status + age_at_basmi +
@@ -3479,8 +3475,8 @@ ggsave("basmi_score_with_lmer_lines_full_and_reduced.png", width = 15, height = 
 
 ```
 
-
 ## lme4 code for treatment and gender: BASMI score
+
 ```{r, include=TRUE}
 model_treatment_gender_basmi_full <- lmer(
   basmi_score ~ gender + hlab27status + age_at_basmi +
@@ -3519,6 +3515,7 @@ anova(model_treatment_gender_basmi_full,
 ```
 
 # BASDAI Score analysis
+
 ```{r, include=FALSE}
 # BASDAI score only
 # General longitudinal analysis for those with and without drugs
@@ -3664,7 +3661,7 @@ anova(model_treatment_diagnosis_basdai_full,
       model_treatment_diagnosis_basdai_reduced)
 ```
 
-# lme4 code for treatment and gender: BASDAI score 
+# lme4 code for treatment and gender: BASDAI score
 
 ```{r, include=TRUE}
 # Define the full and reduced models
@@ -3703,6 +3700,7 @@ print(summary(model_treatment_gender_basdai_reduced, corr = FALSE))
 anova(model_treatment_gender_basdai_full,
       model_treatment_gender_basdai_reduced)
 ```
+
 
 # BASFI score
 
@@ -3889,6 +3887,10 @@ anova(model_treatment_gender_basfi_full,
       model_treatment_gender_basfi_reduced)
 ```
 
+```{r, include=TRUE}
+anova(model_treatment_gender_basfi_reduced)
+```
+
 # Patient Global Score
 
 ```{r, include=FALSE}
@@ -3960,7 +3962,6 @@ dataframe_sorted_and_reclassified_patient_global$time_in_years <- as.numeric(dat
 dataframe_sorted_and_reclassified_patient_global$last_known_smoking_status <- as.factor(dataframe_sorted_and_reclassified_patient_global$last_known_smoking_status)
 dataframe_sorted_and_reclassified_patient_global$last_known_vaping_status <- as.factor(dataframe_sorted_and_reclassified_patient_global$last_known_vaping_status)
 ```
-
 
 ```{r, include=FALSE}
 # Make sure that the reference level for treatment_reclassified is
