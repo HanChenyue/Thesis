@@ -2372,7 +2372,7 @@ write_csv(combined_df_with_and_without_drugs, "test_combined_df_with_and_without
 dataframe <- combined_df_with_and_without_drugs
 
 dataframe_sorted <- dataframe %>%
-  select(ttas_id, x3, gender, hlab27status, age_at_basmi, age_at_prom, diagnosis, date, stop_date, last_known_smoking_status, last_known_vaping_status, basmi_score, basdai, basfi, patient_global, back_pain_at_night, back_pain_anytime, as_qol, jenkins_sleep_1, jenkins_sleep_2, jenkins_sleep_3, jenkins_sleep_4, wpl, daily_activity_impairment, presenteeism, absenteeism, facit, margolis)
+  select(ttas_id, x3, gender, hlab27status, age_at_onset, age_at_basmi, age_at_prom, diagnosis, date, stop_date, last_known_smoking_status, last_known_vaping_status, basmi_score, basdai, basfi, patient_global, back_pain_at_night, back_pain_anytime, as_qol, jenkins_sleep_1, jenkins_sleep_2, jenkins_sleep_3, jenkins_sleep_4, wpl, daily_activity_impairment, presenteeism, absenteeism, facit, margolis)
 
 dataframe_sorted$ttas_id <- as.factor(dataframe_sorted$ttas_id)
 dataframe_sorted$x3 <- as.factor(dataframe_sorted$x3)
@@ -2380,6 +2380,7 @@ dataframe_sorted$gender <- as.factor(dataframe_sorted$gender)
 dataframe_sorted$hlab27status <- as.factor(dataframe_sorted$hlab27status)
 dataframe_sorted$age_at_basmi <- as.numeric(dataframe_sorted$age_at_basmi)
 dataframe_sorted$age_at_prom <- as.numeric(dataframe_sorted$age_at_prom)
+dataframe_sorted$age_at_onset <- as.numeric(dataframe_sorted$age_at_onset)
 dataframe_sorted$diagnosis <- as.factor(dataframe_sorted$diagnosis)
 dataframe_sorted$date <- as.Date(dataframe_sorted$date)
 dataframe_sorted$stop_date <- as.Date(dataframe_sorted$stop_date)
@@ -2956,7 +2957,7 @@ write.csv(dataframe_sorted, "temp_dataframe_after_data_sorted_11.csv", row.names
 # General longitudinal analysis for those with and without drugs
 dataframe_sorted_basmi<- dataframe_sorted %>%
   filter(!is.na(basmi_score)) %>%
-  select(ttas_id, gender, hlab27status, age_at_basmi, diagnosis, treatment, last_known_smoking_status, last_known_vaping_status, treatment_order, date, stop_date_for_period_date_format, overall_treatment_duration_in_days, treatment_window_weekly_time, time_in_days, time_in_weeks, time_in_months, time_in_years, basmi_score)
+  select(ttas_id, gender, hlab27status, age_at_basmi, age_at_onset, diagnosis, treatment, last_known_smoking_status, last_known_vaping_status, treatment_order, date, stop_date_for_period_date_format, overall_treatment_duration_in_days, treatment_window_weekly_time, time_in_days, time_in_weeks, time_in_months, time_in_years, basmi_score)
 
 write.csv(dataframe_sorted_basmi, "temp_dataframe_after_dataframe_sorted_for_analysis.csv", row.names = FALSE)
 
@@ -3022,8 +3023,8 @@ ggplot(data_tt1, aes(x = time_in_years, y = basmi_score,
                      colour = interaction(factor(ttas_id),
                                           factor(treatment_order)
                                           ))) +
-  geom_point(alpha = 0.75) +
-  geom_line(alpha = 0.75) +
+  geom_point() +
+  geom_line() +
   labs(title = "BASMI Score Over Time by Treatment Periods for Patient 1 to Patient 4", 
        # x = "Time (Weeks)",
        # x = "Time (Days)",
@@ -3055,6 +3056,7 @@ dataframe_sorted_and_reclassified_basmi$ttas_id <- as.factor(dataframe_sorted_an
 dataframe_sorted_and_reclassified_basmi$gender <- as.factor(dataframe_sorted_and_reclassified_basmi$gender)
 dataframe_sorted_and_reclassified_basmi$hlab27status <- as.factor(dataframe_sorted_and_reclassified_basmi$hlab27status)
 dataframe_sorted_and_reclassified_basmi$age_at_basmi <- as.numeric(dataframe_sorted_and_reclassified_basmi$age_at_basmi)
+dataframe_sorted_and_reclassified_basmi$age_at_onset <- as.numeric(dataframe_sorted_and_reclassified_basmi$age_at_onset)
 dataframe_sorted_and_reclassified_basmi$diagnosis <- as.factor(dataframe_sorted_and_reclassified_basmi$diagnosis)
 dataframe_sorted_and_reclassified_basmi$treatment <- as.factor(dataframe_sorted_and_reclassified_basmi$treatment)
 dataframe_sorted_and_reclassified_basmi$treatment_order <- as.factor(dataframe_sorted_and_reclassified_basmi$treatment_order)
@@ -3348,7 +3350,7 @@ model_treatment_diagnosis_basmi_full <- lmer(
 
 ```{r, include=TRUE}
 model_treatment_diagnosis_basmi_reduced <- lmer(
-  basmi_score ~ gender + hlab27status + age_at_basmi +
+  basmi_score ~ gender + hlab27status + age_at_onset +
     diagnosis + treatment_order + last_known_smoking_status +
     last_known_vaping_status +
     treatment_reclassified +
@@ -3404,7 +3406,7 @@ anova(model_treatment_diagnosis_basmi_full, model_treatment_diagnosis_basmi_redu
 
 ```{r, include=FALSE, fig.height=15, fig.width=15}
 model_treatment_diagnosis_basmi_full_plot_lines <- lmer(
-  basmi_score ~ gender + hlab27status + age_at_basmi +
+  basmi_score ~ gender + hlab27status + age_at_onset +
     diagnosis + treatment_order + last_known_smoking_status +
     last_known_vaping_status +
     treatment_reclassified * diagnosis +
@@ -3414,7 +3416,7 @@ model_treatment_diagnosis_basmi_full_plot_lines <- lmer(
                                            optCtrl = list(maxfun = 2e5)))
 
 model_treatment_diagnosis_basmi_reduced_plot_lines <- lmer(
-  basmi_score ~ gender + hlab27status + age_at_basmi +
+  basmi_score ~ gender + hlab27status + age_at_onset +
     diagnosis + treatment_order + last_known_smoking_status +
     last_known_vaping_status +
     treatment_reclassified +
@@ -3479,7 +3481,7 @@ ggsave("basmi_score_with_lmer_lines_full_and_reduced.png", width = 15, height = 
 
 ```{r, include=TRUE}
 model_treatment_gender_basmi_full <- lmer(
-  basmi_score ~ gender + hlab27status + age_at_basmi +
+  basmi_score ~ gender + hlab27status + age_at_onset +
     diagnosis + treatment_order + last_known_smoking_status +
     last_known_vaping_status +
     treatment_reclassified * gender +
@@ -3491,7 +3493,7 @@ model_treatment_gender_basmi_full <- lmer(
 
 ```{r, include=TRUE}
 model_treatment_gender_basmi_reduced <- lmer(
-  basmi_score ~ gender + hlab27status + age_at_basmi +
+  basmi_score ~ gender + hlab27status + age_at_onset +
     diagnosis + treatment_order + last_known_smoking_status +
     last_known_vaping_status +
     treatment_reclassified +
@@ -3521,7 +3523,7 @@ anova(model_treatment_gender_basmi_full,
 # General longitudinal analysis for those with and without drugs
 dataframe_sorted_basdai <- dataframe_sorted %>%
   filter(!is.na(basdai)) %>%
-  select(ttas_id, gender, hlab27status, age_at_prom, diagnosis, treatment, last_known_smoking_status, last_known_vaping_status, treatment_order, date, stop_date_for_period_date_format, overall_treatment_duration_in_days, treatment_window_weekly_time, time_in_days, time_in_weeks, time_in_months, time_in_years, basdai)
+  select(ttas_id, gender, hlab27status, age_at_onset, age_at_prom, diagnosis, treatment, last_known_smoking_status, last_known_vaping_status, treatment_order, date, stop_date_for_period_date_format, overall_treatment_duration_in_days, treatment_window_weekly_time, time_in_days, time_in_weeks, time_in_months, time_in_years, basdai)
 
 write.csv(dataframe_sorted_basdai, "temp_dataframe_after_dataframe_sorted_for_analysis_basdai.csv", row.names = FALSE)
 
@@ -3569,6 +3571,7 @@ dataframe_sorted_and_reclassified_basdai$ttas_id <- as.factor(dataframe_sorted_a
 dataframe_sorted_and_reclassified_basdai$gender <- as.factor(dataframe_sorted_and_reclassified_basdai$gender)
 dataframe_sorted_and_reclassified_basdai$hlab27status <- as.factor(dataframe_sorted_and_reclassified_basdai$hlab27status)
 dataframe_sorted_and_reclassified_basdai$age_at_prom <- as.numeric(dataframe_sorted_and_reclassified_basdai$age_at_prom)
+dataframe_sorted_and_reclassified_basdai$age_at_onset <- as.numeric(dataframe_sorted_and_reclassified_basdai$age_at_onset)
 dataframe_sorted_and_reclassified_basdai$diagnosis <- as.factor(dataframe_sorted_and_reclassified_basdai$diagnosis)
 dataframe_sorted_and_reclassified_basdai$treatment <- as.factor(dataframe_sorted_and_reclassified_basdai$treatment)
 dataframe_sorted_and_reclassified_basdai$treatment_order <- as.factor(dataframe_sorted_and_reclassified_basdai$treatment_order)
@@ -3626,7 +3629,7 @@ dataframe_sorted_and_reclassified_basdai$last_known_vaping_status <-
 ```{r, include=TRUE}
 # Define the full and reduced models
 model_treatment_diagnosis_basdai_full <- lmer(
-  basdai ~ gender + hlab27status + age_at_prom +
+  basdai ~ gender + hlab27status + age_at_onset +
     diagnosis + treatment_order + last_known_smoking_status +
     last_known_vaping_status +  
     treatment_reclassified * diagnosis +
@@ -3638,7 +3641,7 @@ model_treatment_diagnosis_basdai_full <- lmer(
 
 ```{r, include=TRUE}
 model_treatment_diagnosis_basdai_reduced <- lmer(
-  basdai ~ gender + hlab27status + age_at_prom +
+  basdai ~ gender + hlab27status + age_at_onset +
     diagnosis + treatment_order + last_known_smoking_status +
     last_known_vaping_status +  
     treatment_reclassified +
@@ -3666,7 +3669,7 @@ anova(model_treatment_diagnosis_basdai_full,
 ```{r, include=TRUE}
 # Define the full and reduced models
 model_treatment_gender_basdai_full <- lmer(
-  basdai ~ hlab27status + age_at_prom +
+  basdai ~ hlab27status + age_at_onset +
     diagnosis + treatment_order + last_known_smoking_status +
     last_known_vaping_status +  
     treatment_reclassified * gender +
@@ -3678,7 +3681,7 @@ model_treatment_gender_basdai_full <- lmer(
 
 ```{r, include=TRUE}
 model_treatment_gender_basdai_reduced <- lmer(
-  basdai ~ gender + hlab27status + age_at_prom +
+  basdai ~ gender + hlab27status + age_at_onset +
     diagnosis + treatment_order + last_known_smoking_status +
     last_known_vaping_status +  
     treatment_reclassified +
@@ -3709,7 +3712,7 @@ anova(model_treatment_gender_basdai_full,
 # General longitudinal analysis for those with and without drugs
 dataframe_sorted_basfi <- dataframe_sorted %>%
   filter(!is.na(basfi)) %>%
-  select(ttas_id, gender, hlab27status, age_at_prom, diagnosis, treatment, last_known_smoking_status, last_known_vaping_status, treatment_order, date, stop_date_for_period_date_format, overall_treatment_duration_in_days, treatment_window_weekly_time, time_in_days, time_in_weeks, time_in_months, time_in_years, basfi)
+  select(ttas_id, gender, hlab27status, age_at_onset, age_at_prom, diagnosis, treatment, last_known_smoking_status, last_known_vaping_status, treatment_order, date, stop_date_for_period_date_format, overall_treatment_duration_in_days, treatment_window_weekly_time, time_in_days, time_in_weeks, time_in_months, time_in_years, basfi)
 
 write.csv(dataframe_sorted_basfi, "temp_dataframe_after_dataframe_sorted_for_analysis_basfi.csv", row.names = FALSE)
 
@@ -3757,6 +3760,7 @@ dataframe_sorted_and_reclassified_basfi$ttas_id <- as.factor(dataframe_sorted_an
 dataframe_sorted_and_reclassified_basfi$gender <- as.factor(dataframe_sorted_and_reclassified_basfi$gender)
 dataframe_sorted_and_reclassified_basfi$hlab27status <- as.factor(dataframe_sorted_and_reclassified_basfi$hlab27status)
 dataframe_sorted_and_reclassified_basfi$age_at_prom <- as.numeric(dataframe_sorted_and_reclassified_basfi$age_at_prom)
+dataframe_sorted_and_reclassified_basfi$age_at_onset <- as.numeric(dataframe_sorted_and_reclassified_basfi$age_at_onset)
 dataframe_sorted_and_reclassified_basfi$diagnosis <- as.factor(dataframe_sorted_and_reclassified_basfi$diagnosis)
 dataframe_sorted_and_reclassified_basfi$treatment <- as.factor(dataframe_sorted_and_reclassified_basfi$treatment)
 dataframe_sorted_and_reclassified_basfi$treatment_order <- as.factor(dataframe_sorted_and_reclassified_basfi$treatment_order)
@@ -3813,7 +3817,7 @@ dataframe_sorted_and_reclassified_basfi$last_known_vaping_status <-
 
 ```{r, include=TRUE}
 model_treatment_diagnosis_basfi_full <- lmer(
-  basfi ~ gender + hlab27status + age_at_prom +
+  basfi ~ gender + hlab27status + age_at_onset +
     diagnosis + treatment_order + last_known_smoking_status +
     last_known_vaping_status +  
     treatment_reclassified * diagnosis +
@@ -3825,7 +3829,7 @@ model_treatment_diagnosis_basfi_full <- lmer(
 
 ```{r, include=TRUE}
 model_treatment_diagnosis_basfi_reduced <- lmer(
-  basfi ~ gender + hlab27status + age_at_prom +
+  basfi ~ gender + hlab27status + age_at_onset +
     diagnosis + treatment_order + last_known_smoking_status +
     last_known_vaping_status +  
     treatment_reclassified +
@@ -3852,7 +3856,7 @@ anova(model_treatment_diagnosis_basfi_full,
 
 ```{r, include=TRUE}
 model_treatment_gender_basfi_full <- lmer(
-  basfi ~ gender + hlab27status + age_at_prom +
+  basfi ~ gender + hlab27status + age_at_onset +
     diagnosis + treatment_order + last_known_smoking_status +
     last_known_vaping_status +  
     treatment_reclassified * gender +
@@ -3864,7 +3868,7 @@ model_treatment_gender_basfi_full <- lmer(
 
 ```{r, include=TRUE}
 model_treatment_gender_basfi_reduced <- lmer(
-  basfi ~ gender + hlab27status + age_at_prom +
+  basfi ~ gender + hlab27status + age_at_onset +
     diagnosis + treatment_order + last_known_smoking_status +
     last_known_vaping_status +  
     treatment_reclassified +
@@ -3898,7 +3902,7 @@ anova(model_treatment_gender_basfi_reduced)
 # General longitudinal analysis for those with and without drugs
 dataframe_sorted_patient_global <- dataframe_sorted %>%
   filter(!is.na(patient_global)) %>%
-  select(ttas_id, gender, hlab27status, age_at_prom, diagnosis, treatment, last_known_smoking_status, last_known_vaping_status, treatment_order, date, stop_date_for_period_date_format, overall_treatment_duration_in_days, treatment_window_weekly_time, time_in_days, time_in_weeks, time_in_months, time_in_years, patient_global)
+  select(ttas_id, gender, hlab27status, age_at_onset, age_at_prom, diagnosis, treatment, last_known_smoking_status, last_known_vaping_status, treatment_order, date, stop_date_for_period_date_format, overall_treatment_duration_in_days, treatment_window_weekly_time, time_in_days, time_in_weeks, time_in_months, time_in_years, patient_global)
 
 write.csv(dataframe_sorted_patient_global, "temp_dataframe_after_dataframe_sorted_for_analysis_patient_global.csv", row.names = FALSE)
 
@@ -3945,7 +3949,7 @@ write.csv(dataframe_sorted_and_reclassified_patient_global, "temp_dataframe_afte
 dataframe_sorted_and_reclassified_patient_global$ttas_id <- as.factor(dataframe_sorted_and_reclassified_patient_global$ttas_id)
 dataframe_sorted_and_reclassified_patient_global$gender <- as.factor(dataframe_sorted_and_reclassified_patient_global$gender)
 dataframe_sorted_and_reclassified_patient_global$hlab27status <- as.factor(dataframe_sorted_and_reclassified_patient_global$hlab27status)
-dataframe_sorted_and_reclassified_patient_global$age_at_prom <- as.numeric(dataframe_sorted_and_reclassified_patient_global$age_at_prom)
+dataframe_sorted_and_reclassified_patient_global$age_at_onset <- as.numeric(dataframe_sorted_and_reclassified_patient_global$age_at_onset)
 dataframe_sorted_and_reclassified_patient_global$diagnosis <- as.factor(dataframe_sorted_and_reclassified_patient_global$diagnosis)
 dataframe_sorted_and_reclassified_patient_global$treatment <- as.factor(dataframe_sorted_and_reclassified_patient_global$treatment)
 dataframe_sorted_and_reclassified_patient_global$treatment_order <- as.factor(dataframe_sorted_and_reclassified_patient_global$treatment_order)
@@ -4002,7 +4006,7 @@ dataframe_sorted_and_reclassified_patient_global$last_known_vaping_status <-
 
 ```{r, include=TRUE}
 model_treatment_diagnosis_patient_global_full <- lmer(
-  patient_global ~ gender + hlab27status + age_at_prom +
+  patient_global ~ gender + hlab27status + age_at_onset +
     diagnosis + treatment_order + last_known_smoking_status +
     last_known_vaping_status +  
     treatment_reclassified * diagnosis +
@@ -4014,7 +4018,7 @@ model_treatment_diagnosis_patient_global_full <- lmer(
 
 ```{r, include=TRUE}
 model_treatment_diagnosis_patient_global_reduced <- lmer(
-  patient_global ~ gender + hlab27status + age_at_prom +
+  patient_global ~ gender + hlab27status + age_at_onset +
     diagnosis + treatment_order + last_known_smoking_status +
     last_known_vaping_status +  
     treatment_reclassified +
@@ -4041,7 +4045,7 @@ anova(model_treatment_diagnosis_patient_global_full,
 
 ```{r, include=TRUE}
 model_treatment_gender_patient_global_full <- lmer(
-  patient_global ~ gender + hlab27status + age_at_prom +
+  patient_global ~ gender + hlab27status + age_at_onset +
     diagnosis + treatment_order + last_known_smoking_status +
     last_known_vaping_status +  
     treatment_reclassified * gender +
@@ -4053,7 +4057,7 @@ model_treatment_gender_patient_global_full <- lmer(
 
 ```{r, include=TRUE}
 model_treatment_gender_patient_global_reduced <- lmer(
-  patient_global ~ gender + hlab27status + age_at_prom +
+  patient_global ~ gender + hlab27status + age_at_onset +
     diagnosis + treatment_order + last_known_smoking_status +
     last_known_vaping_status +  
     treatment_reclassified +
@@ -4083,7 +4087,7 @@ anova(model_treatment_gender_patient_global_full,
 # General longitudinal analysis for those with and without drugs
 dataframe_sorted_back_pain_at_night <- dataframe_sorted %>%
   filter(!is.na(back_pain_at_night)) %>%
-  select(ttas_id, gender, hlab27status, age_at_prom, diagnosis, treatment, last_known_smoking_status, last_known_vaping_status, treatment_order, date, stop_date_for_period_date_format, overall_treatment_duration_in_days, treatment_window_weekly_time, time_in_days, time_in_weeks, time_in_months, time_in_years, back_pain_at_night)
+  select(ttas_id, gender, hlab27status, age_at_onset, age_at_prom, diagnosis, treatment, last_known_smoking_status, last_known_vaping_status, treatment_order, date, stop_date_for_period_date_format, overall_treatment_duration_in_days, treatment_window_weekly_time, time_in_days, time_in_weeks, time_in_months, time_in_years, back_pain_at_night)
 
 write.csv(dataframe_sorted_back_pain_at_night, "temp_dataframe_after_dataframe_sorted_for_analysis_back_pain_at_night.csv", row.names = FALSE)
 ```
@@ -4129,6 +4133,7 @@ dataframe_sorted_and_reclassified_back_pain_at_night$ttas_id <- as.factor(datafr
 dataframe_sorted_and_reclassified_back_pain_at_night$gender <- as.factor(dataframe_sorted_and_reclassified_back_pain_at_night$gender)
 dataframe_sorted_and_reclassified_back_pain_at_night$hlab27status <- as.factor(dataframe_sorted_and_reclassified_back_pain_at_night$hlab27status)
 dataframe_sorted_and_reclassified_back_pain_at_night$age_at_prom <- as.numeric(dataframe_sorted_and_reclassified_back_pain_at_night$age_at_prom)
+dataframe_sorted_and_reclassified_back_pain_at_night$age_at_onset <- as.numeric(dataframe_sorted_and_reclassified_back_pain_at_night$age_at_onset)
 dataframe_sorted_and_reclassified_back_pain_at_night$diagnosis <- as.factor(dataframe_sorted_and_reclassified_back_pain_at_night$diagnosis)
 dataframe_sorted_and_reclassified_back_pain_at_night$treatment <- as.factor(dataframe_sorted_and_reclassified_back_pain_at_night$treatment)
 dataframe_sorted_and_reclassified_back_pain_at_night$treatment_order <- as.factor(dataframe_sorted_and_reclassified_back_pain_at_night$treatment_order)
@@ -4185,7 +4190,7 @@ dataframe_sorted_and_reclassified_back_pain_at_night$last_known_vaping_status <-
 
 ```{r, include=TRUE}
 model_treatment_diagnosis_back_pain_at_night_full <- lmer(
-  back_pain_at_night ~ gender + hlab27status + age_at_prom +
+  back_pain_at_night ~ gender + hlab27status + age_at_onset +
     diagnosis + treatment_order + last_known_smoking_status +
     last_known_vaping_status +  
     treatment_reclassified * diagnosis +
@@ -4197,7 +4202,7 @@ model_treatment_diagnosis_back_pain_at_night_full <- lmer(
 
 ```{r, include=TRUE}
 model_treatment_diagnosis_back_pain_at_night_reduced <- lmer(
-  back_pain_at_night ~ gender + hlab27status + age_at_prom +
+  back_pain_at_night ~ gender + hlab27status + age_at_onset +
     diagnosis + treatment_order + last_known_smoking_status +
     last_known_vaping_status +  
     treatment_reclassified +
@@ -4224,7 +4229,7 @@ anova(model_treatment_diagnosis_back_pain_at_night_full,
 
 ```{r, include=TRUE}
 model_treatment_gender_back_pain_at_night_full <- lmer(
-  back_pain_at_night ~ gender + hlab27status + age_at_prom +
+  back_pain_at_night ~ gender + hlab27status + age_at_onset +
     diagnosis + treatment_order + last_known_smoking_status +
     last_known_vaping_status +  
     treatment_reclassified * gender +
@@ -4236,7 +4241,7 @@ model_treatment_gender_back_pain_at_night_full <- lmer(
 
 ```{r, include=TRUE}
 model_treatment_gender_back_pain_at_night_reduced <- lmer(
-  back_pain_at_night ~ gender + hlab27status + age_at_prom +
+  back_pain_at_night ~ gender + hlab27status + age_at_onset +
     diagnosis + treatment_order + last_known_smoking_status +
     last_known_vaping_status +  
     treatment_reclassified +
@@ -4266,7 +4271,7 @@ anova(model_treatment_gender_back_pain_at_night_full,
 # General longitudinal analysis for those with and without drugs
 dataframe_sorted_back_pain_anytime <- dataframe_sorted %>%
   filter(!is.na(back_pain_anytime)) %>%
-  select(ttas_id, gender, hlab27status, age_at_prom, diagnosis, treatment, last_known_smoking_status, last_known_vaping_status, treatment_order, date, stop_date_for_period_date_format, overall_treatment_duration_in_days, treatment_window_weekly_time, time_in_days, time_in_weeks, time_in_months, time_in_years, back_pain_anytime)
+  select(ttas_id, gender, hlab27status, age_at_onset, age_at_prom, diagnosis, treatment, last_known_smoking_status, last_known_vaping_status, treatment_order, date, stop_date_for_period_date_format, overall_treatment_duration_in_days, treatment_window_weekly_time, time_in_days, time_in_weeks, time_in_months, time_in_years, back_pain_anytime)
 
 write.csv(dataframe_sorted_back_pain_anytime, "temp_dataframe_after_dataframe_sorted_for_analysis_back_pain_anytime.csv", row.names = FALSE)
 ```
@@ -4312,6 +4317,7 @@ dataframe_sorted_and_reclassified_back_pain_anytime$ttas_id <- as.factor(datafra
 dataframe_sorted_and_reclassified_back_pain_anytime$gender <- as.factor(dataframe_sorted_and_reclassified_back_pain_anytime$gender)
 dataframe_sorted_and_reclassified_back_pain_anytime$hlab27status <- as.factor(dataframe_sorted_and_reclassified_back_pain_anytime$hlab27status)
 dataframe_sorted_and_reclassified_back_pain_anytime$age_at_prom <- as.numeric(dataframe_sorted_and_reclassified_back_pain_anytime$age_at_prom)
+dataframe_sorted_and_reclassified_back_pain_anytime$age_at_onset <- as.numeric(dataframe_sorted_and_reclassified_back_pain_anytime$age_at_onset)
 dataframe_sorted_and_reclassified_back_pain_anytime$diagnosis <- as.factor(dataframe_sorted_and_reclassified_back_pain_anytime$diagnosis)
 dataframe_sorted_and_reclassified_back_pain_anytime$treatment <- as.factor(dataframe_sorted_and_reclassified_back_pain_anytime$treatment)
 dataframe_sorted_and_reclassified_back_pain_anytime$treatment_order <- as.factor(dataframe_sorted_and_reclassified_back_pain_anytime$treatment_order)
@@ -4369,7 +4375,7 @@ dataframe_sorted_and_reclassified_back_pain_anytime$last_known_vaping_status <-
 
 ```{r, include=TRUE}
 model_treatment_diagnosis_back_pain_anytime_full <- lmer(
-  back_pain_anytime ~ gender + hlab27status + age_at_prom +
+  back_pain_anytime ~ gender + hlab27status + age_at_onset +
     diagnosis + treatment_order + last_known_smoking_status +
     last_known_vaping_status +  
     treatment_reclassified * diagnosis +
@@ -4381,7 +4387,7 @@ model_treatment_diagnosis_back_pain_anytime_full <- lmer(
 
 ```{r, include=TRUE}
 model_treatment_diagnosis_back_pain_anytime_reduced <- lmer(
-  back_pain_anytime ~ gender + hlab27status + age_at_prom +
+  back_pain_anytime ~ gender + hlab27status + age_at_onset +
     diagnosis + treatment_order + last_known_smoking_status +
     last_known_vaping_status +  
     treatment_reclassified +
@@ -4408,7 +4414,7 @@ anova(model_treatment_diagnosis_back_pain_anytime_full,
 
 ```{r, include=TRUE}
 model_treatment_gender_back_pain_anytime_full <- lmer(
-  back_pain_anytime ~ gender + hlab27status + age_at_prom +
+  back_pain_anytime ~ gender + hlab27status + age_at_onset +
     diagnosis + treatment_order + last_known_smoking_status +
     last_known_vaping_status +  
     treatment_reclassified * gender +
@@ -4420,7 +4426,7 @@ model_treatment_gender_back_pain_anytime_full <- lmer(
 
 ```{r, include=TRUE}
 model_treatment_gender_back_pain_anytime_reduced <- lmer(
-  back_pain_anytime ~ gender + hlab27status + age_at_prom +
+  back_pain_anytime ~ gender + hlab27status + age_at_onset +
     diagnosis + treatment_order + last_known_smoking_status +
     last_known_vaping_status +  
     treatment_reclassified +
@@ -4450,7 +4456,7 @@ anova(model_treatment_gender_back_pain_anytime_full,
 # General longitudinal analysis for those with and without drugs
 dataframe_sorted_asqol <- dataframe_sorted %>%
   filter(!is.na(as_qol)) %>%
-    select(ttas_id, gender, hlab27status, age_at_prom, diagnosis, treatment, last_known_smoking_status, last_known_vaping_status, treatment_order, date, stop_date_for_period_date_format, overall_treatment_duration_in_days, treatment_window_weekly_time, time_in_days, time_in_weeks, time_in_months, time_in_years, as_qol)
+    select(ttas_id, gender, hlab27status, age_at_onset, age_at_prom, diagnosis, treatment, last_known_smoking_status, last_known_vaping_status, treatment_order, date, stop_date_for_period_date_format, overall_treatment_duration_in_days, treatment_window_weekly_time, time_in_days, time_in_weeks, time_in_months, time_in_years, as_qol)
 
 write.csv(dataframe_sorted_asqol, "temp_dataframe_after_dataframe_sorted_for_analysis_asqol.csv", row.names = FALSE)
 ```
@@ -4496,6 +4502,7 @@ dataframe_sorted_and_reclassified_asqol$ttas_id <- as.factor(dataframe_sorted_an
 dataframe_sorted_and_reclassified_asqol$gender <- as.factor(dataframe_sorted_and_reclassified_asqol$gender)
 dataframe_sorted_and_reclassified_asqol$hlab27status <- as.factor(dataframe_sorted_and_reclassified_asqol$hlab27status)
 dataframe_sorted_and_reclassified_asqol$age_at_prom <- as.numeric(dataframe_sorted_and_reclassified_asqol$age_at_prom)
+dataframe_sorted_and_reclassified_asqol$age_at_onset <- as.numeric(dataframe_sorted_and_reclassified_asqol$age_at_onset)
 dataframe_sorted_and_reclassified_asqol$diagnosis <- as.factor(dataframe_sorted_and_reclassified_asqol$diagnosis)
 dataframe_sorted_and_reclassified_asqol$treatment <- as.factor(dataframe_sorted_and_reclassified_asqol$treatment)
 dataframe_sorted_and_reclassified_asqol$treatment_order <- as.factor(dataframe_sorted_and_reclassified_asqol$treatment_order)
@@ -4552,7 +4559,7 @@ dataframe_sorted_and_reclassified_asqol$last_known_vaping_status <-
 
 ```{r, include=TRUE}
 model_treatment_diagnosis_asqol_full <- lmer(
-  as_qol ~ gender + hlab27status + age_at_prom +
+  as_qol ~ gender + hlab27status + age_at_onset +
     diagnosis + treatment_order + last_known_smoking_status +
     last_known_vaping_status +  
     treatment_reclassified * diagnosis +
@@ -4564,7 +4571,7 @@ model_treatment_diagnosis_asqol_full <- lmer(
 
 ```{r, include=TRUE}
 model_treatment_diagnosis_asqol_reduced <- lmer(
-  as_qol ~ gender + hlab27status + age_at_prom +
+  as_qol ~ gender + hlab27status + age_at_onset +
     diagnosis + treatment_order + last_known_smoking_status +
     last_known_vaping_status +  
     treatment_reclassified +
@@ -4591,7 +4598,7 @@ anova(model_treatment_diagnosis_asqol_full,
 
 ```{r, include=TRUE}
 model_treatment_gender_asqol_full <- lmer(
-  as_qol ~ gender + hlab27status + age_at_prom +
+  as_qol ~ gender + hlab27status + age_at_onset +
     diagnosis + treatment_order + last_known_smoking_status +
     last_known_vaping_status +  
     treatment_reclassified * gender +
@@ -4603,7 +4610,7 @@ model_treatment_gender_asqol_full <- lmer(
 
 ```{r, include=TRUE}
 model_treatment_gender_asqol_reduced <- lmer(
-  as_qol ~ gender + hlab27status + age_at_prom +
+  as_qol ~ gender + hlab27status + age_at_onset +
     diagnosis + treatment_order + last_known_smoking_status +
     last_known_vaping_status +  
     treatment_reclassified +
@@ -4633,25 +4640,25 @@ anova(model_treatment_gender_asqol_full,
 # General longitudinal analysis for those with and without drugs
 dataframe_sorted_jenkins_sleep_1 <- dataframe_sorted %>%
   filter(!is.na(jenkins_sleep_1)) %>%
-  select(ttas_id, gender, hlab27status, age_at_prom, diagnosis, treatment, last_known_smoking_status, last_known_vaping_status, treatment_order, date, stop_date_for_period_date_format, overall_treatment_duration_in_days, treatment_window_weekly_time, time_in_days, time_in_weeks, time_in_months, time_in_years, jenkins_sleep_1)
+  select(ttas_id, gender, hlab27status, age_at_onset, age_at_prom, diagnosis, treatment, last_known_smoking_status, last_known_vaping_status, treatment_order, date, stop_date_for_period_date_format, overall_treatment_duration_in_days, treatment_window_weekly_time, time_in_days, time_in_weeks, time_in_months, time_in_years, jenkins_sleep_1)
 
 write.csv(dataframe_sorted_jenkins_sleep_1, "temp_dataframe_after_dataframe_sorted_for_analysis_jenkins_sleep_1.csv", row.names = FALSE)
 
 dataframe_sorted_jenkins_sleep_2 <- dataframe_sorted %>%
   filter(!is.na(jenkins_sleep_2)) %>%
-  select(ttas_id, gender, hlab27status, age_at_prom, diagnosis, treatment, last_known_smoking_status, last_known_vaping_status, treatment_order, date, stop_date_for_period_date_format, overall_treatment_duration_in_days, treatment_window_weekly_time, time_in_days, time_in_weeks, time_in_months, time_in_years, jenkins_sleep_2)
+  select(ttas_id, gender, hlab27status, age_at_onset, age_at_prom, diagnosis, treatment, last_known_smoking_status, last_known_vaping_status, treatment_order, date, stop_date_for_period_date_format, overall_treatment_duration_in_days, treatment_window_weekly_time, time_in_days, time_in_weeks, time_in_months, time_in_years, jenkins_sleep_2)
 
 write.csv(dataframe_sorted_jenkins_sleep_2, "temp_dataframe_after_dataframe_sorted_for_analysis_jenkins_sleep_2.csv", row.names = FALSE)
 
 dataframe_sorted_jenkins_sleep_3 <- dataframe_sorted %>%
   filter(!is.na(jenkins_sleep_3)) %>%
-  select(ttas_id, gender, hlab27status, age_at_prom, diagnosis, treatment, last_known_smoking_status, last_known_vaping_status, treatment_order, date, stop_date_for_period_date_format, overall_treatment_duration_in_days, treatment_window_weekly_time, time_in_days, time_in_weeks, time_in_months, time_in_years, jenkins_sleep_3)
+  select(ttas_id, gender, hlab27status, age_at_onset, age_at_prom, diagnosis, treatment, last_known_smoking_status, last_known_vaping_status, treatment_order, date, stop_date_for_period_date_format, overall_treatment_duration_in_days, treatment_window_weekly_time, time_in_days, time_in_weeks, time_in_months, time_in_years, jenkins_sleep_3)
 
 write.csv(dataframe_sorted_jenkins_sleep_3, "temp_dataframe_after_dataframe_sorted_for_analysis_jenkins_sleep_3.csv", row.names = FALSE)
 
 dataframe_sorted_jenkins_sleep_4 <- dataframe_sorted %>%
   filter(!is.na(jenkins_sleep_4)) %>%
-  select(ttas_id, gender, hlab27status, age_at_prom, diagnosis, treatment, last_known_smoking_status, last_known_vaping_status, treatment_order, date, stop_date_for_period_date_format, overall_treatment_duration_in_days, treatment_window_weekly_time, time_in_days, time_in_weeks, time_in_months, time_in_years, jenkins_sleep_4)
+  select(ttas_id, gender, hlab27status, age_at_onset, age_at_prom, diagnosis, treatment, last_known_smoking_status, last_known_vaping_status, treatment_order, date, stop_date_for_period_date_format, overall_treatment_duration_in_days, treatment_window_weekly_time, time_in_days, time_in_weeks, time_in_months, time_in_years, jenkins_sleep_4)
 
 write.csv(dataframe_sorted_jenkins_sleep_4, "temp_dataframe_after_dataframe_sorted_for_analysis_jenkins_sleep_4.csv", row.names = FALSE)
 ```
@@ -4766,6 +4773,7 @@ dataframe_sorted_and_reclassified_jenkins_sleep_1$ttas_id <- as.factor(dataframe
 dataframe_sorted_and_reclassified_jenkins_sleep_1$gender <- as.factor(dataframe_sorted_and_reclassified_jenkins_sleep_1$gender)
 dataframe_sorted_and_reclassified_jenkins_sleep_1$hlab27status <- as.factor(dataframe_sorted_and_reclassified_jenkins_sleep_1$hlab27status)
 dataframe_sorted_and_reclassified_jenkins_sleep_1$age_at_prom <- as.numeric(dataframe_sorted_and_reclassified_jenkins_sleep_1$age_at_prom)
+dataframe_sorted_and_reclassified_jenkins_sleep_1$age_at_onset <- as.numeric(dataframe_sorted_and_reclassified_jenkins_sleep_1$age_at_onset)
 dataframe_sorted_and_reclassified_jenkins_sleep_1$diagnosis <- as.factor(dataframe_sorted_and_reclassified_jenkins_sleep_1$diagnosis)
 dataframe_sorted_and_reclassified_jenkins_sleep_1$treatment <- as.factor(dataframe_sorted_and_reclassified_jenkins_sleep_1$treatment)
 dataframe_sorted_and_reclassified_jenkins_sleep_1$treatment_order <- as.factor(dataframe_sorted_and_reclassified_jenkins_sleep_1$treatment_order)
@@ -4786,6 +4794,7 @@ dataframe_sorted_and_reclassified_jenkins_sleep_2$ttas_id <- as.factor(dataframe
 dataframe_sorted_and_reclassified_jenkins_sleep_2$gender <- as.factor(dataframe_sorted_and_reclassified_jenkins_sleep_2$gender)
 dataframe_sorted_and_reclassified_jenkins_sleep_2$hlab27status <- as.factor(dataframe_sorted_and_reclassified_jenkins_sleep_2$hlab27status)
 dataframe_sorted_and_reclassified_jenkins_sleep_2$age_at_prom <- as.numeric(dataframe_sorted_and_reclassified_jenkins_sleep_2$age_at_prom)
+dataframe_sorted_and_reclassified_jenkins_sleep_2$age_at_onset <- as.numeric(dataframe_sorted_and_reclassified_jenkins_sleep_2$age_at_onset)
 dataframe_sorted_and_reclassified_jenkins_sleep_2$diagnosis <- as.factor(dataframe_sorted_and_reclassified_jenkins_sleep_2$diagnosis)
 dataframe_sorted_and_reclassified_jenkins_sleep_2$treatment <- as.factor(dataframe_sorted_and_reclassified_jenkins_sleep_2$treatment)
 dataframe_sorted_and_reclassified_jenkins_sleep_2$treatment_order <- as.factor(dataframe_sorted_and_reclassified_jenkins_sleep_2$treatment_order)
@@ -4806,6 +4815,7 @@ dataframe_sorted_and_reclassified_jenkins_sleep_3$ttas_id <- as.factor(dataframe
 dataframe_sorted_and_reclassified_jenkins_sleep_3$gender <- as.factor(dataframe_sorted_and_reclassified_jenkins_sleep_3$gender)
 dataframe_sorted_and_reclassified_jenkins_sleep_3$hlab27status <- as.factor(dataframe_sorted_and_reclassified_jenkins_sleep_3$hlab27status)
 dataframe_sorted_and_reclassified_jenkins_sleep_3$age_at_prom <- as.numeric(dataframe_sorted_and_reclassified_jenkins_sleep_3$age_at_prom)
+dataframe_sorted_and_reclassified_jenkins_sleep_3$age_at_onset <- as.numeric(dataframe_sorted_and_reclassified_jenkins_sleep_3$age_at_onset)
 dataframe_sorted_and_reclassified_jenkins_sleep_3$diagnosis <- as.factor(dataframe_sorted_and_reclassified_jenkins_sleep_3$diagnosis)
 dataframe_sorted_and_reclassified_jenkins_sleep_3$treatment <- as.factor(dataframe_sorted_and_reclassified_jenkins_sleep_3$treatment)
 dataframe_sorted_and_reclassified_jenkins_sleep_3$treatment_order <- as.factor(dataframe_sorted_and_reclassified_jenkins_sleep_3$treatment_order)
@@ -4826,6 +4836,7 @@ dataframe_sorted_and_reclassified_jenkins_sleep_4$ttas_id <- as.factor(dataframe
 dataframe_sorted_and_reclassified_jenkins_sleep_4$gender <- as.factor(dataframe_sorted_and_reclassified_jenkins_sleep_4$gender)
 dataframe_sorted_and_reclassified_jenkins_sleep_4$hlab27status <- as.factor(dataframe_sorted_and_reclassified_jenkins_sleep_4$hlab27status)
 dataframe_sorted_and_reclassified_jenkins_sleep_4$age_at_prom <- as.numeric(dataframe_sorted_and_reclassified_jenkins_sleep_4$age_at_prom)
+dataframe_sorted_and_reclassified_jenkins_sleep_4$age_at_onset <- as.numeric(dataframe_sorted_and_reclassified_jenkins_sleep_4$age_at_onset)
 dataframe_sorted_and_reclassified_jenkins_sleep_4$diagnosis <- as.factor(dataframe_sorted_and_reclassified_jenkins_sleep_4$diagnosis)
 dataframe_sorted_and_reclassified_jenkins_sleep_4$treatment <- as.factor(dataframe_sorted_and_reclassified_jenkins_sleep_4$treatment)
 dataframe_sorted_and_reclassified_jenkins_sleep_4$treatment_order <- as.factor(dataframe_sorted_and_reclassified_jenkins_sleep_4$treatment_order)
@@ -4955,7 +4966,7 @@ dataframe_sorted_and_reclassified_jenkins_sleep_4$last_known_vaping_status <-
 
 ```{r, include=TRUE}
 model_treatment_diagnosis_jenkins_sleep_1_full <- lmer(
-  jenkins_sleep_1 ~ gender + hlab27status + age_at_prom +
+  jenkins_sleep_1 ~ gender + hlab27status + age_at_onset +
     diagnosis + treatment_order + last_known_smoking_status +
     last_known_vaping_status +  
     treatment_reclassified * diagnosis +
@@ -4965,7 +4976,7 @@ model_treatment_diagnosis_jenkins_sleep_1_full <- lmer(
                                            optCtrl = list(maxfun = 2e5)))
 
 model_treatment_diagnosis_jenkins_sleep_2_full <- lmer(
-  jenkins_sleep_2 ~ gender + hlab27status + age_at_prom +
+  jenkins_sleep_2 ~ gender + hlab27status + age_at_onset +
     diagnosis + treatment_order + last_known_smoking_status +
     last_known_vaping_status +  
     treatment_reclassified * diagnosis +
@@ -4975,7 +4986,7 @@ model_treatment_diagnosis_jenkins_sleep_2_full <- lmer(
                                            optCtrl = list(maxfun = 2e5)))
 
 model_treatment_diagnosis_jenkins_sleep_3_full <- lmer(
-  jenkins_sleep_3 ~ gender + hlab27status + age_at_prom +
+  jenkins_sleep_3 ~ gender + hlab27status + age_at_onset +
     diagnosis + treatment_order + last_known_smoking_status +
     last_known_vaping_status +  
     treatment_reclassified * diagnosis +
@@ -4985,7 +4996,7 @@ model_treatment_diagnosis_jenkins_sleep_3_full <- lmer(
                                            optCtrl = list(maxfun = 2e5)))
 
 model_treatment_diagnosis_jenkins_sleep_4_full <- lmer(
-  jenkins_sleep_4 ~ gender + hlab27status + age_at_prom +
+  jenkins_sleep_4 ~ gender + hlab27status + age_at_onset +
     diagnosis + treatment_order + last_known_smoking_status +
     last_known_vaping_status +  
     treatment_reclassified * diagnosis +
@@ -4997,7 +5008,7 @@ model_treatment_diagnosis_jenkins_sleep_4_full <- lmer(
 
 ```{r, include=TRUE}
 model_treatment_diagnosis_jenkins_sleep_1_reduced <- lmer(
-  jenkins_sleep_1 ~ gender + hlab27status + age_at_prom +
+  jenkins_sleep_1 ~ gender + hlab27status + age_at_onset +
     diagnosis + treatment_order + last_known_smoking_status +
     last_known_vaping_status +  
     treatment_reclassified +
@@ -5007,7 +5018,7 @@ model_treatment_diagnosis_jenkins_sleep_1_reduced <- lmer(
                                             optCtrl = list(maxfun = 2e5)))
 
 model_treatment_diagnosis_jenkins_sleep_2_reduced <- lmer(
-  jenkins_sleep_2 ~ gender + hlab27status + age_at_prom +
+  jenkins_sleep_2 ~ gender + hlab27status + age_at_onset +
     diagnosis + treatment_order + last_known_smoking_status +
     last_known_vaping_status +  
     treatment_reclassified +
@@ -5017,7 +5028,7 @@ model_treatment_diagnosis_jenkins_sleep_2_reduced <- lmer(
                                             optCtrl = list(maxfun = 2e5)))
 
 model_treatment_diagnosis_jenkins_sleep_3_reduced <- lmer(
-  jenkins_sleep_3 ~ gender + hlab27status + age_at_prom +
+  jenkins_sleep_3 ~ gender + hlab27status + age_at_onset +
     diagnosis + treatment_order + last_known_smoking_status +
     last_known_vaping_status +  
     treatment_reclassified +
@@ -5027,7 +5038,7 @@ model_treatment_diagnosis_jenkins_sleep_3_reduced <- lmer(
                                             optCtrl = list(maxfun = 2e5)))
 
 model_treatment_diagnosis_jenkins_sleep_4_reduced <- lmer(
-  jenkins_sleep_4 ~ gender + hlab27status + age_at_prom +
+  jenkins_sleep_4 ~ gender + hlab27status + age_at_onset +
     diagnosis + treatment_order + last_known_smoking_status +
     last_known_vaping_status +  
     treatment_reclassified +
@@ -5093,7 +5104,7 @@ anova(model_treatment_diagnosis_jenkins_sleep_4_full,
 
 ```{r, include=TRUE}
 model_treatment_gender_jenkins_sleep_1_full <- lmer(
-  jenkins_sleep_1 ~ gender + hlab27status + age_at_prom +
+  jenkins_sleep_1 ~ gender + hlab27status + age_at_onset +
     diagnosis + treatment_order + last_known_smoking_status +
     last_known_vaping_status +  
     treatment_reclassified * gender +
@@ -5103,7 +5114,7 @@ model_treatment_gender_jenkins_sleep_1_full <- lmer(
                                            optCtrl = list(maxfun = 2e5)))
 
 model_treatment_gender_jenkins_sleep_2_full <- lmer(
-  jenkins_sleep_2 ~ gender + hlab27status + age_at_prom +
+  jenkins_sleep_2 ~ gender + hlab27status + age_at_onset +
     diagnosis + treatment_order + last_known_smoking_status +
     last_known_vaping_status +  
     treatment_reclassified * gender +
@@ -5113,7 +5124,7 @@ model_treatment_gender_jenkins_sleep_2_full <- lmer(
                                            optCtrl = list(maxfun = 2e5)))
 
 model_treatment_gender_jenkins_sleep_3_full <- lmer(
-  jenkins_sleep_3 ~ gender + hlab27status + age_at_prom +
+  jenkins_sleep_3 ~ gender + hlab27status + age_at_onset +
     diagnosis + treatment_order + last_known_smoking_status +
     last_known_vaping_status +  
     treatment_reclassified * gender +
@@ -5123,7 +5134,7 @@ model_treatment_gender_jenkins_sleep_3_full <- lmer(
                                            optCtrl = list(maxfun = 2e5)))
 
 model_treatment_gender_jenkins_sleep_4_full <- lmer(
-  jenkins_sleep_4 ~ gender + hlab27status + age_at_prom +
+  jenkins_sleep_4 ~ gender + hlab27status + age_at_onset +
     diagnosis + treatment_order + last_known_smoking_status +
     last_known_vaping_status +  
     treatment_reclassified * gender +
@@ -5135,7 +5146,7 @@ model_treatment_gender_jenkins_sleep_4_full <- lmer(
 
 ```{r, include=TRUE}
 model_treatment_gender_jenkins_sleep_1_reduced <- lmer(
-  jenkins_sleep_1 ~ gender + hlab27status + age_at_prom +
+  jenkins_sleep_1 ~ gender + hlab27status + age_at_onset +
     diagnosis + treatment_order + last_known_smoking_status +
     last_known_vaping_status +  
     treatment_reclassified +
@@ -5145,7 +5156,7 @@ model_treatment_gender_jenkins_sleep_1_reduced <- lmer(
                                             optCtrl = list(maxfun = 2e5)))
 
 model_treatment_gender_jenkins_sleep_2_reduced <- lmer(
-  jenkins_sleep_2 ~ gender + hlab27status + age_at_prom +
+  jenkins_sleep_2 ~ gender + hlab27status + age_at_onset +
     diagnosis + treatment_order + last_known_smoking_status +
     last_known_vaping_status +  
     treatment_reclassified +
@@ -5155,7 +5166,7 @@ model_treatment_gender_jenkins_sleep_2_reduced <- lmer(
                                             optCtrl = list(maxfun = 2e5)))
 
 model_treatment_gender_jenkins_sleep_3_reduced <- lmer(
-  jenkins_sleep_3 ~ gender + hlab27status + age_at_prom +
+  jenkins_sleep_3 ~ gender + hlab27status + age_at_onset +
     diagnosis + treatment_order + last_known_smoking_status +
     last_known_vaping_status +  
     treatment_reclassified +
@@ -5166,7 +5177,7 @@ model_treatment_gender_jenkins_sleep_3_reduced <- lmer(
 
 
 model_treatment_gender_jenkins_sleep_4_reduced <- lmer(
-  jenkins_sleep_4 ~ gender + hlab27status + age_at_prom +
+  jenkins_sleep_4 ~ gender + hlab27status + age_at_onset +
     diagnosis + treatment_order + last_known_smoking_status +
     last_known_vaping_status +  
     treatment_reclassified +
@@ -5235,7 +5246,7 @@ anova(model_treatment_gender_jenkins_sleep_4_full,
 # General longitudinal analysis for those with and without drugs
 dataframe_sorted_wpl <- dataframe_sorted %>%
   filter(!is.na(wpl)) %>%
-      select(ttas_id, gender, hlab27status, age_at_prom, diagnosis, treatment, last_known_smoking_status, last_known_vaping_status, treatment_order, date, stop_date_for_period_date_format, overall_treatment_duration_in_days, treatment_window_weekly_time, time_in_days, time_in_weeks, time_in_months, time_in_years, wpl)
+      select(ttas_id, gender, hlab27status, age_at_onset, age_at_prom, diagnosis, treatment, last_known_smoking_status, last_known_vaping_status, treatment_order, date, stop_date_for_period_date_format, overall_treatment_duration_in_days, treatment_window_weekly_time, time_in_days, time_in_weeks, time_in_months, time_in_years, wpl)
 
 write.csv(dataframe_sorted_wpl, "temp_dataframe_after_dataframe_sorted_for_analysis_wpl.csv", row.names = FALSE)
 ```
@@ -5279,6 +5290,7 @@ dataframe_sorted_and_reclassified_wpl$ttas_id <- as.factor(dataframe_sorted_and_
 dataframe_sorted_and_reclassified_wpl$gender <- as.factor(dataframe_sorted_and_reclassified_wpl$gender)
 dataframe_sorted_and_reclassified_wpl$hlab27status <- as.factor(dataframe_sorted_and_reclassified_wpl$hlab27status)
 dataframe_sorted_and_reclassified_wpl$age_at_prom <- as.numeric(dataframe_sorted_and_reclassified_wpl$age_at_prom)
+dataframe_sorted_and_reclassified_wpl$age_at_onset <- as.numeric(dataframe_sorted_and_reclassified_wpl$age_at_onset)
 dataframe_sorted_and_reclassified_wpl$diagnosis <- as.factor(dataframe_sorted_and_reclassified_wpl$diagnosis)
 dataframe_sorted_and_reclassified_wpl$treatment <- as.factor(dataframe_sorted_and_reclassified_wpl$treatment)
 dataframe_sorted_and_reclassified_wpl$treatment_order <- as.factor(dataframe_sorted_and_reclassified_wpl$treatment_order)
@@ -5335,7 +5347,7 @@ dataframe_sorted_and_reclassified_wpl$last_known_vaping_status <-
 
 ```{r, include=TRUE}
 model_treatment_diagnosis_wpl_full <- lmer(
-  wpl ~ gender + hlab27status + age_at_prom +
+  wpl ~ gender + hlab27status + age_at_onset +
     diagnosis + treatment_order + last_known_smoking_status +
     last_known_vaping_status +  
     treatment_reclassified * diagnosis +
@@ -5347,7 +5359,7 @@ model_treatment_diagnosis_wpl_full <- lmer(
 
 ```{r, include=TRUE}
 model_treatment_diagnosis_wpl_reduced <- lmer(
-  wpl ~ gender + hlab27status + age_at_prom +
+  wpl ~ gender + hlab27status + age_at_onset +
     diagnosis + treatment_order + last_known_smoking_status +
     last_known_vaping_status +  
     treatment_reclassified +
@@ -5374,7 +5386,7 @@ anova(model_treatment_diagnosis_wpl_full,
 
 ```{r, include=TRUE}
 model_treatment_gender_wpl_full <- lmer(
-  wpl ~ gender + hlab27status + age_at_prom +
+  wpl ~ gender + hlab27status + age_at_onset +
     diagnosis + treatment_order + last_known_smoking_status +
     last_known_vaping_status +  
     treatment_reclassified * gender +
@@ -5386,7 +5398,7 @@ model_treatment_gender_wpl_full <- lmer(
 
 ```{r, include=TRUE}
 model_treatment_gender_wpl_reduced <- lmer(
-  wpl ~ gender + hlab27status + age_at_prom +
+  wpl ~ gender + hlab27status + age_at_onset +
     diagnosis + treatment_order + last_known_smoking_status +
     last_known_vaping_status +  
     treatment_reclassified +
@@ -5416,7 +5428,7 @@ anova(model_treatment_gender_wpl_full,
 # General longitudinal analysis for those with and without drugs
 dataframe_sorted_daily_activity_impairment <- dataframe_sorted %>%
   filter(!is.na(daily_activity_impairment)) %>%
-        select(ttas_id, gender, hlab27status, age_at_prom, diagnosis, treatment, last_known_smoking_status, last_known_vaping_status, treatment_order, date, stop_date_for_period_date_format, overall_treatment_duration_in_days, treatment_window_weekly_time, time_in_days, time_in_weeks, time_in_months, time_in_years, daily_activity_impairment)
+        select(ttas_id, gender, hlab27status, age_at_onset, age_at_prom, diagnosis, treatment, last_known_smoking_status, last_known_vaping_status, treatment_order, date, stop_date_for_period_date_format, overall_treatment_duration_in_days, treatment_window_weekly_time, time_in_days, time_in_weeks, time_in_months, time_in_years, daily_activity_impairment)
 
 write.csv(dataframe_sorted_daily_activity_impairment, "temp_dataframe_after_dataframe_sorted_for_analysis_daily_activity_impairment.csv", row.names = FALSE)
 ```
@@ -5460,6 +5472,7 @@ dataframe_sorted_and_reclassified_daily_activity_impairment$ttas_id <- as.factor
 dataframe_sorted_and_reclassified_daily_activity_impairment$gender <- as.factor(dataframe_sorted_and_reclassified_daily_activity_impairment$gender)
 dataframe_sorted_and_reclassified_daily_activity_impairment$hlab27status <- as.factor(dataframe_sorted_and_reclassified_daily_activity_impairment$hlab27status)
 dataframe_sorted_and_reclassified_daily_activity_impairment$age_at_prom <- as.numeric(dataframe_sorted_and_reclassified_daily_activity_impairment$age_at_prom)
+dataframe_sorted_and_reclassified_daily_activity_impairment$age_at_onset <- as.numeric(dataframe_sorted_and_reclassified_daily_activity_impairment$age_at_onset)
 dataframe_sorted_and_reclassified_daily_activity_impairment$diagnosis <- as.factor(dataframe_sorted_and_reclassified_daily_activity_impairment$diagnosis)
 dataframe_sorted_and_reclassified_daily_activity_impairment$treatment <- as.factor(dataframe_sorted_and_reclassified_daily_activity_impairment$treatment)
 dataframe_sorted_and_reclassified_daily_activity_impairment$treatment_order <- as.factor(dataframe_sorted_and_reclassified_daily_activity_impairment$treatment_order)
@@ -5516,7 +5529,7 @@ dataframe_sorted_and_reclassified_daily_activity_impairment$last_known_vaping_st
 
 ```{r, include=TRUE}
 model_treatment_diagnosis_daily_activity_impairment_full <- lmer(
-  daily_activity_impairment ~ gender + hlab27status + age_at_prom +
+  daily_activity_impairment ~ gender + hlab27status + age_at_onset +
     diagnosis + treatment_order + last_known_smoking_status +
     last_known_vaping_status +  
     treatment_reclassified * diagnosis +
@@ -5528,7 +5541,7 @@ model_treatment_diagnosis_daily_activity_impairment_full <- lmer(
 
 ```{r, include=TRUE}
 model_treatment_diagnosis_daily_activity_impairment_reduced <- lmer(
-  daily_activity_impairment ~ gender + hlab27status + age_at_prom +
+  daily_activity_impairment ~ gender + hlab27status + age_at_onset +
     diagnosis + treatment_order + last_known_smoking_status +
     last_known_vaping_status +  
     treatment_reclassified +
@@ -5555,7 +5568,7 @@ anova(model_treatment_diagnosis_daily_activity_impairment_full,
 
 ```{r, include=TRUE}
 model_treatment_gender_daily_activity_impairment_full <- lmer(
-  daily_activity_impairment ~ gender + hlab27status + age_at_prom +
+  daily_activity_impairment ~ gender + hlab27status + age_at_onset +
     diagnosis + treatment_order + last_known_smoking_status +
     last_known_vaping_status +  
     treatment_reclassified * gender +
@@ -5567,7 +5580,7 @@ model_treatment_gender_daily_activity_impairment_full <- lmer(
 
 ```{r, include=TRUE}
 model_treatment_gender_daily_activity_impairment_reduced <- lmer(
-  daily_activity_impairment ~ gender + hlab27status + age_at_prom +
+  daily_activity_impairment ~ gender + hlab27status + age_at_onset +
     diagnosis + treatment_order + last_known_smoking_status +
     last_known_vaping_status +  
     treatment_reclassified +
@@ -5597,7 +5610,7 @@ anova(model_treatment_gender_daily_activity_impairment_full,
 # General longitudinal analysis for those with and without drugs
 dataframe_sorted_presenteeism <- dataframe_sorted %>%
   filter(!is.na(presenteeism)) %>%
-      select(ttas_id, gender, hlab27status, age_at_prom, diagnosis, treatment, last_known_smoking_status, last_known_vaping_status, treatment_order, date, stop_date_for_period_date_format, overall_treatment_duration_in_days, treatment_window_weekly_time, time_in_days, time_in_weeks, time_in_months, time_in_years, presenteeism)
+      select(ttas_id, gender, hlab27status, age_at_onset, age_at_prom, diagnosis, treatment, last_known_smoking_status, last_known_vaping_status, treatment_order, date, stop_date_for_period_date_format, overall_treatment_duration_in_days, treatment_window_weekly_time, time_in_days, time_in_weeks, time_in_months, time_in_years, presenteeism)
 
 write.csv(dataframe_sorted_presenteeism, "temp_dataframe_after_dataframe_sorted_for_analysis_presenteeism.csv", row.names = FALSE)
 
@@ -5641,6 +5654,7 @@ dataframe_sorted_and_reclassified_presenteeism$ttas_id <- as.factor(dataframe_so
 dataframe_sorted_and_reclassified_presenteeism$gender <- as.factor(dataframe_sorted_and_reclassified_presenteeism$gender)
 dataframe_sorted_and_reclassified_presenteeism$hlab27status <- as.factor(dataframe_sorted_and_reclassified_presenteeism$hlab27status)
 dataframe_sorted_and_reclassified_presenteeism$age_at_prom <- as.numeric(dataframe_sorted_and_reclassified_presenteeism$age_at_prom)
+dataframe_sorted_and_reclassified_presenteeism$age_at_onset <- as.numeric(dataframe_sorted_and_reclassified_presenteeism$age_at_onset)
 dataframe_sorted_and_reclassified_presenteeism$diagnosis <- as.factor(dataframe_sorted_and_reclassified_presenteeism$diagnosis)
 dataframe_sorted_and_reclassified_presenteeism$treatment <- as.factor(dataframe_sorted_and_reclassified_presenteeism$treatment)
 dataframe_sorted_and_reclassified_presenteeism$treatment_order <- as.factor(dataframe_sorted_and_reclassified_presenteeism$treatment_order)
@@ -5697,7 +5711,7 @@ dataframe_sorted_and_reclassified_presenteeism$last_known_vaping_status <-
 
 ```{r, include=TRUE}
 model_treatment_diagnosis_presenteeism_full <- lmer(
-  presenteeism ~ gender + hlab27status + age_at_prom +
+  presenteeism ~ gender + hlab27status + age_at_onset +
     diagnosis + treatment_order + last_known_smoking_status +
     last_known_vaping_status +  
     treatment_reclassified * diagnosis +
@@ -5709,7 +5723,7 @@ model_treatment_diagnosis_presenteeism_full <- lmer(
 
 ```{r, include=TRUE}
 model_treatment_diagnosis_presenteeism_reduced <- lmer(
-  presenteeism ~ gender + hlab27status + age_at_prom +
+  presenteeism ~ gender + hlab27status + age_at_onset +
     diagnosis + treatment_order + last_known_smoking_status +
     last_known_vaping_status +  
     treatment_reclassified +
@@ -5736,7 +5750,7 @@ anova(model_treatment_diagnosis_presenteeism_full,
 
 ```{r, include=TRUE}
 model_treatment_gender_presenteeism_full <- lmer(
-  presenteeism ~ gender + hlab27status + age_at_prom +
+  presenteeism ~ gender + hlab27status + age_at_onset +
     diagnosis + treatment_order + last_known_smoking_status +
     last_known_vaping_status +  
     treatment_reclassified * gender +
@@ -5748,7 +5762,7 @@ model_treatment_gender_presenteeism_full <- lmer(
 
 ```{r, include=TRUE}
 model_treatment_gender_presenteeism_reduced <- lmer(
-  presenteeism ~ gender + hlab27status + age_at_prom +
+  presenteeism ~ gender + hlab27status + age_at_onset +
     diagnosis + treatment_order + last_known_smoking_status +
     last_known_vaping_status +  
     treatment_reclassified +
@@ -5778,7 +5792,7 @@ anova(model_treatment_gender_presenteeism_full,
 # General longitudinal analysis for those with and without drugs
 dataframe_sorted_absenteeism <- dataframe_sorted %>%
   filter(!is.na(absenteeism)) %>%
-    select(ttas_id, gender, hlab27status, age_at_prom, diagnosis, treatment, last_known_smoking_status, last_known_vaping_status, treatment_order, date, stop_date_for_period_date_format, overall_treatment_duration_in_days, treatment_window_weekly_time, time_in_days, time_in_weeks, time_in_months, time_in_years, absenteeism)
+    select(ttas_id, gender, hlab27status, age_at_onset, age_at_prom, diagnosis, treatment, last_known_smoking_status, last_known_vaping_status, treatment_order, date, stop_date_for_period_date_format, overall_treatment_duration_in_days, treatment_window_weekly_time, time_in_days, time_in_weeks, time_in_months, time_in_years, absenteeism)
 
 write.csv(dataframe_sorted_absenteeism, "temp_dataframe_after_dataframe_sorted_for_analysis_absenteeism.csv", row.names = FALSE)
 
@@ -5822,6 +5836,7 @@ dataframe_sorted_and_reclassified_absenteeism$ttas_id <- as.factor(dataframe_sor
 dataframe_sorted_and_reclassified_absenteeism$gender <- as.factor(dataframe_sorted_and_reclassified_absenteeism$gender)
 dataframe_sorted_and_reclassified_absenteeism$hlab27status <- as.factor(dataframe_sorted_and_reclassified_absenteeism$hlab27status)
 dataframe_sorted_and_reclassified_absenteeism$age_at_prom <- as.numeric(dataframe_sorted_and_reclassified_absenteeism$age_at_prom)
+dataframe_sorted_and_reclassified_absenteeism$age_at_onset <- as.numeric(dataframe_sorted_and_reclassified_absenteeism$age_at_onset)
 dataframe_sorted_and_reclassified_absenteeism$diagnosis <- as.factor(dataframe_sorted_and_reclassified_absenteeism$diagnosis)
 dataframe_sorted_and_reclassified_absenteeism$treatment <- as.factor(dataframe_sorted_and_reclassified_absenteeism$treatment)
 dataframe_sorted_and_reclassified_absenteeism$treatment_order <- as.factor(dataframe_sorted_and_reclassified_absenteeism$treatment_order)
@@ -5878,7 +5893,7 @@ dataframe_sorted_and_reclassified_absenteeism$last_known_vaping_status <-
 
 ```{r, include=TRUE}
 model_treatment_diagnosis_absenteeism_full <- lmer(
-  absenteeism ~ gender + hlab27status + age_at_prom +
+  absenteeism ~ gender + hlab27status + age_at_onset +
     diagnosis + treatment_order + last_known_smoking_status +
     last_known_vaping_status +  
     treatment_reclassified * diagnosis +
@@ -5890,7 +5905,7 @@ model_treatment_diagnosis_absenteeism_full <- lmer(
 
 ```{r, include=TRUE}
 model_treatment_diagnosis_absenteeism_reduced <- lmer(
-  absenteeism ~ gender + hlab27status + age_at_prom +
+  absenteeism ~ gender + hlab27status + age_at_onset +
     diagnosis + treatment_order + last_known_smoking_status +
     last_known_vaping_status +  
     treatment_reclassified +
@@ -5917,7 +5932,7 @@ anova(model_treatment_diagnosis_absenteeism_full,
 
 ```{r, include=TRUE}
 model_treatment_gender_absenteeism_full <- lmer(
-  absenteeism ~ gender + hlab27status + age_at_prom +
+  absenteeism ~ gender + hlab27status + age_at_onset +
     diagnosis + treatment_order + last_known_smoking_status +
     last_known_vaping_status +  
     treatment_reclassified * gender +
@@ -5929,7 +5944,7 @@ model_treatment_gender_absenteeism_full <- lmer(
 
 ```{r, include=TRUE}
 model_treatment_gender_absenteeism_reduced <- lmer(
-  absenteeism ~ gender + hlab27status + age_at_prom +
+  absenteeism ~ gender + hlab27status + age_at_onset +
     diagnosis + treatment_order + last_known_smoking_status +
     last_known_vaping_status +  
     treatment_reclassified +
@@ -5959,7 +5974,7 @@ anova(model_treatment_gender_absenteeism_full,
 # General longitudinal analysis for those with and without drugs
 dataframe_sorted_facit <- dataframe_sorted %>%
   filter(!is.na(facit)) %>%
-    select(ttas_id, gender, hlab27status, age_at_prom, diagnosis, treatment, last_known_smoking_status, last_known_vaping_status, treatment_order, date, stop_date_for_period_date_format, overall_treatment_duration_in_days, treatment_window_weekly_time, time_in_days, time_in_weeks, time_in_months, time_in_years, facit)
+    select(ttas_id, gender, hlab27status, age_at_onset, age_at_prom, diagnosis, treatment, last_known_smoking_status, last_known_vaping_status, treatment_order, date, stop_date_for_period_date_format, overall_treatment_duration_in_days, treatment_window_weekly_time, time_in_days, time_in_weeks, time_in_months, time_in_years, facit)
 
 write.csv(dataframe_sorted_facit, "temp_dataframe_after_dataframe_sorted_for_analysis_facit.csv", row.names = FALSE)
 
@@ -6003,6 +6018,7 @@ dataframe_sorted_and_reclassified_facit$ttas_id <- as.factor(dataframe_sorted_an
 dataframe_sorted_and_reclassified_facit$gender <- as.factor(dataframe_sorted_and_reclassified_facit$gender)
 dataframe_sorted_and_reclassified_facit$hlab27status <- as.factor(dataframe_sorted_and_reclassified_facit$hlab27status)
 dataframe_sorted_and_reclassified_facit$age_at_prom <- as.numeric(dataframe_sorted_and_reclassified_facit$age_at_prom)
+dataframe_sorted_and_reclassified_facit$age_at_onset <- as.numeric(dataframe_sorted_and_reclassified_facit$age_at_onset)
 dataframe_sorted_and_reclassified_facit$diagnosis <- as.factor(dataframe_sorted_and_reclassified_facit$diagnosis)
 dataframe_sorted_and_reclassified_facit$treatment <- as.factor(dataframe_sorted_and_reclassified_facit$treatment)
 dataframe_sorted_and_reclassified_facit$treatment_order <- as.factor(dataframe_sorted_and_reclassified_facit$treatment_order)
@@ -6059,7 +6075,7 @@ dataframe_sorted_and_reclassified_facit$last_known_vaping_status <-
 
 ```{r, include=TRUE}
 model_treatment_diagnosis_facit_full <- lmer(
-  facit ~ gender + hlab27status + age_at_prom +
+  facit ~ gender + hlab27status + age_at_onset +
     diagnosis + treatment_order + last_known_smoking_status +
     last_known_vaping_status +  
     treatment_reclassified * diagnosis +
@@ -6071,7 +6087,7 @@ model_treatment_diagnosis_facit_full <- lmer(
 
 ```{r, include=TRUE}
 model_treatment_diagnosis_facit_reduced <- lmer(
-  facit ~ gender + hlab27status + age_at_prom +
+  facit ~ gender + hlab27status + age_at_onset +
     diagnosis + treatment_order + last_known_smoking_status +
     last_known_vaping_status +  
     treatment_reclassified +
@@ -6098,7 +6114,7 @@ anova(model_treatment_diagnosis_facit_full,
 
 ```{r, include=TRUE}
 model_treatment_gender_facit_full <- lmer(
-  facit ~ gender + hlab27status + age_at_prom +
+  facit ~ gender + hlab27status + age_at_onset +
     diagnosis + treatment_order + last_known_smoking_status +
     last_known_vaping_status +  
     treatment_reclassified * gender +
@@ -6110,7 +6126,7 @@ model_treatment_gender_facit_full <- lmer(
 
 ```{r, include=TRUE}
 model_treatment_gender_facit_reduced <- lmer(
-  facit ~ gender + hlab27status + age_at_prom +
+  facit ~ gender + hlab27status + age_at_onset +
     diagnosis + treatment_order + last_known_smoking_status +
     last_known_vaping_status +  
     treatment_reclassified +
@@ -6140,7 +6156,7 @@ anova(model_treatment_gender_facit_full,
 # General longitudinal analysis for those with and without drugs
 dataframe_sorted_margolis <- dataframe_sorted %>%
   filter(!is.na(margolis)) %>%
-    select(ttas_id, gender, hlab27status, age_at_prom, diagnosis, treatment, last_known_smoking_status, last_known_vaping_status, treatment_order, date, stop_date_for_period_date_format, overall_treatment_duration_in_days, treatment_window_weekly_time, time_in_days, time_in_weeks, time_in_months, time_in_years, margolis)
+    select(ttas_id, gender, hlab27status, age_at_onset, age_at_prom, diagnosis, treatment, last_known_smoking_status, last_known_vaping_status, treatment_order, date, stop_date_for_period_date_format, overall_treatment_duration_in_days, treatment_window_weekly_time, time_in_days, time_in_weeks, time_in_months, time_in_years, margolis)
 
 write.csv(dataframe_sorted_margolis, "temp_dataframe_after_dataframe_sorted_for_analysis_margolis.csv", row.names = FALSE)
 
@@ -6184,6 +6200,7 @@ dataframe_sorted_and_reclassified_margolis$ttas_id <- as.factor(dataframe_sorted
 dataframe_sorted_and_reclassified_margolis$gender <- as.factor(dataframe_sorted_and_reclassified_margolis$gender)
 dataframe_sorted_and_reclassified_margolis$hlab27status <- as.factor(dataframe_sorted_and_reclassified_margolis$hlab27status)
 dataframe_sorted_and_reclassified_margolis$age_at_prom <- as.numeric(dataframe_sorted_and_reclassified_margolis$age_at_prom)
+dataframe_sorted_and_reclassified_margolis$age_at_onset <- as.numeric(dataframe_sorted_and_reclassified_margolis$age_at_onset)
 dataframe_sorted_and_reclassified_margolis$diagnosis <- as.factor(dataframe_sorted_and_reclassified_margolis$diagnosis)
 dataframe_sorted_and_reclassified_margolis$treatment <- as.factor(dataframe_sorted_and_reclassified_margolis$treatment)
 dataframe_sorted_and_reclassified_margolis$treatment_order <- as.factor(dataframe_sorted_and_reclassified_margolis$treatment_order)
@@ -6240,7 +6257,7 @@ dataframe_sorted_and_reclassified_margolis$last_known_vaping_status <-
 
 ```{r, include=TRUE}
 model_treatment_diagnosis_margolis_full <- lmer(
-  margolis ~ gender + hlab27status + age_at_prom +
+  margolis ~ gender + hlab27status + age_at_onset +
     diagnosis + treatment_order + last_known_smoking_status +
     last_known_vaping_status +  
     treatment_reclassified * diagnosis +
@@ -6252,7 +6269,7 @@ model_treatment_diagnosis_margolis_full <- lmer(
 
 ```{r, include=TRUE}
 model_treatment_diagnosis_margolis_reduced <- lmer(
-  margolis ~ gender + hlab27status + age_at_prom +
+  margolis ~ gender + hlab27status + age_at_onset +
     diagnosis + treatment_order + last_known_smoking_status +
     last_known_vaping_status +  
     treatment_reclassified +
@@ -6279,7 +6296,7 @@ anova(model_treatment_diagnosis_margolis_full,
 
 ```{r, include=TRUE}
 model_treatment_gender_margolis_full <- lmer(
-  margolis ~ gender + hlab27status + age_at_prom +
+  margolis ~ gender + hlab27status + age_at_onset +
     diagnosis + treatment_order + last_known_smoking_status +
     last_known_vaping_status +  
     treatment_reclassified * gender +
@@ -6291,7 +6308,7 @@ model_treatment_gender_margolis_full <- lmer(
 
 ```{r, include=TRUE}
 model_treatment_gender_margolis_reduced <- lmer(
-  margolis ~ gender + hlab27status + age_at_prom +
+  margolis ~ gender + hlab27status + age_at_onset +
     diagnosis + treatment_order + last_known_smoking_status +
     last_known_vaping_status +  
     treatment_reclassified +
