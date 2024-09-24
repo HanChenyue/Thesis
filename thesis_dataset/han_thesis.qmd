@@ -22,9 +22,9 @@ library(plotly)
 library(MuMIn)
 # library(car)
 # library(lmerTest)
-library(gt)
-library(webshot2)
-library(rmarkdown)
+# library(gt)
+# library(webshot2)
+# library(rmarkdown)
 library(broom.mixed)
 ```
 
@@ -39,6 +39,8 @@ library(broom.mixed)
 #   map(read_excel, path = file_path) %>%
 #   reduce(full_join, by = "TTAS_ID")
 ```
+
+# Data Cleaning
 
 ```{r, include=FALSE}
 # Load data
@@ -55,7 +57,6 @@ drug_sheet_data <- clean_names(drug_sheet_data)
 ```
 
 ```{r, include=FALSE}
-# Data Cleaning
 # 1. Convert all dates column to date type
 # basmi_sheet_data$date <- as.Date(basmi_sheet_data$date, format = "%d/%m/%Y")
 # prom_sheet_data$date <- as.Date(prom_sheet_data$date, format = "%d/%m/%Y")
@@ -308,7 +309,6 @@ kable(summary(demographics_sheet_data)) %>% kable_styling(bootstrap_options = "s
 ```
 
 ```{r, include=FALSE}
-# TODO: Clean smoking and vaping columns
 # Cleaning the do_you_smoke column
 # Check for ttas_id that has more than one do_you_smoke column
 prom_sheet_data_clean_smoke <- prom_sheet_data %>%
@@ -1141,10 +1141,10 @@ plot(sort(basmi_sheet_data$basmi_score, na.last = NA), main = "Sorted BASMI Scor
 # Plotting the BASMI score against age_at_basmi
 ggplot(basmi_sheet_data, aes(x = age_at_basmi, y = basmi_score)) +
   # geom_point(alpha = 0.5) +
-  geom_jitter(alpha = 0.3) +
+  geom_jitter(alpha = 0.18) +
   geom_smooth(method = "loess", se = FALSE, colour = "red") +
   # geom_smooth(method = "lm", se = FALSE, colour = "blue") +
-  labs(title = "BASMI Score against Age at BASMI", x = "Age at BASMI", y = "BASMI Score") +
+  labs(title = "BASMI Score against Age at BASMI Scatterplot with LOESS Curve", x = "Age at BASMI", y = "BASMI Score") +
   theme_bw()
 
 # Save the plot
@@ -1228,11 +1228,11 @@ unique_ids <- unique(timeline_data$ttas_id)
 ```{r, warning=FALSE, include=FALSE}
 # output_folder <- "timeline_plots"
 # dir.create(output_folder, showWarnings = FALSE)
-# 
-# # Create log file connection outside the loop
+
+## Create log file connection outside the loop
 # log_file <- file(paste0(output_folder, "/plot_warnings.txt"), open = "wt")
-# 
-# # Function to capture and write all warnings to the log file
+
+# Function to capture and write all warnings to the log file
 # log_warning <- function(w) {
 #   cat(conditionMessage(w), file = log_file, append = TRUE, sep = "\n")
 # }
@@ -1240,12 +1240,12 @@ unique_ids <- unique(timeline_data$ttas_id)
 # for (current_id in unique_ids){
 #   filtered_data <- timeline_data %>% filter(ttas_id == current_id)
 #   filtered_drug_data <- drug_sheet_data %>% filter(ttas_id == current_id)
-#   
+# 
 #   # Replace NA stop_date values with a default (e.g., today's date)
 #   filtered_drug_data <- filtered_drug_data %>%
 #     mutate(
 #       stop_date = if_else(
-#         is.na(stop_date), 
+#         is.na(stop_date),
 #         Sys.Date(),  # Replace NA with today's date
 #         stop_date
 #       )
@@ -1254,13 +1254,13 @@ unique_ids <- unique(timeline_data$ttas_id)
 #   # Check and log warnings in one step
 #   if (nrow(filtered_data) == 0) {
 #     cat(paste("No timeline data found for TTAS ID:", current_id), file = log_file, append = TRUE, sep = "\n")
-#   } 
+#   }
 #   if (nrow(filtered_drug_data) == 0) {
 #     cat(paste("No drug data found for TTAS ID:", current_id), file = log_file, append = TRUE, sep = "\n")
 #   }
-#   
 # 
-#   
+# 
+# 
 #   plot <- ggplot(filtered_data, aes(x = date, y = Score, colour = Measure)) +
 #     geom_point() +
 #     geom_line() +
@@ -1290,7 +1290,7 @@ unique_ids <- unique(timeline_data$ttas_id)
 #     scale_fill_manual(values = drug_colours, na.value = "gray") +
 #     facet_wrap(~ ttas_id, ncol = 1, scales = "free_y") +
 #     labs(title = paste("Timeline plot for TTAS ID:", current_id))
-#   
+# 
 #   file_name <- paste(output_folder, "/timeline_plot_", current_id, ".png")
 #   ggsave(file_name, plot, width = 10, height = 6, dpi = 300)
 # }
@@ -1300,77 +1300,77 @@ unique_ids <- unique(timeline_data$ttas_id)
 ```
 
 ```{r, warning=FALSE, include=FALSE}
-# # Filtered out ttas_id with drugs only
-# ids_with_drug_data <- unique(drug_sheet_data$ttas_id)
-# ids_in_timeline_data <- unique(timeline_data$ttas_id)
-# 
-# ids_without_drug_data <- setdiff(ids_in_timeline_data, ids_with_drug_data)
-# 
-# # Filter out the ttas_id without drug data
-# combined_df_id_with_drugs <- combined_df %>% filter(ttas_id %in% ids_with_drug_data)
-# 
-# write_csv(combined_df_id_with_drugs, "test_combined_df_id_with_drugs.csv")
-# 
-# output_folder <- "timeline_plots_drugs_only"
-# dir.create(output_folder, showWarnings = FALSE)
-# 
-# unique_ids_drugs_only <- unique(combined_df_id_with_drugs$ttas_id)
-# 
-# cat("Checking number of unique ids with drugs data: ", length(unique(combined_df_id_with_drugs$ttas_id)), "\n")
-# cat("Checking declared variable is the same: ", length(unique_ids_drugs_only))
-# 
-# for (current_id in unique_ids_drugs_only){
-#   filtered_data <- timeline_data %>% filter(ttas_id == current_id)
-#   filtered_drug_data <- drug_sheet_data %>% filter(ttas_id == current_id)
-#   
-#   # Replace NA stop_date values with a default (e.g., today's date)
-#   filtered_drug_data <- filtered_drug_data %>%
-#     mutate(
-#       stop_date = if_else(
-#         is.na(stop_date), 
-#         Sys.Date(),  # Replace NA with today's date
-#         stop_date
-#       )
-#     )
-# 
-#   # Check and log warnings in one step
-#   if (nrow(filtered_data) == 0) {
-#     cat(paste("No timeline data found for TTAS ID:", current_id), file = log_file, append = TRUE, sep = "\n")
-#   } 
-#   
-#   plot <- ggplot(filtered_data, aes(x = date, y = Score, colour = Measure)) +
-#     geom_point() +
-#     geom_line() +
-#     geom_rect(
-#       data = filtered_drug_data,
-#       inherit.aes = FALSE,
-#       aes(
-#         xmin = drug_start_date,
-#         xmax = stop_date,
-#         fill = x3
-#       ),
-#       ymin = -Inf,
-#       ymax = Inf,
-#       alpha = 0.5
-#       ) +
-#     # geom_text(
-#     #   # Add drug names labels
-#     #   data = filtered_drug_data,
-#     #   inherit.aes = FALSE,
-#     #   aes(
-#     #     x = drug_start_date + (stop_date - drug_start_date) / 2,  # Calculate midpoint
-#     #     y = Inf - 5,  # Offset from max Score
-#     #     label = x3
-#     #     ),
-#     #   ) +
-#     # Use a colour pallete with enough colours for all drugs
-#     scale_fill_manual(values = drug_colours, na.value = "gray") +
-#     facet_wrap(~ ttas_id, ncol = 1, scales = "free_y") +
-#     labs(title = paste("Timeline plot for TTAS ID:", current_id))
-#   
-#   file_name <- paste(output_folder, "/timeline_plot_", current_id, ".png")
-#   ggsave(file_name, plot, width = 10, height = 6, dpi = 300)
-# }
+# Filtered out ttas_id with drugs only
+ids_with_drug_data <- unique(drug_sheet_data$ttas_id)
+ids_in_timeline_data <- unique(timeline_data$ttas_id)
+
+ids_without_drug_data <- setdiff(ids_in_timeline_data, ids_with_drug_data)
+
+# Filter out the ttas_id without drug data
+combined_df_id_with_drugs <- combined_df %>% filter(ttas_id %in% ids_with_drug_data)
+
+write_csv(combined_df_id_with_drugs, "test_combined_df_id_with_drugs.csv")
+
+output_folder <- "timeline_plots_drugs_only"
+dir.create(output_folder, showWarnings = FALSE)
+
+unique_ids_drugs_only <- unique(combined_df_id_with_drugs$ttas_id)
+
+cat("Checking number of unique ids with drugs data: ", length(unique(combined_df_id_with_drugs$ttas_id)), "\n")
+cat("Checking declared variable is the same: ", length(unique_ids_drugs_only))
+
+for (current_id in unique_ids_drugs_only){
+  filtered_data <- timeline_data %>% filter(ttas_id == current_id)
+  filtered_drug_data <- drug_sheet_data %>% filter(ttas_id == current_id)
+
+  # Replace NA stop_date values with a default (e.g., today's date)
+  filtered_drug_data <- filtered_drug_data %>%
+    mutate(
+      stop_date = if_else(
+        is.na(stop_date),
+        Sys.Date(),  # Replace NA with today's date
+        stop_date
+      )
+    )
+
+  # Check and log warnings in one step
+  if (nrow(filtered_data) == 0) {
+    cat(paste("No timeline data found for TTAS ID:", current_id), file = log_file, append = TRUE, sep = "\n")
+  }
+
+  plot <- ggplot(filtered_data, aes(x = date, y = Score, colour = Measure)) +
+    geom_point() +
+    geom_line() +
+    geom_rect(
+      data = filtered_drug_data,
+      inherit.aes = FALSE,
+      aes(
+        xmin = drug_start_date,
+        xmax = stop_date,
+        fill = x3
+      ),
+      ymin = -Inf,
+      ymax = Inf,
+      alpha = 0.5
+      ) +
+    # geom_text(
+    #   # Add drug names labels
+    #   data = filtered_drug_data,
+    #   inherit.aes = FALSE,
+    #   aes(
+    #     x = drug_start_date + (stop_date - drug_start_date) / 2,  # Calculate midpoint
+    #     y = Inf - 5,  # Offset from max Score
+    #     label = x3
+    #     ),
+    #   ) +
+    # Use a colour pallete with enough colours for all drugs
+    scale_fill_manual(values = drug_colours, na.value = "gray") +
+    facet_wrap(~ ttas_id, ncol = 1, scales = "free_y") +
+    labs(title = paste("Timeline plot for TTAS ID:", current_id)) + theme_bw()
+
+  file_name <- paste(output_folder, "/timeline_plot_", current_id, ".png")
+  ggsave(file_name, plot, width = 10, height = 6, dpi = 300)
+}
 ```
 
 ```{r, warning=FALSE, include=FALSE}
@@ -1400,107 +1400,107 @@ combined_df_id_with_drugs_excluded <- combined_df_id_with_drugs %>% filter(!ttas
 # Select the columns to write to the csv
 combined_df_id_with_drugs_excluded <- combined_df_id_with_drugs_excluded %>%
   select(ttas_id, gender, hlab27status, diagnosis, age_at_onset, age_at_diag, date, do_you_smoke, smoke_in_a_day, years_smoked, year_quit_smoking, ecigarettes, vape_in_a_day, years_vaped, year_quit_vaping, age_at_basmi, basmi_score, age_at_prom, basdai, basfi, patient_global, back_pain_at_night, back_pain_anytime, as_qol, jenkins_sleep_1, jenkins_sleep_2, jenkins_sleep_3, jenkins_sleep_4, presenteeism, absenteeism, wpl, daily_activity_impairment, facit, margolis, x3, stop_date, high_cost_drug_stop_reason, high_cost_drug_stop_reason_text, age_at_start_date, comment)
-write_csv(combined_df_id_with_drugs_excluded, "combined_df_id_with_drugs_excluded.csv")
+# write_csv(combined_df_id_with_drugs_excluded, "combined_df_id_with_drugs_excluded.csv")
 
 
 # Including patients with and without drug data but exclude the ids in the exclude_ids list
 combined_df_with_and_without_drugs_excluded <- combined_df %>% filter(!ttas_id %in% exclude_ids)
-write_csv(combined_df_with_and_without_drugs_excluded, "test_combined_df_with_and_without_drugs_excluded.csv")
+# write_csv(combined_df_with_and_without_drugs_excluded, "test_combined_df_with_and_without_drugs_excluded.csv")
 
 # Including all patients with and without drug data: For analysis
 combined_df_with_and_without_drugs <- combined_df
-write_csv(combined_df_with_and_without_drugs, "test_combined_df_with_and_without_drugs.csv")
+# write_csv(combined_df_with_and_without_drugs, "test_combined_df_with_and_without_drugs.csv")
 ```
 
 ```{r, warning=FALSE, include=FALSE}
 # Checkpoint start: Uncomment to recreate the plots
-# for (current_id in unique_ids_drugs_only){
-#   
-#   if (current_id %in% exclude_ids) {
-#     next # Skip the current iteration if the current_id is in the exclude_ids list
-#   }
-#   
-#   filtered_data <- timeline_data %>% filter(ttas_id == current_id)
-#   filtered_drug_data <- drug_sheet_data %>% filter(ttas_id == current_id)
-#   
-#   # Replace NA stop_date values with a default (e.g., today's date)
-#   filtered_drug_data <- filtered_drug_data %>%
-#     mutate(
-#       stop_date = if_else(
-#         is.na(stop_date), 
-#         Sys.Date(),  # Replace NA with today's date
-#         stop_date
-#       )
-#     )
-# 
-#   # Check and log warnings in one step
-#   if (nrow(filtered_data) == 0) {
-#     cat(paste("No timeline data found for TTAS ID:", current_id), file = log_file, append = TRUE, sep = "\n")
-#   } 
-#   
-#   # Get patient info
-#   patient_info <- combined_df_id_with_drugs_excluded %>% filter(ttas_id == current_id) %>% 
-#     select(
-#       gender, hlab27status, diagnosis, age_at_onset, age_at_diag
-#     ) %>% 
-#     distinct() %>%
-#     unite("Gender, HLAB27 Status, Diagnosis", gender, hlab27status, diagnosis, sep = " | ", remove = FALSE, na.rm = FALSE) %>% 
-#     pull("Gender, HLAB27 Status, Diagnosis")
-#   
-#   plot <- ggplot(filtered_data, aes(x = date, y = Score, colour = Measure)) +
-#     geom_point() +
-#     geom_line() +
-#     geom_rect(
-#       data = filtered_drug_data,
-#       inherit.aes = FALSE,
-#       aes(
-#         xmin = drug_start_date,
-#         xmax = stop_date,
-#         fill = x3
-#       ),
-#       ymin = -Inf,
-#       ymax = Inf,
-#       alpha = 0.5
-#       ) +
-#     # geom_text(
-#     #   # Add drug names labels
-#     #   data = filtered_drug_data,
-#     #   inherit.aes = FALSE,
-#     #   aes(
-#     #     x = drug_start_date + (stop_date - drug_start_date) / 2,  # Calculate midpoint
-#     #     y = Inf - 5,  # Offset from max Score
-#     #     label = x3
-#     #     ),
-#     #   ) +
-#     # Use a colour pallete with enough colours for all drugs
-#     scale_fill_manual(values = drug_colours, na.value = "gray") +
-#     facet_wrap(~ ttas_id, ncol = 1, scales = "free_y") +
-#     labs(title = paste0("Timeline plot for TTAS ID:", current_id), x = "Date", y = "Score") +
-#     scale_colour_discrete(
-#       labels = c(
-#         "absenteeism" = "Absenteeism",
-#         "as_qol" = "AsQoL",
-#         "back_pain_anytime" = "Back Pain Anytime",
-#         "back_pain_at_night" = "Back Pain at Night",
-#         "basdai" = "BASDAI",
-#         "basfi" = "BASFI",
-#         "basmi_score" = "BASMI Score",
-#         "daily_activity_impairment" = "Daily Activity Impairment",
-#         "facit" = "FACIT",
-#         "jenkins_sleep_1" = "Jenkins Sleep 1",
-#         "jenkins_sleep_2" = "Jenkins Sleep 2",
-#         "jenkins_sleep_3" = "Jenkins Sleep 3",
-#         "jenkins_sleep_4" = "Jenkins Sleep 4",
-#         "margolis" = "Margolis",
-#         "patient_global" = "Patient Global",
-#         "presenteeism" = "Presenteeism",
-#         "wpl" = "WPL"
-#       )) +
-#     ggtitle(paste0("Gender, HLAB27 Status, Diagnosis: ", patient_info))
-#   
-#   file_name <- paste0(output_folder_2, "/", current_id, "_overall.png")
-#   ggsave(file_name, plot, width = 10, height = 6, dpi = 300)
-# }
+for (current_id in unique_ids_drugs_only){
+
+  if (current_id %in% exclude_ids) {
+    next # Skip the current iteration if the current_id is in the exclude_ids list
+  }
+
+  filtered_data <- timeline_data %>% filter(ttas_id == current_id)
+  filtered_drug_data <- drug_sheet_data %>% filter(ttas_id == current_id)
+
+  # Replace NA stop_date values with a default (e.g., today's date)
+  filtered_drug_data <- filtered_drug_data %>%
+    mutate(
+      stop_date = if_else(
+        is.na(stop_date),
+        Sys.Date(),  # Replace NA with today's date
+        stop_date
+      )
+    )
+
+  # Check and log warnings in one step
+  if (nrow(filtered_data) == 0) {
+    cat(paste("No timeline data found for TTAS ID:", current_id), file = log_file, append = TRUE, sep = "\n")
+  }
+
+  # Get patient info
+  patient_info <- combined_df_id_with_drugs_excluded %>% filter(ttas_id == current_id) %>%
+    select(
+      gender, hlab27status, diagnosis, age_at_onset, age_at_diag
+    ) %>%
+    distinct() %>%
+    unite("Gender, HLAB27 Status, Diagnosis", gender, hlab27status, diagnosis, sep = " | ", remove = FALSE, na.rm = FALSE) %>%
+    pull("Gender, HLAB27 Status, Diagnosis")
+
+  plot <- ggplot(filtered_data, aes(x = date, y = Score, colour = Measure)) +
+    geom_point() +
+    geom_line() +
+    geom_rect(
+      data = filtered_drug_data,
+      inherit.aes = FALSE,
+      aes(
+        xmin = drug_start_date,
+        xmax = stop_date,
+        fill = x3
+      ),
+      ymin = -Inf,
+      ymax = Inf,
+      alpha = 0.5
+      ) +
+    # geom_text(
+    #   # Add drug names labels
+    #   data = filtered_drug_data,
+    #   inherit.aes = FALSE,
+    #   aes(
+    #     x = drug_start_date + (stop_date - drug_start_date) / 2,  # Calculate midpoint
+    #     y = Inf - 5,  # Offset from max Score
+    #     label = x3
+    #     ),
+    #   ) +
+    # Use a colour pallete with enough colours for all drugs
+    scale_fill_manual(values = drug_colours, na.value = "gray") +
+    facet_wrap(~ ttas_id, ncol = 1, scales = "free_y") +
+    labs(title = paste0("Timeline plot for TTAS ID:", current_id), x = "Date", y = "Score") +
+    scale_colour_discrete(
+      labels = c(
+        "absenteeism" = "Absenteeism",
+        "as_qol" = "AsQoL",
+        "back_pain_anytime" = "Back Pain Anytime",
+        "back_pain_at_night" = "Back Pain at Night",
+        "basdai" = "BASDAI",
+        "basfi" = "BASFI",
+        "basmi_score" = "BASMI Score",
+        "daily_activity_impairment" = "Daily Activity Impairment",
+        "facit" = "FACIT",
+        "jenkins_sleep_1" = "Jenkins Sleep 1",
+        "jenkins_sleep_2" = "Jenkins Sleep 2",
+        "jenkins_sleep_3" = "Jenkins Sleep 3",
+        "jenkins_sleep_4" = "Jenkins Sleep 4",
+        "margolis" = "Margolis",
+        "patient_global" = "Patient Global",
+        "presenteeism" = "Presenteeism",
+        "wpl" = "WPL"
+      )) + theme_bw() +
+    ggtitle(paste0("Gender, HLAB27 Status, Diagnosis: ", patient_info))
+
+  file_name <- paste0(output_folder_2, "/", current_id, "_overall.png")
+  ggsave(file_name, plot, width = 10, height = 6, dpi = 300)
+}
 ```
 
 ```{r, warning=FALSE, include=FALSE}
@@ -2999,55 +2999,113 @@ dataframe_sorted_and_reclassified_basmi <- dataframe_sorted_and_reclassified_bas
 write.csv(dataframe_sorted_and_reclassified_basmi, "temp_dataframe_after_dataframe_sorted_for_analysis_filtered_with_treatment_category_and_diagnosis_and_treatment_reclassified.csv", row.names = FALSE)
 ```
 
-```{r, include=TRUE, fig.width= 15, fig.height = 15}
+```{r, include=FALSE, fig.width= 10, fig.height = 15}
 data_tt1 <- dataframe_sorted_and_reclassified_basmi %>% 
   filter(ttas_id %in% c(1, 2, 3, 4))
 
-custom_labels <- c(
-  "1.1" = "Patient 1, Standard Non-High Cost Drug Treatment",
-  "1.2" = "Patient 1, Anti-TNF",
-  "1.4" = "Patient 1, Anti-TNF",
-  "2.1" = "Patient 2, Standard Non-High Cost Drug Treatment",
-  "3.1" = "Patient 3, Standard Non-High Cost Drug Treatment",
-  "3.2" = "Patient 3, Anti-TNF",
-  "3.4" = "Patient 3, Anti-TNF",
-  "3.6" = "Patient 3, Anti-IL17",
-  "4.1" = "Patient 4, Standard Non-High Cost Drug Treatment",
-  "4.2" = "Patient 4, Anti-TNF"
+# Extract the treatment type from the custom labels manually
+data_tt1 <- dataframe_sorted_and_reclassified_basmi %>%
+  filter(ttas_id %in% c(1, 2, 3, 4)) %>%
+  mutate(
+    treatment_group = case_when(
+      ttas_id == 1 & treatment_order == 1 ~ "Standard Non-High Cost Drug Treatment",
+      ttas_id == 1 & treatment_order == 2 ~ "Anti-TNF (Remicade)",
+      ttas_id == 1 & treatment_order == 4 ~ "Anti-TNF (Remicade)",
+      ttas_id == 2 & treatment_order == 1          ~ "Standard Non-High Cost Drug Treatment",
+      ttas_id == 3 & treatment_order == 1          ~ "Standard Non-High Cost Drug Treatment",
+      ttas_id == 3 & treatment_order == 2          ~ "Anti-TNF (Humira)",
+      ttas_id == 3 & treatment_order == 4          ~ "Anti-TNF (Cimzia)",
+      ttas_id == 3 & treatment_order == 6          ~ "Anti-IL17 (Cosentyx)",
+      ttas_id == 4 & treatment_order == 1          ~ "Standard Non-High Cost Drug Treatment",
+      ttas_id == 4 & treatment_order == 2          ~ "Anti-TNF (Humira)"
+    )
+  )
+
+treatment_colors <- c(
+  "Standard Non-High Cost Drug Treatment" = "#1f77b4",  # Blue
+  "Anti-TNF (Remicade)" = "#FFD300",                   # Yellow
+  "Anti-TNF (Humira)" = "#2ca02c",                     # Green
+  "Anti-IL17 (Cosentyx)" = "#d62728",                  # Red
+  "Anti-TNF (Cimzia)" = "#9467bd"                      # Purple
 )
-  
+
+
+# custom_labels <- c(
+# "1.1" = "Patient 1, Standard Non-High Cost Drug Treatment",
+# "1.2" = "Patient 1, Anti-TNF (Remicade)",
+# "1.4" = "Patient 1, Anti-TNF (Remicade)",
+# "2.1" = "Patient 2, Standard Non-High Cost Drug Treatment",
+# "3.1" = "Patient 3, Standard Non-High Cost Drug Treatment",
+# "3.2" = "Patient 3, Anti-TNF (Humira)",
+# "3.4" = "Patient 3, Anti-TNF (Cimzia)",
+# "3.6" = "Patient 3, Anti-IL17 (Cosentyx)",
+# "4.1" = "Patient 4, Standard Non-High Cost Drug Treatment",
+# "4.2" = "Patient 4, Anti-TNF (Humira)"
+# )
+
 # ggplot(data_tt1, aes(x = time_in_weeks, y = basmi_score,
 # ggplot(data_tt1, aes(x = time_in_days, y = basmi_score,
 # ggplot(data_tt1, aes(x = time_in_months, y = basmi_score,
-ggplot(data_tt1, aes(x = time_in_years, y = basmi_score,
-                     colour = interaction(factor(ttas_id),
-                                          factor(treatment_order)
-                                          ))) +
-  geom_point() +
-  geom_line() +
-  labs(title = "BASMI Score Over Time by Treatment Periods for Patient 1 to Patient 4", 
-       # x = "Time (Weeks)",
-       # x = "Time (Days)",
-       # x = "Time (Months)",
-       x = "Time (Years)",
-       y = "BASMI Score", 
-       colour = "Patient and Treatment Period") +
-  facet_wrap(~ttas_id, ncol = 1) +
-  scale_colour_manual(labels = custom_labels, values = scales::hue_pal()(length(custom_labels))) +
-  theme(legend.position = "bottom",
-        text = element_text(size = 20),          # Overall text size
-        plot.title = element_text(size = 22),    # Title size
-        axis.title = element_text(size = 18),    # Axis title size
-        axis.text = element_text(size = 16),     # Axis text size
-        legend.box = "horizontal",               # Legend box orientation
-        legend.text = element_text(size = 10),   # Legend text size
-        legend.title = element_text(size = 12)   # Legend title size
-        ) +
-  theme_bw()
+# ggplot(data_tt1, aes(x = time_in_years, y = basmi_score,
+#                      colour = interaction(factor(ttas_id),
+#                                           factor(treatment_order)
+#                                           ))) +
+#   geom_point() +
+#   geom_line() +
+#   labs(title = "BASMI Score Over Time by Treatment Periods for Patient 1 to Patient 4", 
+#        # x = "Time (Weeks)",
+#        # x = "Time (Days)",
+#        # x = "Time (Months)",
+#        x = "Time (Years)",
+#        y = "BASMI Score", 
+#        # colour = "Patient and Treatment Period") +
+#          colour = "Treatment Group") +  # Update the legend title
+# 
+#   facet_wrap(~ttas_id, ncol = 1) +
+#   # scale_colour_manual(labels = custom_labels, values = scales::hue_pal()(length(custom_labels))) +
+#   scale_colour_manual(values = treatment_colors) +  # Apply consistent colors
+#   theme(legend.position = "bottom",
+#         text = element_text(size = 20),          # Overall text size
+#         plot.title = element_text(size = 22),    # Title size
+#         axis.title = element_text(size = 18),    # Axis title size
+#         axis.text = element_text(size = 16),     # Axis text size
+#         legend.box = "horizontal",               # Legend box orientation
+#         legend.text = element_text(size = 20),   # Legend text size
+#         legend.title = element_text(size = 22)   # Legend title size
+#         ) +
+#   theme_bw()
         
+data_tt1_patient_1_to_4_plots <- ggplot(data_tt1, aes(x = time_in_years, y = basmi_score,
+                                                         colour = treatment_group)) +  # Change to treatment_group
+                                      geom_point(size = 2.5) +
+                                      geom_line(size = 1) +
+                                      labs(title = "BASMI Score Over Time by Treatment Periods for Patient 1 to Patient 4", 
+                                           x = "Time (Years)",
+                                           y = "BASMI Score", 
+                                           colour = "Treatment Group") +  # Update the legend title
+                                      facet_wrap(~ttas_id, ncol = 1) +
+                                      scale_colour_manual(values = treatment_colors) +  # Now treatment_colors will be applied correctly
+                                      theme(legend.position = "bottom",
+                                            text = element_text(size = 20),
+                                            plot.title = element_text(size = 22),
+                                            axis.title = element_text(size = 18),
+                                            axis.text = element_text(size = 16),
+                                            legend.box = "horizontal",
+                                            legend.box.just = "center",  # Center the legend horizontally
+                                            legend.text = element_text(size = 22),
+                                            legend.title = element_text(size = 18)
+                                            ) +
+                                      theme_bw()
 
-# Save image with size 15 x 15
-ggplot2::ggsave("basmi_score_over_time_by_treatment_periods_for_patient_1_to_patient_4.png", width = 15, height = 15)
+data_tt1_patient_1_to_4_plots
+
+# Save the plot with A4 dimensions in millimeters
+ggsave(
+  "basmi_score_over_time_by_treatment_periods_for_patient_1_to_patient_4.png", 
+  width = 200, 
+  height = 280, 
+  units = "mm"
+)
 ```
 
 ```{r, include=FALSE}
@@ -3404,7 +3462,7 @@ anova(model_treatment_diagnosis_basmi_full, model_treatment_diagnosis_basmi_redu
 
 ## For BASMI only: Plot predicted lmer() geom_line
 
-```{r, include=FALSE, fig.height=15, fig.width=15}
+```{r, include=FALSE, fig.width=15, fig.height=15}
 model_treatment_diagnosis_basmi_full_plot_lines <- lmer(
   basmi_score ~ gender + hlab27status + age_at_onset +
     diagnosis + treatment_order + last_known_smoking_status +
@@ -3439,41 +3497,69 @@ data_tt1$predicted_basmi_score_full <- predict(model_treatment_diagnosis_basmi_f
 data_tt1$predicted_basmi_score_reduced <- predict(model_treatment_diagnosis_basmi_reduced_plot_lines, newdata = data_tt1)
 
 # Plot with fitted lines from the lmer model
+# ggplot(data_tt1, aes(x = time_in_years, y = basmi_score,
+#                      colour = interaction(factor(ttas_id),
+#                                           factor(treatment_order)))) +
+#   # Plot the original data points
+#   geom_point(alpha = 0.75) +
+#   geom_line(alpha = 0.75) +
+#   
+#   # Add the predicted values from the full model as dashed lines
+#   geom_line(aes(y = predicted_basmi_score_full), linetype = "dashed", size = 1, color = "red", alpha = 0.5) +
+#   
+#   # Add the predicted values from the reduced model as dotted lines
+#   geom_line(aes(y = predicted_basmi_score_reduced), linetype = "dotted", size = 1, color = "blue", alpha = 0.5) +
+#   
+#   labs(title = "BASMI Score Over Time by Treatment Periods for Patient 1 to Patient 4", 
+#        x = "Time (Years)",
+#        y = "BASMI Score", 
+#        colour = "Patient and Treatment Period",
+#        linetype = "Model Type (Full or Reduced)"
+#        ) +
+#   
+#   facet_wrap(~ttas_id, ncol = 1) +
+#   
+#   scale_colour_manual(labels = custom_labels, values = scales::hue_pal()(length(custom_labels))) +
+#   theme(legend.position = "bottom",
+#         text = element_text(size = 20),          # Overall text size
+#         plot.title = element_text(size = 22),    # Title size
+#         axis.title = element_text(size = 18),    # Axis title size
+#         axis.text = element_text(size = 16),     # Axis text size
+#         legend.box = "vertical",               # Legend box orientation
+#         legend.text = element_text(size = 10),   # Legend text size
+#         legend.title = element_text(size = 12)   # Legend title size
+#         )
+
+
+
 ggplot(data_tt1, aes(x = time_in_years, y = basmi_score,
-                     colour = interaction(factor(ttas_id),
-                                          factor(treatment_order)))) +
-  # Plot the original data points
-  geom_point(alpha = 0.75) +
-  geom_line(alpha = 0.75) +
-  
-  # Add the predicted values from the full model as dashed lines
-  geom_line(aes(y = predicted_basmi_score_full), linetype = "dashed", size = 1, color = "red", alpha = 0.5) +
-  
-  # Add the predicted values from the reduced model as dotted lines
-  geom_line(aes(y = predicted_basmi_score_reduced), linetype = "dotted", size = 1, color = "blue", alpha = 0.5) +
-  
-  labs(title = "BASMI Score Over Time by Treatment Periods for Patient 1 to Patient 4", 
-       x = "Time (Years)",
-       y = "BASMI Score", 
-       colour = "Patient and Treatment Period",
-       linetype = "Model Type (Full or Reduced)"
-       ) +
-  
-  facet_wrap(~ttas_id, ncol = 1) +
-  
-  scale_colour_manual(labels = custom_labels, values = scales::hue_pal()(length(custom_labels))) +
-  theme(legend.position = "bottom",
-        text = element_text(size = 20),          # Overall text size
-        plot.title = element_text(size = 22),    # Title size
-        axis.title = element_text(size = 18),    # Axis title size
-        axis.text = element_text(size = 16),     # Axis text size
-        legend.box = "horizontal",               # Legend box orientation
-        legend.text = element_text(size = 10),   # Legend text size
-        legend.title = element_text(size = 12)   # Legend title size
-        )
+                                                         colour = treatment_group)) +  # Change to treatment_group
+                                      geom_point(size = 2) +
+                                      geom_line(size = 0.75) +
+                                        geom_line(aes(y = predicted_basmi_score_full), linetype = "dashed", size = 1.5, color = "red", alpha = 0.5) +
+                                        geom_line(aes(y = predicted_basmi_score_reduced), linetype = "dotted", size = 1.5, color = "blue", alpha = 0.5) +
+                                      labs(title = "BASMI Score Over Time by Treatment Periods for Patient 1 to Patient 4", 
+                                           x = "Time (Years)",
+                                           y = "BASMI Score", 
+                                           colour = "Treatment Group") +  # Update the legend title
+                                      facet_wrap(~ttas_id, ncol = 1) +
+                                      scale_colour_manual(values = treatment_colors) +  # Now treatment_colors will be applied correctly
+                                      theme(legend.position = "bottom",
+                                            text = element_text(size = 20),
+                                            plot.title = element_text(size = 22),
+                                            axis.title = element_text(size = 18),
+                                            axis.text = element_text(size = 16),
+                                            legend.box = "horizontal",
+                                            legend.text = element_text(size = 22),
+                                            legend.title = element_text(size = 18)
+                                            ) +
+                                      theme_bw()
 
 # Save the plot as an image
-ggsave("basmi_score_with_lmer_lines_full_and_reduced.png", width = 15, height = 15)
+ggsave("basmi_score_with_lmer_lines_full_and_reduced.png",
+  width = 200, 
+  height = 280, 
+  units = "mm")
 
 ```
 
