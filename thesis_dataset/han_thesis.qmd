@@ -21,7 +21,7 @@ library(lme4)
 library(plotly)
 library(MuMIn)
 # library(car)
-# library(lmerTest)
+library(lmerTest)
 # library(gt)
 # library(webshot2)
 # library(rmarkdown)
@@ -1300,77 +1300,77 @@ unique_ids <- unique(timeline_data$ttas_id)
 ```
 
 ```{r, warning=FALSE, include=FALSE}
-# Filtered out ttas_id with drugs only
-ids_with_drug_data <- unique(drug_sheet_data$ttas_id)
-ids_in_timeline_data <- unique(timeline_data$ttas_id)
-
-ids_without_drug_data <- setdiff(ids_in_timeline_data, ids_with_drug_data)
-
-# Filter out the ttas_id without drug data
-combined_df_id_with_drugs <- combined_df %>% filter(ttas_id %in% ids_with_drug_data)
-
-write_csv(combined_df_id_with_drugs, "test_combined_df_id_with_drugs.csv")
-
-output_folder <- "timeline_plots_drugs_only"
-dir.create(output_folder, showWarnings = FALSE)
-
-unique_ids_drugs_only <- unique(combined_df_id_with_drugs$ttas_id)
-
-cat("Checking number of unique ids with drugs data: ", length(unique(combined_df_id_with_drugs$ttas_id)), "\n")
-cat("Checking declared variable is the same: ", length(unique_ids_drugs_only))
-
-for (current_id in unique_ids_drugs_only){
-  filtered_data <- timeline_data %>% filter(ttas_id == current_id)
-  filtered_drug_data <- drug_sheet_data %>% filter(ttas_id == current_id)
-
-  # Replace NA stop_date values with a default (e.g., today's date)
-  filtered_drug_data <- filtered_drug_data %>%
-    mutate(
-      stop_date = if_else(
-        is.na(stop_date),
-        Sys.Date(),  # Replace NA with today's date
-        stop_date
-      )
-    )
-
-  # Check and log warnings in one step
-  if (nrow(filtered_data) == 0) {
-    cat(paste("No timeline data found for TTAS ID:", current_id), file = log_file, append = TRUE, sep = "\n")
-  }
-
-  plot <- ggplot(filtered_data, aes(x = date, y = Score, colour = Measure)) +
-    geom_point() +
-    geom_line() +
-    geom_rect(
-      data = filtered_drug_data,
-      inherit.aes = FALSE,
-      aes(
-        xmin = drug_start_date,
-        xmax = stop_date,
-        fill = x3
-      ),
-      ymin = -Inf,
-      ymax = Inf,
-      alpha = 0.5
-      ) +
-    # geom_text(
-    #   # Add drug names labels
-    #   data = filtered_drug_data,
-    #   inherit.aes = FALSE,
-    #   aes(
-    #     x = drug_start_date + (stop_date - drug_start_date) / 2,  # Calculate midpoint
-    #     y = Inf - 5,  # Offset from max Score
-    #     label = x3
-    #     ),
-    #   ) +
-    # Use a colour pallete with enough colours for all drugs
-    scale_fill_manual(values = drug_colours, na.value = "gray") +
-    facet_wrap(~ ttas_id, ncol = 1, scales = "free_y") +
-    labs(title = paste("Timeline plot for TTAS ID:", current_id)) + theme_bw()
-
-  file_name <- paste(output_folder, "/timeline_plot_", current_id, ".png")
-  ggsave(file_name, plot, width = 10, height = 6, dpi = 300)
-}
+# # Filtered out ttas_id with drugs only
+# ids_with_drug_data <- unique(drug_sheet_data$ttas_id)
+# ids_in_timeline_data <- unique(timeline_data$ttas_id)
+# 
+# ids_without_drug_data <- setdiff(ids_in_timeline_data, ids_with_drug_data)
+# 
+# # Filter out the ttas_id without drug data
+# combined_df_id_with_drugs <- combined_df %>% filter(ttas_id %in% ids_with_drug_data)
+# 
+# write_csv(combined_df_id_with_drugs, "test_combined_df_id_with_drugs.csv")
+# 
+# output_folder <- "timeline_plots_drugs_only"
+# dir.create(output_folder, showWarnings = FALSE)
+# 
+# unique_ids_drugs_only <- unique(combined_df_id_with_drugs$ttas_id)
+# 
+# cat("Checking number of unique ids with drugs data: ", length(unique(combined_df_id_with_drugs$ttas_id)), "\n")
+# cat("Checking declared variable is the same: ", length(unique_ids_drugs_only))
+# 
+# for (current_id in unique_ids_drugs_only){
+#   filtered_data <- timeline_data %>% filter(ttas_id == current_id)
+#   filtered_drug_data <- drug_sheet_data %>% filter(ttas_id == current_id)
+# 
+#   # Replace NA stop_date values with a default (e.g., today's date)
+#   filtered_drug_data <- filtered_drug_data %>%
+#     mutate(
+#       stop_date = if_else(
+#         is.na(stop_date),
+#         Sys.Date(),  # Replace NA with today's date
+#         stop_date
+#       )
+#     )
+# 
+#   # Check and log warnings in one step
+#   if (nrow(filtered_data) == 0) {
+#     cat(paste("No timeline data found for TTAS ID:", current_id), file = log_file, append = TRUE, sep = "\n")
+#   }
+# 
+#   plot <- ggplot(filtered_data, aes(x = date, y = Score, colour = Measure)) +
+#     geom_point() +
+#     geom_line() +
+#     geom_rect(
+#       data = filtered_drug_data,
+#       inherit.aes = FALSE,
+#       aes(
+#         xmin = drug_start_date,
+#         xmax = stop_date,
+#         fill = x3
+#       ),
+#       ymin = -Inf,
+#       ymax = Inf,
+#       alpha = 0.5
+#       ) +
+#     # geom_text(
+#     #   # Add drug names labels
+#     #   data = filtered_drug_data,
+#     #   inherit.aes = FALSE,
+#     #   aes(
+#     #     x = drug_start_date + (stop_date - drug_start_date) / 2,  # Calculate midpoint
+#     #     y = Inf - 5,  # Offset from max Score
+#     #     label = x3
+#     #     ),
+#     #   ) +
+#     # Use a colour pallete with enough colours for all drugs
+#     scale_fill_manual(values = drug_colours, na.value = "gray") +
+#     facet_wrap(~ ttas_id, ncol = 1, scales = "free_y") +
+#     labs(title = paste("Timeline plot for TTAS ID:", current_id)) + theme_bw()
+# 
+#   file_name <- paste(output_folder, "/timeline_plot_", current_id, ".png")
+#   ggsave(file_name, plot, width = 10, height = 6, dpi = 300)
+# }
 ```
 
 ```{r, warning=FALSE, include=FALSE}
@@ -1413,94 +1413,94 @@ combined_df_with_and_without_drugs <- combined_df
 ```
 
 ```{r, warning=FALSE, include=FALSE}
-# Checkpoint start: Uncomment to recreate the plots
-for (current_id in unique_ids_drugs_only){
-
-  if (current_id %in% exclude_ids) {
-    next # Skip the current iteration if the current_id is in the exclude_ids list
-  }
-
-  filtered_data <- timeline_data %>% filter(ttas_id == current_id)
-  filtered_drug_data <- drug_sheet_data %>% filter(ttas_id == current_id)
-
-  # Replace NA stop_date values with a default (e.g., today's date)
-  filtered_drug_data <- filtered_drug_data %>%
-    mutate(
-      stop_date = if_else(
-        is.na(stop_date),
-        Sys.Date(),  # Replace NA with today's date
-        stop_date
-      )
-    )
-
-  # Check and log warnings in one step
-  if (nrow(filtered_data) == 0) {
-    cat(paste("No timeline data found for TTAS ID:", current_id), file = log_file, append = TRUE, sep = "\n")
-  }
-
-  # Get patient info
-  patient_info <- combined_df_id_with_drugs_excluded %>% filter(ttas_id == current_id) %>%
-    select(
-      gender, hlab27status, diagnosis, age_at_onset, age_at_diag
-    ) %>%
-    distinct() %>%
-    unite("Gender, HLAB27 Status, Diagnosis", gender, hlab27status, diagnosis, sep = " | ", remove = FALSE, na.rm = FALSE) %>%
-    pull("Gender, HLAB27 Status, Diagnosis")
-
-  plot <- ggplot(filtered_data, aes(x = date, y = Score, colour = Measure)) +
-    geom_point() +
-    geom_line() +
-    geom_rect(
-      data = filtered_drug_data,
-      inherit.aes = FALSE,
-      aes(
-        xmin = drug_start_date,
-        xmax = stop_date,
-        fill = x3
-      ),
-      ymin = -Inf,
-      ymax = Inf,
-      alpha = 0.5
-      ) +
-    # geom_text(
-    #   # Add drug names labels
-    #   data = filtered_drug_data,
-    #   inherit.aes = FALSE,
-    #   aes(
-    #     x = drug_start_date + (stop_date - drug_start_date) / 2,  # Calculate midpoint
-    #     y = Inf - 5,  # Offset from max Score
-    #     label = x3
-    #     ),
-    #   ) +
-    # Use a colour pallete with enough colours for all drugs
-    scale_fill_manual(values = drug_colours, na.value = "gray") +
-    facet_wrap(~ ttas_id, ncol = 1, scales = "free_y") +
-    labs(title = paste0("Timeline plot for TTAS ID:", current_id), x = "Date", y = "Score") +
-    scale_colour_discrete(
-      labels = c(
-        "absenteeism" = "Absenteeism",
-        "as_qol" = "AsQoL",
-        "back_pain_anytime" = "Back Pain Anytime",
-        "back_pain_at_night" = "Back Pain at Night",
-        "basdai" = "BASDAI",
-        "basfi" = "BASFI",
-        "basmi_score" = "BASMI Score",
-        "daily_activity_impairment" = "Daily Activity Impairment",
-        "facit" = "FACIT",
-        "jenkins_sleep_1" = "Jenkins Sleep 1",
-        "jenkins_sleep_2" = "Jenkins Sleep 2",
-        "jenkins_sleep_3" = "Jenkins Sleep 3",
-        "jenkins_sleep_4" = "Jenkins Sleep 4",
-        "margolis" = "Margolis",
-        "patient_global" = "Patient Global",
-        "presenteeism" = "Presenteeism",
-        "wpl" = "WPL"
-      )) + theme_bw() +
-    ggtitle(paste0("Gender, HLAB27 Status, Diagnosis: ", patient_info))
-
-  file_name <- paste0(output_folder_2, "/", current_id, "_overall.png")
-  ggsave(file_name, plot, width = 10, height = 6, dpi = 300)
-}
+# # Checkpoint start: Uncomment to recreate the plots
+# for (current_id in unique_ids_drugs_only){
+# 
+#   if (current_id %in% exclude_ids) {
+#     next # Skip the current iteration if the current_id is in the exclude_ids list
+#   }
+# 
+#   filtered_data <- timeline_data %>% filter(ttas_id == current_id)
+#   filtered_drug_data <- drug_sheet_data %>% filter(ttas_id == current_id)
+# 
+#   # Replace NA stop_date values with a default (e.g., today's date)
+#   filtered_drug_data <- filtered_drug_data %>%
+#     mutate(
+#       stop_date = if_else(
+#         is.na(stop_date),
+#         Sys.Date(),  # Replace NA with today's date
+#         stop_date
+#       )
+#     )
+# 
+#   # Check and log warnings in one step
+#   if (nrow(filtered_data) == 0) {
+#     cat(paste("No timeline data found for TTAS ID:", current_id), file = log_file, append = TRUE, sep = "\n")
+#   }
+# 
+#   # Get patient info
+#   patient_info <- combined_df_id_with_drugs_excluded %>% filter(ttas_id == current_id) %>%
+#     select(
+#       gender, hlab27status, diagnosis, age_at_onset, age_at_diag
+#     ) %>%
+#     distinct() %>%
+#     unite("Gender, HLAB27 Status, Diagnosis", gender, hlab27status, diagnosis, sep = " | ", remove = FALSE, na.rm = FALSE) %>%
+#     pull("Gender, HLAB27 Status, Diagnosis")
+# 
+#   plot <- ggplot(filtered_data, aes(x = date, y = Score, colour = Measure)) +
+#     geom_point() +
+#     geom_line() +
+#     geom_rect(
+#       data = filtered_drug_data,
+#       inherit.aes = FALSE,
+#       aes(
+#         xmin = drug_start_date,
+#         xmax = stop_date,
+#         fill = x3
+#       ),
+#       ymin = -Inf,
+#       ymax = Inf,
+#       alpha = 0.5
+#       ) +
+#     # geom_text(
+#     #   # Add drug names labels
+#     #   data = filtered_drug_data,
+#     #   inherit.aes = FALSE,
+#     #   aes(
+#     #     x = drug_start_date + (stop_date - drug_start_date) / 2,  # Calculate midpoint
+#     #     y = Inf - 5,  # Offset from max Score
+#     #     label = x3
+#     #     ),
+#     #   ) +
+#     # Use a colour pallete with enough colours for all drugs
+#     scale_fill_manual(values = drug_colours, na.value = "gray") +
+#     facet_wrap(~ ttas_id, ncol = 1, scales = "free_y") +
+#     labs(title = paste0("Timeline plot for TTAS ID:", current_id), x = "Date", y = "Score") +
+#     scale_colour_discrete(
+#       labels = c(
+#         "absenteeism" = "Absenteeism",
+#         "as_qol" = "AsQoL",
+#         "back_pain_anytime" = "Back Pain Anytime",
+#         "back_pain_at_night" = "Back Pain at Night",
+#         "basdai" = "BASDAI",
+#         "basfi" = "BASFI",
+#         "basmi_score" = "BASMI Score",
+#         "daily_activity_impairment" = "Daily Activity Impairment",
+#         "facit" = "FACIT",
+#         "jenkins_sleep_1" = "Jenkins Sleep 1",
+#         "jenkins_sleep_2" = "Jenkins Sleep 2",
+#         "jenkins_sleep_3" = "Jenkins Sleep 3",
+#         "jenkins_sleep_4" = "Jenkins Sleep 4",
+#         "margolis" = "Margolis",
+#         "patient_global" = "Patient Global",
+#         "presenteeism" = "Presenteeism",
+#         "wpl" = "WPL"
+#       )) + theme_bw() +
+#     ggtitle(paste0("Gender, HLAB27 Status, Diagnosis: ", patient_info))
+# 
+#   file_name <- paste0(output_folder_2, "/", current_id, "_overall.png")
+#   ggsave(file_name, plot, width = 10, height = 6, dpi = 300)
+# }
 ```
 
 ```{r, warning=FALSE, include=FALSE}
@@ -2372,7 +2372,7 @@ for (current_id in unique_ids_drugs_only){
 dataframe <- combined_df_with_and_without_drugs
 
 dataframe_sorted <- dataframe %>%
-  select(ttas_id, x3, gender, hlab27status, age_at_onset, age_at_basmi, age_at_prom, diagnosis, date, stop_date, last_known_smoking_status, last_known_vaping_status, basmi_score, basdai, basfi, patient_global, back_pain_at_night, back_pain_anytime, as_qol, jenkins_sleep_1, jenkins_sleep_2, jenkins_sleep_3, jenkins_sleep_4, wpl, daily_activity_impairment, presenteeism, absenteeism, facit, margolis)
+  select(ttas_id, x3, gender, hlab27status, age_at_onset, age_at_basmi, age_at_diag, age_at_prom, diagnosis, date, stop_date, last_known_smoking_status, last_known_vaping_status, basmi_score, basdai, basfi, patient_global, back_pain_at_night, back_pain_anytime, as_qol, jenkins_sleep_1, jenkins_sleep_2, jenkins_sleep_3, jenkins_sleep_4, wpl, daily_activity_impairment, presenteeism, absenteeism, facit, margolis)
 
 dataframe_sorted$ttas_id <- as.factor(dataframe_sorted$ttas_id)
 dataframe_sorted$x3 <- as.factor(dataframe_sorted$x3)
@@ -2957,7 +2957,7 @@ write.csv(dataframe_sorted, "temp_dataframe_after_data_sorted_11.csv", row.names
 # General longitudinal analysis for those with and without drugs
 dataframe_sorted_basmi<- dataframe_sorted %>%
   filter(!is.na(basmi_score)) %>%
-  select(ttas_id, gender, hlab27status, age_at_basmi, age_at_onset, diagnosis, treatment, last_known_smoking_status, last_known_vaping_status, treatment_order, date, stop_date_for_period_date_format, overall_treatment_duration_in_days, treatment_window_weekly_time, time_in_days, time_in_weeks, time_in_months, time_in_years, basmi_score)
+  select(ttas_id, gender, hlab27status, age_at_basmi, age_at_diag, age_at_onset, diagnosis, treatment, last_known_smoking_status, last_known_vaping_status, treatment_order, date, stop_date_for_period_date_format, overall_treatment_duration_in_days, treatment_window_weekly_time, time_in_days, time_in_weeks, time_in_months, time_in_years, basmi_score)
 
 write.csv(dataframe_sorted_basmi, "temp_dataframe_after_dataframe_sorted_for_analysis.csv", row.names = FALSE)
 
@@ -3115,6 +3115,7 @@ dataframe_sorted_and_reclassified_basmi$gender <- as.factor(dataframe_sorted_and
 dataframe_sorted_and_reclassified_basmi$hlab27status <- as.factor(dataframe_sorted_and_reclassified_basmi$hlab27status)
 dataframe_sorted_and_reclassified_basmi$age_at_basmi <- as.numeric(dataframe_sorted_and_reclassified_basmi$age_at_basmi)
 dataframe_sorted_and_reclassified_basmi$age_at_onset <- as.numeric(dataframe_sorted_and_reclassified_basmi$age_at_onset)
+dataframe_sorted_and_reclassified_basmi$age_at_diag <- as.numeric(dataframe_sorted_and_reclassified_basmi$age_at_diag)
 dataframe_sorted_and_reclassified_basmi$diagnosis <- as.factor(dataframe_sorted_and_reclassified_basmi$diagnosis)
 dataframe_sorted_and_reclassified_basmi$treatment <- as.factor(dataframe_sorted_and_reclassified_basmi$treatment)
 dataframe_sorted_and_reclassified_basmi$treatment_order <- as.factor(dataframe_sorted_and_reclassified_basmi$treatment_order)
@@ -3432,24 +3433,23 @@ model_treatment_diagnosis_basmi_reduced <- lmer(
 # print(summary(test_model, corr = FALSE))
 ```
 
+
 ```{r, include=TRUE}
 print(summary(model_treatment_diagnosis_basmi_full, corr = FALSE))
 ```
 
-```{r}
-anova(model_treatment_diagnosis_basmi_full)
-```
+
 
 ```{r, include = TRUE}
 print(summary(model_treatment_diagnosis_basmi_reduced, corr = FALSE))
 ```
 
-```{r}
-anova(model_treatment_diagnosis_basmi_reduced)
-```
-
 ```{r, include=TRUE}
 anova(model_treatment_diagnosis_basmi_full, model_treatment_diagnosis_basmi_reduced)
+```
+
+```{r}
+anova(model_treatment_diagnosis_basmi_full)
 ```
 
 ```{r, include=FALSE}
@@ -3602,6 +3602,11 @@ anova(model_treatment_gender_basmi_full,
       model_treatment_gender_basmi_reduced)
 ```
 
+```{r}
+anova(model_treatment_gender_basmi_full)
+```
+
+
 # BASDAI Score analysis
 
 ```{r, include=FALSE}
@@ -3609,7 +3614,7 @@ anova(model_treatment_gender_basmi_full,
 # General longitudinal analysis for those with and without drugs
 dataframe_sorted_basdai <- dataframe_sorted %>%
   filter(!is.na(basdai)) %>%
-  select(ttas_id, gender, hlab27status, age_at_onset, age_at_prom, diagnosis, treatment, last_known_smoking_status, last_known_vaping_status, treatment_order, date, stop_date_for_period_date_format, overall_treatment_duration_in_days, treatment_window_weekly_time, time_in_days, time_in_weeks, time_in_months, time_in_years, basdai)
+  select(ttas_id, gender, hlab27status, age_at_onset, age_at_diag, age_at_prom, diagnosis, treatment, last_known_smoking_status, last_known_vaping_status, treatment_order, date, stop_date_for_period_date_format, overall_treatment_duration_in_days, treatment_window_weekly_time, time_in_days, time_in_weeks, time_in_months, time_in_years, basdai)
 
 write.csv(dataframe_sorted_basdai, "temp_dataframe_after_dataframe_sorted_for_analysis_basdai.csv", row.names = FALSE)
 
@@ -3658,6 +3663,7 @@ dataframe_sorted_and_reclassified_basdai$gender <- as.factor(dataframe_sorted_an
 dataframe_sorted_and_reclassified_basdai$hlab27status <- as.factor(dataframe_sorted_and_reclassified_basdai$hlab27status)
 dataframe_sorted_and_reclassified_basdai$age_at_prom <- as.numeric(dataframe_sorted_and_reclassified_basdai$age_at_prom)
 dataframe_sorted_and_reclassified_basdai$age_at_onset <- as.numeric(dataframe_sorted_and_reclassified_basdai$age_at_onset)
+dataframe_sorted_and_reclassified_basdai$age_at_diag <- as.numeric(dataframe_sorted_and_reclassified_basdai$age_at_diag)
 dataframe_sorted_and_reclassified_basdai$diagnosis <- as.factor(dataframe_sorted_and_reclassified_basdai$diagnosis)
 dataframe_sorted_and_reclassified_basdai$treatment <- as.factor(dataframe_sorted_and_reclassified_basdai$treatment)
 dataframe_sorted_and_reclassified_basdai$treatment_order <- as.factor(dataframe_sorted_and_reclassified_basdai$treatment_order)
@@ -3741,6 +3747,11 @@ model_treatment_diagnosis_basdai_reduced <- lmer(
 print(summary(model_treatment_diagnosis_basdai_full, corr = FALSE))
 ```
 
+```{r}
+anova(model_treatment_diagnosis_basdai_full, corr = FALSE)
+```
+
+
 ```{r, include=TRUE}
 print(summary(model_treatment_diagnosis_basdai_reduced, corr = FALSE))
 ```
@@ -3790,6 +3801,11 @@ anova(model_treatment_gender_basdai_full,
       model_treatment_gender_basdai_reduced)
 ```
 
+```{r}
+anova(model_treatment_gender_basdai_full)
+```
+
+
 
 # BASFI score
 
@@ -3798,7 +3814,7 @@ anova(model_treatment_gender_basdai_full,
 # General longitudinal analysis for those with and without drugs
 dataframe_sorted_basfi <- dataframe_sorted %>%
   filter(!is.na(basfi)) %>%
-  select(ttas_id, gender, hlab27status, age_at_onset, age_at_prom, diagnosis, treatment, last_known_smoking_status, last_known_vaping_status, treatment_order, date, stop_date_for_period_date_format, overall_treatment_duration_in_days, treatment_window_weekly_time, time_in_days, time_in_weeks, time_in_months, time_in_years, basfi)
+  select(ttas_id, gender, hlab27status, age_at_onset, age_at_diag, age_at_prom, diagnosis, treatment, last_known_smoking_status, last_known_vaping_status, treatment_order, date, stop_date_for_period_date_format, overall_treatment_duration_in_days, treatment_window_weekly_time, time_in_days, time_in_weeks, time_in_months, time_in_years, basfi)
 
 write.csv(dataframe_sorted_basfi, "temp_dataframe_after_dataframe_sorted_for_analysis_basfi.csv", row.names = FALSE)
 
@@ -3847,6 +3863,7 @@ dataframe_sorted_and_reclassified_basfi$gender <- as.factor(dataframe_sorted_and
 dataframe_sorted_and_reclassified_basfi$hlab27status <- as.factor(dataframe_sorted_and_reclassified_basfi$hlab27status)
 dataframe_sorted_and_reclassified_basfi$age_at_prom <- as.numeric(dataframe_sorted_and_reclassified_basfi$age_at_prom)
 dataframe_sorted_and_reclassified_basfi$age_at_onset <- as.numeric(dataframe_sorted_and_reclassified_basfi$age_at_onset)
+dataframe_sorted_and_reclassified_basfi$age_at_diag <- as.numeric(dataframe_sorted_and_reclassified_basfi$age_at_diag)
 dataframe_sorted_and_reclassified_basfi$diagnosis <- as.factor(dataframe_sorted_and_reclassified_basfi$diagnosis)
 dataframe_sorted_and_reclassified_basfi$treatment <- as.factor(dataframe_sorted_and_reclassified_basfi$treatment)
 dataframe_sorted_and_reclassified_basfi$treatment_order <- as.factor(dataframe_sorted_and_reclassified_basfi$treatment_order)
@@ -3925,6 +3942,10 @@ model_treatment_diagnosis_basfi_reduced <- lmer(
                                             optCtrl = list(maxfun = 2e5)))
 ```
 
+```{r}
+anova(model_treatment_diagnosis_basfi_full)
+```
+
 ```{r, include=TRUE}
 print(summary(model_treatment_diagnosis_basfi_full, corr = FALSE))
 ```
@@ -3978,7 +3999,7 @@ anova(model_treatment_gender_basfi_full,
 ```
 
 ```{r, include=TRUE}
-anova(model_treatment_gender_basfi_reduced)
+anova(model_treatment_gender_basfi_full)
 ```
 
 # Patient Global Score
@@ -6415,4 +6436,236 @@ print(summary(model_treatment_gender_margolis_reduced, corr = FALSE))
 ```{r, include=TRUE}
 anova(model_treatment_gender_margolis_full,
       model_treatment_gender_margolis_reduced)
+```
+
+# French cohort study
+
+```{r}
+# # Data for the forest plot
+# forest_data <- data.frame(
+#   Study = c("Tournadre et al. (2013) - Male", "Tournadre et al. (2013) - Female", 
+#                    "RUH cohort - Male", "RUH cohort - Female", 
+#                    "Existing Literature - Male", "Existing Literature - Female"),
+#   BASFI = c(2.7, 3.3, 
+#                  3.3 + (-1.45), 3.3,  # RUH cohort: female score is 3.3, male difference estimated around -1.45
+#                  3.0, 3.0),  # No difference for existing literature
+#   Lower_CI = c(2.7 - 2.1, 3.3 - 2.3, 
+#                3.3 + (-1.53572), 3.3, 
+#                3.0, 3.0),  # Confidence intervals or no difference
+#   Upper_CI = c(2.7 + 2.1, 3.3 + 2.3, 
+#                3.3 + (-1.36357), 3.3, 
+#                3.0, 3.0)   # Confidence intervals or no difference
+# )
+# 
+# 
+# # Create the forest plot
+# ggplot(forest_data, aes(x = BASFI, y = Study)) +
+#   geom_point(size = 3) +
+#   geom_errorbarh(aes(xmin = Lower_CI, xmax = Upper_CI), height = 0.2) +
+#   geom_vline(xintercept = 2.7, linetype = "dashed", color = "blue", size = 0.8) +  # Add vertical line at 0 for no difference
+#   geom_vline(xintercept = 3.3, linetype = "dashed", color = "#C11C84", size = 0.8) +  # Add vertical line at 0 for no difference
+#     geom_vline(data = dummy_lines, aes(xintercept = BASFI_Average, color = Gender),
+#              linetype = "dashed", size = 0.8) +
+#   # labs(title = "BASFI Scores by Gender and Study",
+#   #      x = "BASFI Score",
+#   #      y = "Study and Gender") +
+#   xlim(0, 10) +  # Set appropriate limits for the BASFI score range
+#   theme_bw()
+# 
+# # Save for A4 size in mm
+# ggsave("forest_plot.png", width = 200, height = 150, units = "mm")
+```
+
+# Investigating Age at Onset and Diagnosis
+
+```{r, include=TRUE}
+model_onset_diagnosis_basmi_full <- lmer(
+  basmi_score ~ gender + hlab27status + age_at_onset +
+    diagnosis + treatment_order + last_known_smoking_status +
+    last_known_vaping_status + treatment_reclassified +
+    age_at_onset * diagnosis +
+    time_in_years + (time_in_years | ttas_id),
+                     data = dataframe_sorted_and_reclassified_basmi,
+                     control = lmerControl(optimizer = "bobyqa",
+                                           optCtrl = list(maxfun = 2e5)))
+
+print(summary(model_onset_diagnosis_basmi_full, corr = FALSE))
+```
+
+```{r, include=TRUE}
+model_onset_diagnosis_basmi_reduced <- lmer(
+  basmi_score ~ gender + hlab27status + age_at_onset +
+    diagnosis + treatment_order + last_known_smoking_status +
+    last_known_vaping_status +
+    treatment_reclassified +
+    time_in_years + (time_in_years | ttas_id),
+                        data = dataframe_sorted_and_reclassified_basmi,
+                        control = lmerControl(optimizer = "bobyqa",
+                                              optCtrl = list(maxfun = 2e5)))
+
+print(summary(model_onset_diagnosis_basmi_reduced, corr = FALSE))
+```
+
+```{r}
+anova(model_onset_diagnosis_basmi_full, model_onset_diagnosis_basmi_reduced)
+```
+
+```{r}
+model_onset_diagnosis_basdai_full <- lmer(
+  basdai ~ gender + hlab27status + age_at_onset +
+    diagnosis + treatment_order + last_known_smoking_status +
+    last_known_vaping_status + treatment_reclassified +
+    age_at_onset * diagnosis +
+    time_in_years + (time_in_years | ttas_id),
+                     data = dataframe_sorted_and_reclassified_basdai,
+                     control = lmerControl(optimizer = "bobyqa",
+                                           optCtrl = list(maxfun = 2e5)))
+
+print(summary(model_onset_diagnosis_basdai_full, corr = FALSE))
+```
+
+```{r}
+model_onset_diagnosis_basdai_reduced <- lmer(
+  basdai ~ gender + hlab27status + age_at_onset +
+    diagnosis + treatment_order + last_known_smoking_status +
+    last_known_vaping_status +
+    treatment_reclassified +
+    time_in_years + (time_in_years | ttas_id),
+                        data = dataframe_sorted_and_reclassified_basdai,
+                        control = lmerControl(optimizer = "bobyqa",
+                                              optCtrl = list(maxfun = 2e5)))
+
+print(summary(model_onset_diagnosis_basdai_reduced, corr = FALSE))
+```
+
+```{r}
+anova(model_onset_diagnosis_basdai_full, model_onset_diagnosis_basdai_reduced)
+```
+
+```{r}
+model_onset_diagnosis_basfi_full <- lmer(
+  basfi ~ gender + hlab27status + age_at_onset +
+    diagnosis + treatment_order + last_known_smoking_status +
+    last_known_vaping_status + treatment_reclassified +
+    age_at_onset * diagnosis +
+    time_in_years + (time_in_years | ttas_id),
+                     data = dataframe_sorted_and_reclassified_basfi,
+                     control = lmerControl(optimizer = "bobyqa",
+                                           optCtrl = list(maxfun = 2e5)))
+
+print(summary(model_onset_diagnosis_basfi_full, corr = FALSE))
+```
+
+```{r}
+model_onset_diagnosis_basfi_reduced <- lmer(
+  basfi ~ gender + hlab27status + age_at_onset +
+    diagnosis + treatment_order + last_known_smoking_status +
+    last_known_vaping_status +
+    treatment_reclassified +
+    time_in_years + (time_in_years | ttas_id),
+                        data = dataframe_sorted_and_reclassified_basfi,
+                        control = lmerControl(optimizer = "bobyqa",
+                                              optCtrl = list(maxfun = 2e5)))
+
+print(summary(model_onset_diagnosis_basfi_reduced, corr = FALSE))
+```
+
+```{r}
+anova(model_onset_diagnosis_basfi_full, model_onset_diagnosis_basfi_reduced)
+```
+
+```{r}
+model_diag_diagnosis_basmi_full <- lmer(
+  basmi_score ~ gender + hlab27status + age_at_diag +
+    diagnosis + treatment_order + last_known_smoking_status +
+    last_known_vaping_status + treatment_reclassified +
+    age_at_diag * diagnosis +
+    time_in_years + (time_in_years | ttas_id),
+                     data = dataframe_sorted_and_reclassified_basmi,
+                     control = lmerControl(optimizer = "bobyqa",
+                                           optCtrl = list(maxfun = 2e5)))
+
+print(summary(model_diag_diagnosis_basmi_full, corr = FALSE))
+```
+
+```{r}
+model_diag_diagnosis_basmi_reduced <- lmer(
+  basmi_score ~ gender + hlab27status + age_at_diag +
+    diagnosis + treatment_order + last_known_smoking_status +
+    last_known_vaping_status +
+    treatment_reclassified +
+    time_in_years + (time_in_years | ttas_id),
+                        data = dataframe_sorted_and_reclassified_basmi,
+                        control = lmerControl(optimizer = "bobyqa",
+                                              optCtrl = list(maxfun = 2e5)))
+
+print(summary(model_diag_diagnosis_basmi_reduced, corr = FALSE))
+```
+
+```{r}
+anova(model_diag_diagnosis_basmi_full, model_diag_diagnosis_basmi_reduced)
+```
+
+```{r}
+model_diag_diagnosis_basdai_full <- lmer(
+  basdai ~ gender + hlab27status + age_at_diag +
+    diagnosis + treatment_order + last_known_smoking_status +
+    last_known_vaping_status + treatment_reclassified +
+    age_at_diag * diagnosis +
+    time_in_years + (time_in_years | ttas_id),
+                     data = dataframe_sorted_and_reclassified_basdai,
+                     control = lmerControl(optimizer = "bobyqa",
+                                           optCtrl = list(maxfun = 2e5)))
+
+print(summary(model_diag_diagnosis_basdai_full, corr = FALSE))
+```
+
+```{r}
+model_diag_diagnosis_basdai_reduced <- lmer(
+  basdai ~ gender + hlab27status + age_at_diag +
+    diagnosis + treatment_order + last_known_smoking_status +
+    last_known_vaping_status +
+    treatment_reclassified +
+    time_in_years + (time_in_years | ttas_id),
+                        data = dataframe_sorted_and_reclassified_basdai,
+                        control = lmerControl(optimizer = "bobyqa",
+                                              optCtrl = list(maxfun = 2e5)))
+
+print(summary(model_diag_diagnosis_basdai_reduced, corr = FALSE))
+```
+
+```{r}
+anova(model_diag_diagnosis_basdai_full, model_diag_diagnosis_basdai_reduced)
+```
+
+```{r}
+model_diag_diagnosis_basfi_full <- lmer(
+  basfi ~ gender + hlab27status + age_at_diag +
+    diagnosis + treatment_order + last_known_smoking_status +
+    last_known_vaping_status + treatment_reclassified + 
+    age_at_diag * diagnosis +
+    time_in_years + (time_in_years | ttas_id),
+                     data = dataframe_sorted_and_reclassified_basfi,
+                     control = lmerControl(optimizer = "bobyqa",
+                                           optCtrl = list(maxfun = 2e5)))
+
+print(summary(model_diag_diagnosis_basfi_full, corr = FALSE))
+```
+
+```{r}
+model_diag_diagnosis_basfi_reduced <- lmer(
+  basfi ~ gender + hlab27status + age_at_diag +
+    diagnosis + treatment_order + last_known_smoking_status +
+    last_known_vaping_status +
+    treatment_reclassified +
+    time_in_years + (time_in_years | ttas_id),
+                        data = dataframe_sorted_and_reclassified_basfi,
+                        control = lmerControl(optimizer = "bobyqa",
+                                              optCtrl = list(maxfun = 2e5)))
+
+print(summary(model_diag_diagnosis_basfi_reduced, corr = FALSE))
+```
+
+```{r}
+anova(model_diag_diagnosis_basfi_full, model_diag_diagnosis_basfi_reduced)
 ```
