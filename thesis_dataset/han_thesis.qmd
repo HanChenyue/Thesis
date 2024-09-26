@@ -4740,6 +4740,11 @@ anova(model_treatment_gender_asqol_full,
       model_treatment_gender_asqol_reduced)
 ```
 
+```{r}
+anova(model_treatment_gender_asqol_full)
+```
+
+
 # Jenkins Sleep
 
 ```{r, include=FALSE}
