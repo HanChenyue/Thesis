@@ -42,6 +42,8 @@ library(broom.mixed)
 
 # Data Cleaning
 
+## Excluded from R Code Outputs
+
 ```{r, include=FALSE}
 # Load data
 demographics_sheet_data <- read_excel("TTAS\ All\ data\ anon.xlsx", sheet = "Demographics")
@@ -1137,7 +1139,7 @@ plot(density(basmi_sheet_data$basmi_score, na.rm = TRUE), main = "Kernel Density
 plot(sort(basmi_sheet_data$basmi_score, na.last = NA), main = "Sorted BASMI Score", xlab = "Index", ylab = "BASMI Score")
 ```
 
-```{r, include=TRUE}
+```{r, include=FALSE}
 # Plotting the BASMI score against age_at_basmi
 ggplot(basmi_sheet_data, aes(x = age_at_basmi, y = basmi_score)) +
   # geom_point(alpha = 0.5) +
@@ -3133,9 +3135,8 @@ dataframe_sorted_and_reclassified_basmi$last_known_smoking_status <- as.factor(d
 dataframe_sorted_and_reclassified_basmi$last_known_vaping_status <- as.factor(dataframe_sorted_and_reclassified_basmi$last_known_vaping_status)
 ```
 
+```{r, include=FALSE}
 # Filter out those with treatment_order
-
-```{r, include=TRUE}
 # Filter rows where treatment_order > 3 and select unique ttas_id
 filtered_ttas_id_more_than_3 <- dataframe_sorted_and_reclassified_basmi %>%
   filter(treatment_order %in% as.character(3:15)) %>%
@@ -3175,7 +3176,7 @@ print(filtered_ttas_id_more_than_7)
 print(filtered_ttas_id_more_than_8)
 ```
 
-```{r}
+```{r, include = FALSE}
 # Print the all rows with ttas_id shown in filter_ttas_id_more_than_8
 filtered_ttas_id_more_than_8_characteristics <- demographics_sheet_data %>%
   filter(ttas_id %in% filtered_ttas_id_more_than_8$ttas_id)
@@ -3183,7 +3184,7 @@ filtered_ttas_id_more_than_8_characteristics <- demographics_sheet_data %>%
 print(filtered_ttas_id_more_than_8_characteristics)
 ```
 
-```{r}
+```{r, include = FALSE}
 # Print the all rows with ttas_id shown in filter_ttas_id_more_than_7
 filtered_ttas_id_more_than_7_characteristics <- demographics_sheet_data %>%
   filter(ttas_id %in% filtered_ttas_id_more_than_7$ttas_id)
@@ -3191,7 +3192,7 @@ filtered_ttas_id_more_than_7_characteristics <- demographics_sheet_data %>%
 print(filtered_ttas_id_more_than_7_characteristics)
 ```
 
-```{r}
+```{r, include = FALSE}
 # Print the all rows with ttas_id shown in filter_ttas_id_more_than_6
 filtered_ttas_id_more_than_6_characteristics <- demographics_sheet_data %>%
   filter(ttas_id %in% filtered_ttas_id_more_than_6$ttas_id)
@@ -3360,7 +3361,7 @@ print(filtered_ttas_id_more_than_6_characteristics)
 
 # lme4 code for treatment and diagnosis: BASMI score
 
-```{r, include=TRUE}
+```{r, include=FALSE}
 # Make sure that the reference level for treatment_reclassified is
 # "Standard Non-High Cost Drug Treatment"
 dataframe_sorted_and_reclassified_basmi$treatment_reclassified <-
@@ -3419,26 +3420,9 @@ model_treatment_diagnosis_basmi_reduced <- lmer(
                                               optCtrl = list(maxfun = 2e5)))
 ```
 
-```{r, include=FALSE}
-# # Test model
-# test_model <- lmer(
-#   basmi_score ~ gender + hlab27status + age_at_basmi +
-#     treatment_order + last_known_smoking_status +
-#     last_known_vaping_status +
-#     treatment_reclassified * diagnosis +
-#     time_in_years + (time_in_years | ttas_id),
-#                      data = dataframe_sorted_and_reclassified_basmi,
-#                      control = lmerControl(optimizer = "bobyqa",
-#                                            optCtrl = list(maxfun = 2e5)))
-# print(summary(test_model, corr = FALSE))
-```
-
-
 ```{r, include=TRUE}
 print(summary(model_treatment_diagnosis_basmi_full, corr = FALSE))
 ```
-
-
 
 ```{r, include = TRUE}
 print(summary(model_treatment_diagnosis_basmi_reduced, corr = FALSE))
@@ -3448,7 +3432,7 @@ print(summary(model_treatment_diagnosis_basmi_reduced, corr = FALSE))
 anova(model_treatment_diagnosis_basmi_full, model_treatment_diagnosis_basmi_reduced)
 ```
 
-```{r}
+```{r, include = TRUE}
 anova(model_treatment_diagnosis_basmi_full)
 ```
 
@@ -3593,7 +3577,7 @@ model_treatment_gender_basmi_reduced <- lmer(
 print(summary(model_treatment_gender_basmi_full, corr = FALSE))
 ```
 
-```{r}
+```{r, include = TRUE}
 print(summary(model_treatment_gender_basmi_reduced, corr = FALSE))
 ```
 
@@ -3602,10 +3586,9 @@ anova(model_treatment_gender_basmi_full,
       model_treatment_gender_basmi_reduced)
 ```
 
-```{r}
+```{r, include = TRUE}
 anova(model_treatment_gender_basmi_full)
 ```
-
 
 # BASDAI Score analysis
 
@@ -3747,11 +3730,6 @@ model_treatment_diagnosis_basdai_reduced <- lmer(
 print(summary(model_treatment_diagnosis_basdai_full, corr = FALSE))
 ```
 
-```{r}
-anova(model_treatment_diagnosis_basdai_full, corr = FALSE)
-```
-
-
 ```{r, include=TRUE}
 print(summary(model_treatment_diagnosis_basdai_reduced, corr = FALSE))
 ```
@@ -3759,6 +3737,10 @@ print(summary(model_treatment_diagnosis_basdai_reduced, corr = FALSE))
 ```{r, include=TRUE}
 anova(model_treatment_diagnosis_basdai_full,
       model_treatment_diagnosis_basdai_reduced)
+```
+
+```{r, include = TRUE}
+anova(model_treatment_diagnosis_basdai_full, corr = FALSE)
 ```
 
 # lme4 code for treatment and gender: BASDAI score
@@ -3801,11 +3783,9 @@ anova(model_treatment_gender_basdai_full,
       model_treatment_gender_basdai_reduced)
 ```
 
-```{r}
+```{r, include = TRUE}
 anova(model_treatment_gender_basdai_full)
 ```
-
-
 
 # BASFI score
 
@@ -3942,10 +3922,6 @@ model_treatment_diagnosis_basfi_reduced <- lmer(
                                             optCtrl = list(maxfun = 2e5)))
 ```
 
-```{r}
-anova(model_treatment_diagnosis_basfi_full)
-```
-
 ```{r, include=TRUE}
 print(summary(model_treatment_diagnosis_basfi_full, corr = FALSE))
 ```
@@ -3957,6 +3933,10 @@ print(summary(model_treatment_diagnosis_basfi_reduced, corr = FALSE))
 ```{r, include=TRUE}
 anova(model_treatment_diagnosis_basfi_full,
       model_treatment_diagnosis_basfi_reduced)
+```
+
+```{r, include = TRUE}
+anova(model_treatment_diagnosis_basfi_full)
 ```
 
 # lme4 code for treatment and gender: BASFI score
@@ -4148,6 +4128,10 @@ anova(model_treatment_diagnosis_patient_global_full,
       model_treatment_diagnosis_patient_global_reduced)
 ```
 
+```{r, include = TRUE}
+anova(model_treatment_diagnosis_patient_global_full)
+```
+
 # lme4 code for treatment and gender: Patient Global Score
 
 ```{r, include=TRUE}
@@ -4182,9 +4166,13 @@ print(summary(model_treatment_gender_patient_global_full, corr = FALSE))
 print(summary(model_treatment_gender_patient_global_reduced, corr = FALSE))
 ```
 
-```{r}
+```{r, include = TRUE}
 anova(model_treatment_gender_patient_global_full,
       model_treatment_gender_patient_global_reduced)
+```
+
+```{r, include=TRUE}
+anova(model_treatment_gender_patient_global_full)
 ```
 
 # Back Pain At Night
@@ -4332,6 +4320,10 @@ anova(model_treatment_diagnosis_back_pain_at_night_full,
       model_treatment_diagnosis_back_pain_at_night_reduced)
 ```
 
+```{r, include = TRUE}
+anova(model_treatment_diagnosis_back_pain_at_night_full)
+```
+
 # lme4 code for treatment and gender: Back Pain At Night
 
 ```{r, include=TRUE}
@@ -4369,6 +4361,10 @@ print(summary(model_treatment_gender_back_pain_at_night_reduced, corr = FALSE))
 ```{r, include=TRUE}
 anova(model_treatment_gender_back_pain_at_night_full,
       model_treatment_gender_back_pain_at_night_reduced)
+```
+
+```{r}
+anova(model_treatment_gender_back_pain_at_night_full)
 ```
 
 # Back Pain Anytime
@@ -4517,6 +4513,10 @@ anova(model_treatment_diagnosis_back_pain_anytime_full,
       model_treatment_diagnosis_back_pain_anytime_reduced)
 ```
 
+```{r, include=TRUE}
+anova(model_treatment_diagnosis_back_pain_anytime_full)
+```
+
 # lme4 code for treatment and gender: Back Pain Anytime
 
 ```{r, include=TRUE}
@@ -4554,6 +4554,10 @@ print(summary(model_treatment_gender_back_pain_anytime_reduced, corr = FALSE))
 ```{r, include=TRUE}
 anova(model_treatment_gender_back_pain_anytime_full,
       model_treatment_gender_back_pain_anytime_reduced)
+```
+
+```{r, include=TRUE}
+anova(model_treatment_gender_back_pain_anytime_full)
 ```
 
 # AsQoL
@@ -4701,6 +4705,10 @@ anova(model_treatment_diagnosis_asqol_full,
       model_treatment_diagnosis_asqol_reduced)
 ```
 
+```{r, include=TRUE}
+anova(model_treatment_diagnosis_asqol_full)
+```
+
 # lme4 code for treatment and gender: AsQoL
 
 ```{r, include=TRUE}
@@ -4740,10 +4748,13 @@ anova(model_treatment_gender_asqol_full,
       model_treatment_gender_asqol_reduced)
 ```
 
-```{r}
+```{r, include = TRUE}
 anova(model_treatment_gender_asqol_full)
 ```
 
+```{r, include=TRUE}
+anova(model_treatment_gender_asqol_full)
+```
 
 # Jenkins Sleep
 
@@ -5174,6 +5185,10 @@ anova(model_treatment_diagnosis_jenkins_sleep_1_full,
 ```
 
 ```{r, include=TRUE}
+anova(model_treatment_diagnosis_jenkins_sleep_1_full)
+```
+
+```{r, include=TRUE}
 print(summary(model_treatment_diagnosis_jenkins_sleep_2_full, corr = FALSE))
 ```
 
@@ -5184,6 +5199,10 @@ print(summary(model_treatment_diagnosis_jenkins_sleep_2_reduced, corr = FALSE))
 ```{r, include=TRUE}
 anova(model_treatment_diagnosis_jenkins_sleep_2_full,
       model_treatment_diagnosis_jenkins_sleep_2_reduced)
+```
+
+```{r, include=TRUE}
+anova(model_treatment_diagnosis_jenkins_sleep_2_full)
 ```
 
 ```{r, include=TRUE}
@@ -5200,6 +5219,10 @@ anova(model_treatment_diagnosis_jenkins_sleep_3_full,
 ```
 
 ```{r, include=TRUE}
+anova(model_treatment_diagnosis_jenkins_sleep_3_full)
+```
+
+```{r, include=TRUE}
 print(summary(model_treatment_diagnosis_jenkins_sleep_4_full, corr = FALSE))
 ```
 
@@ -5210,6 +5233,10 @@ print(summary(model_treatment_diagnosis_jenkins_sleep_4_reduced, corr = FALSE))
 ```{r, include=TRUE}
 anova(model_treatment_diagnosis_jenkins_sleep_4_full,
       model_treatment_diagnosis_jenkins_sleep_4_reduced)
+```
+
+```{r, include=TRUE}
+anova(model_treatment_diagnosis_jenkins_sleep_4_full)
 ```
 
 # lme4 code for treatment and gender: Jenkins Sleep
@@ -5313,6 +5340,10 @@ anova(model_treatment_gender_jenkins_sleep_1_full,
 ```
 
 ```{r, include=TRUE}
+anova(model_treatment_gender_jenkins_sleep_1_full)
+```
+
+```{r, include=TRUE}
 print(summary(model_treatment_gender_jenkins_sleep_2_full, corr = FALSE))
 ```
 
@@ -5334,8 +5365,16 @@ print(summary(model_treatment_gender_jenkins_sleep_3_reduced, corr = FALSE))
 ```
 
 ```{r, include=TRUE}
+anova(model_treatment_gender_jenkins_sleep_2_full)
+```
+
+```{r, include=TRUE}
 anova(model_treatment_gender_jenkins_sleep_3_full,
       model_treatment_gender_jenkins_sleep_3_reduced)
+```
+
+```{r, include=TRUE}
+anova(model_treatment_gender_jenkins_sleep_3_full)
 ```
 
 ```{r, include=TRUE}
@@ -5349,6 +5388,10 @@ print(summary(model_treatment_gender_jenkins_sleep_4_reduced, corr = FALSE))
 ```{r, include=TRUE}
 anova(model_treatment_gender_jenkins_sleep_4_full,
       model_treatment_gender_jenkins_sleep_4_reduced)
+```
+
+```{r, include=TRUE}
+anova(model_treatment_gender_jenkins_sleep_4_full)
 ```
 
 # WPL
@@ -5494,6 +5537,10 @@ anova(model_treatment_diagnosis_wpl_full,
       model_treatment_diagnosis_wpl_reduced)
 ```
 
+```{r, include=TRUE}
+anova(model_treatment_diagnosis_wpl_full)
+```
+
 # lme4 code for treatment and gender: WPL
 
 ```{r, include=TRUE}
@@ -5531,6 +5578,10 @@ print(summary(model_treatment_gender_wpl_reduced, corr = FALSE))
 ```{r, include=TRUE}
 anova(model_treatment_gender_wpl_full,
       model_treatment_gender_wpl_reduced)
+```
+
+```{r, include=TRUE}
+anova(model_treatment_gender_wpl_full)
 ```
 
 # Daily Activity Impairment
@@ -5676,6 +5727,10 @@ anova(model_treatment_diagnosis_daily_activity_impairment_full,
       model_treatment_diagnosis_daily_activity_impairment_reduced)
 ```
 
+```{r, include=TRUE}
+anova(model_treatment_diagnosis_daily_activity_impairment_full)
+```
+
 # lme4 code for treatment and gender: Daily Activity Impairment
 
 ```{r, include=TRUE}
@@ -5713,6 +5768,10 @@ print(summary(model_treatment_gender_daily_activity_impairment_reduced, corr = F
 ```{r, include=TRUE}
 anova(model_treatment_gender_daily_activity_impairment_full,
       model_treatment_gender_daily_activity_impairment_reduced)
+```
+
+```{r, include=TRUE}
+anova(model_treatment_gender_daily_activity_impairment_full)
 ```
 
 # Presenteeism
@@ -5858,6 +5917,10 @@ anova(model_treatment_diagnosis_presenteeism_full,
       model_treatment_diagnosis_presenteeism_reduced)
 ```
 
+```{r, include=TRUE}
+anova(model_treatment_diagnosis_presenteeism_full)
+```
+
 # lme4 code for treatment and gender: Presenteeism
 
 ```{r, include=TRUE}
@@ -5895,6 +5958,10 @@ print(summary(model_treatment_gender_presenteeism_reduced, corr = FALSE))
 ```{r, include=TRUE}
 anova(model_treatment_gender_presenteeism_full,
       model_treatment_gender_presenteeism_reduced)
+```
+
+```{r, include=TRUE}
+anova(model_treatment_gender_presenteeism_full)
 ```
 
 # Absenteeism
@@ -6040,6 +6107,10 @@ anova(model_treatment_diagnosis_absenteeism_full,
       model_treatment_diagnosis_absenteeism_reduced)
 ```
 
+```{r, include=TRUE}
+anova(model_treatment_diagnosis_absenteeism_full)
+```
+
 # lme4 code for treatment and gender: Absenteeism
 
 ```{r, include=TRUE}
@@ -6077,6 +6148,10 @@ print(summary(model_treatment_gender_absenteeism_reduced, corr = FALSE))
 ```{r, include=TRUE}
 anova(model_treatment_gender_absenteeism_full,
       model_treatment_gender_absenteeism_reduced)
+```
+
+```{r, include=TRUE}
+anova(model_treatment_gender_absenteeism_full)
 ```
 
 # FACIT
@@ -6222,6 +6297,10 @@ anova(model_treatment_diagnosis_facit_full,
       model_treatment_diagnosis_facit_reduced)
 ```
 
+```{r, include=TRUE}
+anova(model_treatment_diagnosis_facit_full)
+```
+
 # lme4 code for treatment and gender: FACIT
 
 ```{r, include=TRUE}
@@ -6259,6 +6338,10 @@ print(summary(model_treatment_gender_facit_reduced, corr = FALSE))
 ```{r, include=TRUE}
 anova(model_treatment_gender_facit_full,
       model_treatment_gender_facit_reduced)
+```
+
+```{r, include=TRUE}
+anova(model_treatment_gender_facit_full)
 ```
 
 # Margolis
@@ -6404,6 +6487,10 @@ anova(model_treatment_diagnosis_margolis_full,
       model_treatment_diagnosis_margolis_reduced)
 ```
 
+```{r, include=TRUE}
+anova(model_treatment_diagnosis_margolis_full)
+```
+
 # lme4 code for treatment and gender: Margolis
 
 ```{r, include=TRUE}
@@ -6443,9 +6530,12 @@ anova(model_treatment_gender_margolis_full,
       model_treatment_gender_margolis_reduced)
 ```
 
-# French cohort study
+```{r, include=TRUE}
+anova(model_treatment_gender_margolis_full)
+```
 
 ```{r}
+# Old code: French cohort study
 # # Data for the forest plot
 # forest_data <- data.frame(
 #   Study = c("Tournadre et al. (2013) - Male", "Tournadre et al. (2013) - Female", 
@@ -6481,7 +6571,7 @@ anova(model_treatment_gender_margolis_full,
 # ggsave("forest_plot.png", width = 200, height = 150, units = "mm")
 ```
 
-# Investigating Age at Onset and Diagnosis
+# Investigating Age at Onset/Age at Diagnosis and Diagnosis
 
 ```{r, include=TRUE}
 model_onset_diagnosis_basmi_full <- lmer(
@@ -6511,11 +6601,15 @@ model_onset_diagnosis_basmi_reduced <- lmer(
 print(summary(model_onset_diagnosis_basmi_reduced, corr = FALSE))
 ```
 
-```{r}
+```{r, include = TRUE}
 anova(model_onset_diagnosis_basmi_full, model_onset_diagnosis_basmi_reduced)
 ```
 
-```{r}
+```{r, include = TRUE}
+anova(model_onset_diagnosis_basmi_full)
+```
+
+```{r, include = TRUE}
 model_onset_diagnosis_basdai_full <- lmer(
   basdai ~ gender + hlab27status + age_at_onset +
     diagnosis + treatment_order + last_known_smoking_status +
@@ -6529,7 +6623,7 @@ model_onset_diagnosis_basdai_full <- lmer(
 print(summary(model_onset_diagnosis_basdai_full, corr = FALSE))
 ```
 
-```{r}
+```{r, include = TRUE}
 model_onset_diagnosis_basdai_reduced <- lmer(
   basdai ~ gender + hlab27status + age_at_onset +
     diagnosis + treatment_order + last_known_smoking_status +
@@ -6543,11 +6637,15 @@ model_onset_diagnosis_basdai_reduced <- lmer(
 print(summary(model_onset_diagnosis_basdai_reduced, corr = FALSE))
 ```
 
-```{r}
+```{r, include = TRUE}
 anova(model_onset_diagnosis_basdai_full, model_onset_diagnosis_basdai_reduced)
 ```
 
-```{r}
+```{r, include = TRUE}
+anova(model_onset_diagnosis_basdai_full)
+```
+
+```{r, include = TRUE}
 model_onset_diagnosis_basfi_full <- lmer(
   basfi ~ gender + hlab27status + age_at_onset +
     diagnosis + treatment_order + last_known_smoking_status +
@@ -6561,7 +6659,7 @@ model_onset_diagnosis_basfi_full <- lmer(
 print(summary(model_onset_diagnosis_basfi_full, corr = FALSE))
 ```
 
-```{r}
+```{r, include = TRUE}
 model_onset_diagnosis_basfi_reduced <- lmer(
   basfi ~ gender + hlab27status + age_at_onset +
     diagnosis + treatment_order + last_known_smoking_status +
@@ -6575,11 +6673,15 @@ model_onset_diagnosis_basfi_reduced <- lmer(
 print(summary(model_onset_diagnosis_basfi_reduced, corr = FALSE))
 ```
 
-```{r}
+```{r, include = TRUE}
 anova(model_onset_diagnosis_basfi_full, model_onset_diagnosis_basfi_reduced)
 ```
 
-```{r}
+```{r, include = TRUE}
+anova(model_onset_diagnosis_basfi_full)
+```
+
+```{r, include = TRUE}
 model_diag_diagnosis_basmi_full <- lmer(
   basmi_score ~ gender + hlab27status + age_at_diag +
     diagnosis + treatment_order + last_known_smoking_status +
@@ -6593,7 +6695,7 @@ model_diag_diagnosis_basmi_full <- lmer(
 print(summary(model_diag_diagnosis_basmi_full, corr = FALSE))
 ```
 
-```{r}
+```{r, include = TRUE}
 model_diag_diagnosis_basmi_reduced <- lmer(
   basmi_score ~ gender + hlab27status + age_at_diag +
     diagnosis + treatment_order + last_known_smoking_status +
@@ -6607,11 +6709,15 @@ model_diag_diagnosis_basmi_reduced <- lmer(
 print(summary(model_diag_diagnosis_basmi_reduced, corr = FALSE))
 ```
 
-```{r}
+```{r, include = TRUE}
 anova(model_diag_diagnosis_basmi_full, model_diag_diagnosis_basmi_reduced)
 ```
 
-```{r}
+```{r, include = TRUE}
+anova(model_diag_diagnosis_basmi_full)
+```
+
+```{r, include = TRUE}
 model_diag_diagnosis_basdai_full <- lmer(
   basdai ~ gender + hlab27status + age_at_diag +
     diagnosis + treatment_order + last_known_smoking_status +
@@ -6625,7 +6731,7 @@ model_diag_diagnosis_basdai_full <- lmer(
 print(summary(model_diag_diagnosis_basdai_full, corr = FALSE))
 ```
 
-```{r}
+```{r, include = TRUE}
 model_diag_diagnosis_basdai_reduced <- lmer(
   basdai ~ gender + hlab27status + age_at_diag +
     diagnosis + treatment_order + last_known_smoking_status +
@@ -6639,11 +6745,15 @@ model_diag_diagnosis_basdai_reduced <- lmer(
 print(summary(model_diag_diagnosis_basdai_reduced, corr = FALSE))
 ```
 
-```{r}
+```{r, include = TRUE}
 anova(model_diag_diagnosis_basdai_full, model_diag_diagnosis_basdai_reduced)
 ```
 
-```{r}
+```{r, include = TRUE}
+anova(model_diag_diagnosis_basdai_full)
+```
+
+```{r, include = TRUE}
 model_diag_diagnosis_basfi_full <- lmer(
   basfi ~ gender + hlab27status + age_at_diag +
     diagnosis + treatment_order + last_known_smoking_status +
@@ -6657,7 +6767,7 @@ model_diag_diagnosis_basfi_full <- lmer(
 print(summary(model_diag_diagnosis_basfi_full, corr = FALSE))
 ```
 
-```{r}
+```{r, include = TRUE}
 model_diag_diagnosis_basfi_reduced <- lmer(
   basfi ~ gender + hlab27status + age_at_diag +
     diagnosis + treatment_order + last_known_smoking_status +
@@ -6671,6 +6781,10 @@ model_diag_diagnosis_basfi_reduced <- lmer(
 print(summary(model_diag_diagnosis_basfi_reduced, corr = FALSE))
 ```
 
-```{r}
+```{r, include = TRUE}
 anova(model_diag_diagnosis_basfi_full, model_diag_diagnosis_basfi_reduced)
+```
+
+```{r, include = TRUE}
+anova(model_diag_diagnosis_basfi_full)
 ```
