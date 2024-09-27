@@ -3,5 +3,5 @@ All my R code and saved documents.
 
 In the thesis dataset folder:
 
-* han_thesis.qmd contains all the code and comments.
-* han_thesis.qmd contains all the R code outputs.
+* thesis.qmd contains all the code and comments.
+* thesis.pdf contains all the R code outputs.
