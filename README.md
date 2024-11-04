@@ -1,5 +1,5 @@
 # MSc Data Science and Statistics Thesis
-All my R code and saved documents.
+Collaborated with Royal National Hospital NHS for Rheumatic Diseases (Bath, England) to develop a statistical model for an Axial Spondylarthritis longitudinal dataset in R.
 
 In the thesis dataset folder:
 
